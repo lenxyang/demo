@@ -38,8 +38,8 @@
             <ambient>0.01</ambient>
             <specular>0.8</specular>
             <emission>0.0, 0.0, 0.0, 0.0</emission>
-            <diffusemap>//Media/stones.bmp</diffusemap>
-            <nmhmap>//Media/stones_NM_height.tga</nmhmap>
+            <diffusemap>//Media/stones.dds</diffusemap>
+            <nmhmap>//Media/stones_NM_height.dds</nmhmap>
             <alpha>1.0</alpha>
           </provider>
         </mesh>

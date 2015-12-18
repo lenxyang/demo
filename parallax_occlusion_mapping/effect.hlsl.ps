@@ -15,18 +15,18 @@ cbuffer c_buffer {
    DirLight   dirlight;
    PointLight pointlight;
    SpotLight  spotlight;
-   float      ambient_scalar_;
-   float      specular_scalar_;
+   float      ambient_scalar;
+   float      specular_scalar;
 };
 
-Texture2D diffuse_map_;
+Texture2D diffuse_map;
 SamplerState diffuse_sampler;
 
 float4 ps_main(VsOutput o):SV_TARGET {
-  float color = diffuse_map_.Sample(diffuse_sampler, o.texcoord);
+  float4 color = diffuse_map.Sample(diffuse_sampler, o.texcoord);
   Matrial mtrl;
-  mtrl.ambient = ambient_scalar_ * color;
-  mtrl.specular = specular * color;
+  mtrl.ambient = ambient_scalar * color;
+  mtrl.specular = specular_scalar * color;
   mtrl.diffuse = color;
   mtrl.emission = float4(0.0f, 0.0f, 0.0f, 0.0f);
   mtrl.power = 4;

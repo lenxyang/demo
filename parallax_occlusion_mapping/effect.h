@@ -2,6 +2,8 @@
 
 #include "base/memory/ref_counted.h"
 #include "azer/math/math.h"
+#include "azer/base/config_node.h"
+#include "azer/base/file_system.h"
 #include "azer/render/render.h"
 #include "lordaeron/effect/light.h"
 
@@ -27,7 +29,8 @@ class MyEffect : public azer::Effect {
     DirLight light;
     PointLight pointlight;
     SpotLight  spotlight;
-    azer::Vector4 color;
+    float ambient_scalar;
+    float specular_scalar;
   };
 #pragma pack(pop)
 
@@ -40,7 +43,9 @@ class MyEffect : public azer::Effect {
   void set_ambient_scalar(float scalar) { ambient_scalar_ = scalar;}
   void set_specular_scalar(float scalar) { specular_scalar_ = scalar;}
   void set_diffuse_texture(azer::Texture* tex) { diffuse_map_ = tex;}
+  void set_nmh_texture(azer::Texture* tex) { nmh_map_ = tex;}
  protected:
+  void UseTexture(azer::Renderer* renderer) override;
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitTechnique(const ShaderPrograms& source);
   void InitGpuConstantTable();
@@ -49,6 +54,7 @@ class MyEffect : public azer::Effect {
   azer::Matrix4 world_;
   azer::Vector4 camerapos_;
   azer::TexturePtr diffuse_map_;
+  azer::TexturePtr nmh_map_;
   float ambient_scalar_;
   float specular_scalar_;
   DirLight dir_light_;
@@ -62,11 +68,17 @@ class MaterialProvider : public azer::EffectParamsProvider {
   static const char kEffectParamsProviderName[];
   MaterialProvider();
   const char* name() const override;
-  void UpdateParams(const FrameArgs& args) override {}
+  void UpdateParams(const azer::FrameArgs& args) override {}
   void InitFromConfigNode(azer::ConfigNode* config, azer::FileSystem* fs);
+
+  float ambient_scalar() const { return ambient_scalar_;}
+  float specular_scalar() const { return specular_scalar_;}
+  const azer::Vector4& emission() const { return emission_;}
+  azer::Texture* diffuse_map() { return diffuse_map_.get();}
+  azer::Texture* nmh_map() { return nmh_map_.get();};
  private:
-  float ambient_;
-  float specular_;
+  float ambient_scalar_;
+  float specular_scalar_;
   azer::Vector4 emission_;
   azer::TexturePtr diffuse_map_;
   azer::TexturePtr nmh_map_;

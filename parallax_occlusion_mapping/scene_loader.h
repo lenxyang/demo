@@ -7,6 +7,7 @@
 #include "lordaeron/scene/scene_loader.h"
 
 namespace lord {
+namespace sandbox {
 void InitMeshEffect(azer::Effect* effect, azer::Mesh* mesh);
 class SimpleSceneNodeLoader : public SceneNodeLoader {
  public:
@@ -23,5 +24,5 @@ class SimpleSceneNodeLoader : public SceneNodeLoader {
   azer::Effect* effect_;
   DISALLOW_COPY_AND_ASSIGN(SimpleSceneNodeLoader);
 };
-
+}  // namespace sandbox
 }  // namespace lord

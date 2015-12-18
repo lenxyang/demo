@@ -11,14 +11,14 @@ using azer::EffectParamsProvider;
 using azer::EffectAdapterKey;
 using azer::EffectParamsAdapter;
 
-class ColorEffectAdapter : public EffectParamsAdapter {
+class MaterialEffectAdapter : public EffectParamsAdapter {
  public:
-  ColorEffectAdapter();
+  MaterialEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(ColorEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(MaterialEffectAdapter);
 };
 
 class SceneRenderNodeEffectAdapter : public EffectParamsAdapter {

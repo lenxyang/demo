@@ -6,6 +6,7 @@
 #include "demo/parallax_occlusion_mapping/effect_adapter.h"
 
 namespace lord {
+namespace sandbox {
 using namespace azer;
 bool SimpleSceneNodeLoader::LoadSceneNode(SceneNode* node, ConfigNode* config,
                                           SceneLoadContext* lctx) {
@@ -42,7 +43,7 @@ MeshPtr SimpleSceneNodeLoader::LoadMesh(ConfigNode* config,
 EffectParamsProviderPtr SimpleSceneNodeLoader::LoadProvider(
     ConfigNode* config, SceneLoadContext* lctx) {
   MaterialProvider* p(new MaterialProvider);
-  CHECK(p->InitFromConfigNode(config, lctx->filesystem));
+  p->InitFromConfigNode(config, lctx->filesystem);
   return EffectParamsProviderPtr(p);
 }
 
@@ -51,4 +52,5 @@ void InitMeshEffect(Effect* effect, Mesh* mesh) {
     mesh->part_at(i)->SetEffect(effect);
   }
 }
+}  // namespace sandbox
 }  // namespace lord

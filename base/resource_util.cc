@@ -9,7 +9,7 @@ using namespace azer;
 bool ReadFileContents(const ResPath& path, FileContents* contents, FileSystem* fs) {
   FilePtr ptr = fs->OpenFile(path);
   if (!ptr.get()) {
-    LOG(ERROR) << "Failed to open file: " << path.value();
+    LOG(ERROR) << "Failed to open file: " << path.fullpath();
     return false;
   }
 
@@ -27,9 +27,9 @@ TexturePtr Load2DTexture(const ResPath& path, FileSystem* fs) {
     return TexturePtr();
   }
 
-  const char* data = static_cast<const char*>(&contents.front());
-  ImageDataPtr imgdata(ImageData::Load2D(data, contents.length()));
-  ImagePtr img(imgdata, Image::k2D);
+  const char* data = (char*)(&contents.front());
+  ImageDataPtr imgdata(ImageData::Load2D(data, contents.size()));
+  ImagePtr img(new Image(imgdata, Image::k2D));
   RenderSystem* rs = RenderSystem::Current();
   Texture::Options opt;
   opt.target = Texture::kShaderResource;

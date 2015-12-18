@@ -10,7 +10,7 @@ executable("parallax_occlusion_mapping") {
     "scene_loader.h",
   ]
   deps = [
-    "//lordaeron"
+    "//lordaeron",
     "//demo/base",
   ]
 }

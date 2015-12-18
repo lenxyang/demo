@@ -1,28 +1,31 @@
 #include "demo/parallax_occlusion_mapping/effect_adapter.h"
 
 #include "azer/render/util.h"
-#include "lordaeron/sandbox/lighting/effect.h"
+#include "demo/parallax_occlusion_mapping/effect.h"
 #include "lordaeron/effect/diffuse_effect.h"
 #include "lordaeron/scene/scene_node.h"
 #include "lordaeron/scene/scene_render_tree.h"
+#include "demo/parallax_occlusion_mapping/effect.h"
 
 namespace lord {
 namespace sandbox {
 using namespace azer;
-ColorEffectAdapter::ColorEffectAdapter() {
+MaterialEffectAdapter::MaterialEffectAdapter() {
 }
 
-EffectAdapterKey ColorEffectAdapter::key() const {
+EffectAdapterKey MaterialEffectAdapter::key() const {
   return std::make_pair(typeid(MyEffect).name(),
-                        typeid(DiffuseColorProvider).name());
+                        typeid(MaterialProvider).name());
 }
 
-void ColorEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params) const  {
+void MaterialEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(MyEffect));
-  CHECK(typeid(*params) == typeid(DiffuseColorProvider));
-  DiffuseColorProvider* provider = (DiffuseColorProvider*)params;
+  CHECK(typeid(*params) == typeid(MaterialProvider));
+  MaterialProvider* provider = (MaterialProvider*)params;
   MyEffect* effect = dynamic_cast<MyEffect*>(e);
-  effect->SetColor(provider->color());
+  effect->set_ambient_scalar(provider->ambient_scalar());
+  effect->set_specular_scalar(provider->specular_scalar());
+  effect->set_diffuse_texture(provider->diffuse_map());
 }
 
 // class SceneRenderNodeMyEffectAdapter

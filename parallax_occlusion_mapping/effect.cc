@@ -12,6 +12,7 @@
 #include "demo/base/resource_util.h"
 
 using namespace azer;
+using base::UTF8ToUTF16;
 
 namespace lord {
 namespace sandbox {
@@ -56,8 +57,10 @@ void MyEffect::InitGpuConstantTable() {
                             sizeof(lord::PointLight), 1),
     GpuConstantsTable::Desc("spotlight", offsetof(ps_cbuffer, spotlight),
                             sizeof(lord::SpotLight), 1),
-    GpuConstantsTable::Desc("color", GpuConstantsType::kVector4,
-                            offsetof(ps_cbuffer, color), 1),
+    GpuConstantsTable::Desc("ambient_scalar", GpuConstantsType::kFloat,
+                            offsetof(ps_cbuffer, ambient_scalar), 1),
+    GpuConstantsTable::Desc("specular_scalar", GpuConstantsType::kFloat,
+                            offsetof(ps_cbuffer, specular_scalar), 1),
   };
   gpu_table_[kPixelStage] = render_system_->CreateGpuConstantsTable(
       arraysize(ps_table_desc), ps_table_desc);
@@ -75,9 +78,7 @@ void MyEffect::SetWorld(const Matrix4& value) {
 void MyEffect::SetCameraPos(const Vector4& value) {
   camerapos_ = value;
 }
-void MyEffect::SetColor(const Vector4& value) {
-  color_ = value;
-}
+
 void MyEffect::SetDirLight(const lord::DirLight& value) {
   dir_light_ = value;
 }
@@ -105,8 +106,14 @@ void MyEffect::ApplyGpuConstantTable(Renderer* renderer) {
     tb->SetValue(0, &dir_light_, sizeof(lord::DirLight));
     tb->SetValue(1, &point_light_, sizeof(lord::PointLight));
     tb->SetValue(2, &spot_light_, sizeof(lord::SpotLight));
-    tb->SetValue(3, &color_, sizeof(Vector4));
+    tb->SetValue(3, &ambient_scalar_, sizeof(float));
+    tb->SetValue(4, &specular_scalar_, sizeof(float));
   }
+}
+
+void MyEffect::UseTexture(Renderer* renderer) {
+  renderer->UseTexture(kPixelStage, 0, diffuse_map_.get());
+  renderer->UseTexture(kPixelStage, 1, nmh_map_.get());
 }
 
 MyEffectPtr CreateMyEffect() {
@@ -117,7 +124,8 @@ MyEffectPtr CreateMyEffect() {
   CHECK(LoadShaderAtStage(kPixelStage, 
                           "demo/parallax_occlusion_mapping/effect.hlsl.ps",
                           &shaders));
-  MyEffectPtr ptr(new MyEffect(PosNormalVertex::CreateVertexDesc()));
+  
+  MyEffectPtr ptr(new MyEffect(TexPosNormalVertex::CreateVertexDesc()));
   ptr->Init(shaders);
   return ptr;
 }
@@ -128,11 +136,12 @@ MaterialProvider::MaterialProvider() {
 
 const char* MaterialProvider::name() const { return kEffectParamsProviderName;}
 void MaterialProvider::InitFromConfigNode(ConfigNode* config, FileSystem* fs) {
-  CHECK(config->GetTextAsFloat("ambient", &ambient_));
-  CHECK(config->GetTextAsFloat("specular", &specular_));
-  CHECK(config->GetTextAsVec4("emission", &emission_));
-  std::string diffusemap_path = config->GetText("diffusemap");
-  std::string nmhmap_path = config->GetText("nmhmap");
+  CHECK(config->GetChildTextAsFloat("ambient", &ambient_scalar_));
+  CHECK(config->GetChildTextAsFloat("specular", &specular_scalar_));
+  CHECK(config->GetChildTextAsVec4("emission", &emission_));
+  std::string diffusemap_path, nmhmap_path;
+  CHECK(config->GetChildText("diffusemap", &diffusemap_path));
+  CHECK(config->GetChildText("nmhmap", &nmhmap_path));
   diffuse_map_ = Load2DTexture(ResPath(UTF8ToUTF16(diffusemap_path)), fs);
   nmh_map_ = Load2DTexture(ResPath(UTF8ToUTF16(nmhmap_path)), fs);
 }
