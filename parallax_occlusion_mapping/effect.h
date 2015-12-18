@@ -31,6 +31,8 @@ class MyEffect : public azer::Effect {
     SpotLight  spotlight;
     float ambient_scalar;
     float specular_scalar;
+    float pad1;
+    float pad2;
   };
 #pragma pack(pop)
 

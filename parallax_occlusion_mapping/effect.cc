@@ -61,6 +61,10 @@ void MyEffect::InitGpuConstantTable() {
                             offsetof(ps_cbuffer, ambient_scalar), 1),
     GpuConstantsTable::Desc("specular_scalar", GpuConstantsType::kFloat,
                             offsetof(ps_cbuffer, specular_scalar), 1),
+    GpuConstantsTable::Desc("pad1", GpuConstantsType::kFloat,
+                            offsetof(ps_cbuffer, pad1), 1),
+    GpuConstantsTable::Desc("pad2", GpuConstantsType::kFloat,
+                            offsetof(ps_cbuffer, pad2), 1),
   };
   gpu_table_[kPixelStage] = render_system_->CreateGpuConstantsTable(
       arraysize(ps_table_desc), ps_table_desc);
@@ -108,6 +112,8 @@ void MyEffect::ApplyGpuConstantTable(Renderer* renderer) {
     tb->SetValue(2, &spot_light_, sizeof(lord::SpotLight));
     tb->SetValue(3, &ambient_scalar_, sizeof(float));
     tb->SetValue(4, &specular_scalar_, sizeof(float));
+    tb->SetValue(5, &specular_scalar_, sizeof(float));
+    tb->SetValue(6, &specular_scalar_, sizeof(float));
   }
 }
 
@@ -115,6 +121,17 @@ void MyEffect::UseTexture(Renderer* renderer) {
   renderer->UseTexture(kPixelStage, 0, diffuse_map_.get());
   renderer->UseTexture(kPixelStage, 1, nmh_map_.get());
 }
+
+namespace {
+// class TexPosNormalVertex
+const VertexDesc::Desc kVertexDesc[] = {
+  {"POSITION", 0, kVec4, 0},
+  {"NORMAL",   0, kVec4, 0},
+  {"BINORMAL", 0, kVec4, 0},
+  {"TANGENT",  0, kVec4, 0},
+  {"TEXCOORD", 0, kVec2, 0},
+};
+}  // namespace
 
 MyEffectPtr CreateMyEffect() {
   Effect::ShaderPrograms shaders;
@@ -125,7 +142,8 @@ MyEffectPtr CreateMyEffect() {
                           "demo/parallax_occlusion_mapping/effect.hlsl.ps",
                           &shaders));
   
-  MyEffectPtr ptr(new MyEffect(TexPosNormalVertex::CreateVertexDesc()));
+  VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
+  MyEffectPtr ptr(new MyEffect(desc));
   ptr->Init(shaders);
   return ptr;
 }

@@ -26,6 +26,7 @@ void MaterialEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params)
   effect->set_ambient_scalar(provider->ambient_scalar());
   effect->set_specular_scalar(provider->specular_scalar());
   effect->set_diffuse_texture(provider->diffuse_map());
+  effect->set_nmh_texture(provider->nmh_map());
 }
 
 // class SceneRenderNodeMyEffectAdapter
