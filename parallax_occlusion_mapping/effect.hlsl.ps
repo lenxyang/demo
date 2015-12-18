@@ -1,0 +1,35 @@
+// using row_major
+#pragma pack_matrix(row_major)
+
+#include "lordaeron/effect/lighting.hlsl"
+
+struct VsOutput {
+  float4 position:SV_POSITION;
+  float3 worldpos: WPOS;
+  float3 normal:NORMAL;
+  float3 viewin: VIEWIN;
+};
+
+cbuffer c_buffer {
+   DirLight   dirlight;
+   PointLight pointlight;
+   SpotLight  spotlight;
+   float4 color;	
+};
+
+float4 ps_main(VsOutput o):SV_TARGET {
+  Matrial mtrl;
+  mtrl.ambient = float4(0.01, 0.01, 0.01, 1.0);
+  mtrl.specular = float4(0.8, 0.8, 0.8, 1.0);
+  mtrl.diffuse = color;
+  mtrl.emission = float4(0.0f, 0.0f, 0.0f, 0.0f);
+  mtrl.power = 4;
+  mtrl.alpha = 1.0f;
+
+  float3 dir_color = CalcDirLightColor(dirlight, o.normal, o.viewin, mtrl);
+  float3 point_color = CalcPointLightColor(pointlight, o.worldpos,
+                                           o.normal, o.viewin, mtrl);
+  float3 spot_color = CalcSpotLightColor(spotlight, o.worldpos,
+                                         o.normal, o.viewin, mtrl);
+  return float4(spot_color + dir_color + point_color, mtrl.alpha);
+}

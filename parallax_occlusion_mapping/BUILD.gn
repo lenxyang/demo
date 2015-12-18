@@ -1,0 +1,14 @@
+
+executable("parallax_occlusion_mapping") {
+  sources = [
+    "main.cc",
+    "effect.h",
+    "effect.cc",
+    "effect_adapter.h",
+    "effect_adapter.cc",
+    "scene_loader.cc",
+    "scene_loader.h",
+  ]
+  deps = ["//lordaeron"]
+}
+
