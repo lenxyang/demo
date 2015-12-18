@@ -1,0 +1,11 @@
+
+static_library("base") {
+  sources = [
+    "resource_util.cc",
+    "resource_util.h",
+  ]
+
+  deps = [
+    "//lordaeron",
+  ]
+}

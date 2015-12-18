@@ -9,6 +9,7 @@
 #include "azer/render/render.h"
 #include "azer/render/util/effects/vertex_desc.h"
 #include "azer/render/util/shader_util.h"
+#include "demo/base/resource_util.h"
 
 using namespace azer;
 
@@ -127,7 +128,13 @@ MaterialProvider::MaterialProvider() {
 
 const char* MaterialProvider::name() const { return kEffectParamsProviderName;}
 void MaterialProvider::InitFromConfigNode(ConfigNode* config, FileSystem* fs) {
-  
+  CHECK(config->GetTextAsFloat("ambient", &ambient_));
+  CHECK(config->GetTextAsFloat("specular", &specular_));
+  CHECK(config->GetTextAsVec4("emission", &emission_));
+  std::string diffusemap_path = config->GetText("diffusemap");
+  std::string nmhmap_path = config->GetText("nmhmap");
+  diffuse_map_ = Load2DTexture(ResPath(UTF8ToUTF16(diffusemap_path)), fs);
+  nmh_map_ = Load2DTexture(ResPath(UTF8ToUTF16(nmhmap_path)), fs);
 }
 }  // namespace sandbox
 }  // namespace lord

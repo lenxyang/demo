@@ -34,10 +34,12 @@ class MyEffect : public azer::Effect {
   void SetPV(const azer::Matrix4& value);
   void SetWorld(const azer::Matrix4& value);
   void SetCameraPos(const azer::Vector4& CameraPos);
-  void SetColor(const azer::Vector4& value);
   void SetDirLight(const DirLight& value);
   void SetPointLight(const PointLight& value);
   void SetSpotLight(const SpotLight& value);
+  void set_ambient_scalar(float scalar) { ambient_scalar_ = scalar;}
+  void set_specular_scalar(float scalar) { specular_scalar_ = scalar;}
+  void set_diffuse_texture(azer::Texture* tex) { diffuse_map_ = tex;}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitTechnique(const ShaderPrograms& source);
@@ -45,8 +47,10 @@ class MyEffect : public azer::Effect {
 
   azer::Matrix4 pv_;
   azer::Matrix4 world_;
-  azer::Vector4 color_;
   azer::Vector4 camerapos_;
+  azer::TexturePtr diffuse_map_;
+  float ambient_scalar_;
+  float specular_scalar_;
   DirLight dir_light_;
   PointLight point_light_;
   SpotLight spot_light_;

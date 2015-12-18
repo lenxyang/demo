@@ -8,19 +8,25 @@ struct VsOutput {
   float3 worldpos: WPOS;
   float3 normal:NORMAL;
   float3 viewin: VIEWIN;
+  float2 texcoord: TEXCOORD0;
 };
 
 cbuffer c_buffer {
    DirLight   dirlight;
    PointLight pointlight;
    SpotLight  spotlight;
-   float4 color;	
+   float      ambient_scalar_;
+   float      specular_scalar_;
 };
 
+Texture2D diffuse_map_;
+SamplerState diffuse_sampler;
+
 float4 ps_main(VsOutput o):SV_TARGET {
+  float color = diffuse_map_.Sample(diffuse_sampler, o.texcoord);
   Matrial mtrl;
-  mtrl.ambient = float4(0.01, 0.01, 0.01, 1.0);
-  mtrl.specular = float4(0.8, 0.8, 0.8, 1.0);
+  mtrl.ambient = ambient_scalar_ * color;
+  mtrl.specular = specular * color;
   mtrl.diffuse = color;
   mtrl.emission = float4(0.0f, 0.0f, 0.0f, 0.0f);
   mtrl.power = 4;
