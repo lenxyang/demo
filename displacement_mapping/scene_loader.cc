@@ -1,9 +1,9 @@
-#include "demo/parallax_occlusion_mapping/scene_loader.h"
+#include "demo/displacement_mapping/scene_loader.h"
 
 #include "azer/render/render.h"
 #include "lordaeron/effect/diffuse_effect.h"
-#include "demo/parallax_occlusion_mapping/effect.h"
-#include "demo/parallax_occlusion_mapping/effect_adapter.h"
+#include "demo/displacement_mapping/effect.h"
+#include "demo/displacement_mapping/effect_adapter.h"
 
 namespace lord {
 namespace sandbox {

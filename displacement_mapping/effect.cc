@@ -1,4 +1,4 @@
-#include "demo/parallax_occlusion_mapping/effect.h"
+#include "demo/displacement_mapping/effect.h"
 
 #include <stddef.h>
 
@@ -126,20 +126,20 @@ namespace {
 // class TexPosNormalVertex
 const VertexDesc::Desc kVertexDesc[] = {
   {"POSITION", 0, kVec4, 0},
-  {"NORMAL",   0, kVec4, 1},
-  {"BINORMAL", 0, kVec4, 1},
-  {"TANGENT",  0, kVec4, 1},
-  {"TEXCOORD", 0, kVec2, 1},
+  {"NORMAL",   0, kVec4, 0},
+  {"BINORMAL", 0, kVec4, 0},
+  {"TANGENT",  0, kVec4, 0},
+  {"TEXCOORD", 0, kVec2, 0},
 };
 }  // namespace
 
 MyEffectPtr CreateMyEffect() {
   Effect::ShaderPrograms shaders;
   CHECK(LoadShaderAtStage(kVertexStage, 
-                          "demo/parallax_occlusion_mapping/effect.hlsl.vs",
+                          "demo/displacement_mapping/effect.hlsl.vs",
                           &shaders));
   CHECK(LoadShaderAtStage(kPixelStage, 
-                          "demo/parallax_occlusion_mapping/effect.hlsl.ps",
+                          "demo/displacement_mapping/effect.hlsl.ps",
                           &shaders));
   
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
