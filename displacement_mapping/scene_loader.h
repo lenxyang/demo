@@ -2,9 +2,9 @@
 
 #include "base/strings/utf_string_conversions.h"
 #include "lordaeron/context.h"
-#include "lordaeron/util/model_loader.h"
+#include "lordaeron/resource/mesh_loader.h"
 #include "lordaeron/scene/scene_node.h"
-#include "lordaeron/scene/scene_loader.h"
+#include "lordaeron/resource/scene_loader.h"
 
 namespace lord {
 namespace sandbox {

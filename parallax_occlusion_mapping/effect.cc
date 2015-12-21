@@ -125,11 +125,11 @@ void MyEffect::UseTexture(Renderer* renderer) {
 namespace {
 // class TexPosNormalVertex
 const VertexDesc::Desc kVertexDesc[] = {
-  {"POSITION", 0, kVec4, 0},
-  {"NORMAL",   0, kVec4, 1},
-  {"BINORMAL", 0, kVec4, 1},
-  {"TANGENT",  0, kVec4, 1},
-  {"TEXCOORD", 0, kVec2, 1},
+  {"POSITION", 0, kVec4, 0, 0, false},
+  {"NORMAL",   0, kVec4, 1, 0, false},
+  {"BINORMAL", 0, kVec4, 1, 0, false},
+  {"TANGENT",  0, kVec4, 1, 0, false},
+  {"TEXCOORD", 0, kVec2, 1, 0, false},
 };
 }  // namespace
 

@@ -34,5 +34,6 @@ TexturePtr Load2DTexture(const ResPath& path, FileSystem* fs) {
   Texture::Options opt;
   opt.target = Texture::kShaderResource;
   opt.size = gfx::Size(img->width(), img->height());
-  return rs->CreateTexture(opt, img.get());
+  TexturePtr tex = rs->CreateTexture(opt, img.get());
+  return tex;
 }

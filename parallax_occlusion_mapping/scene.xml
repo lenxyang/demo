@@ -1,49 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<scene name="sandbox_scene_config">
-  <node name="root">
-    <node name="scene">
-      <node name="env" type="environment">
-        <node name="dir" type="light">
-          <location><position>4.0f, 4.0f, 0.0f</position></location>
-          <light type="directional_light">
-            <ambient>1.0, 1.0, 1.0, 1.0</ambient>
-            <diffuse>0.5, 0.5, 0.4, 1.0</diffuse>
-            <specular>0.1, 0.1, 0.1, 1.0</specular>
-            <directional>0.0, -1.0, -1.0</directional>
-          </light>
-        </node>
-        <node name="spot" type="light">
-          <location><position>-8.0f, 4.0f, 4.0f</position></location>
-          <light type="spot_light">
-            <ambient>1.0, 1.0, 1.0, 1.0</ambient>
-            <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
-            <specular>0.1, 0.1, 0.1, 1.0</specular>
-            <directional>-1.0, 0.0, 1.0</directional>
-            <inner_angle>30</inner_angle>
-            <outer_angle>40</outer_angle>
-            <falloff>0.5</falloff>
-            <range>30</range>
-          </light>
-        </node>
-      </node>
-      <node name="plane" type="mesh">
-        <location>
-          <position>0.0f, 3.0f, 0.0f</position>
-          <scale>0.05f, 0.05f, 0.05f</scale>
-        </location>
-        <mesh>
-          <path>//Media/Disc.x</path>
-          <effect name="MyEffect"/>
-          <provider name="MaterialProvider">
-            <ambient>0.01</ambient>
-            <specular>0.8</specular>
-            <emission>0.0, 0.0, 0.0, 0.0</emission>
-            <diffusemap>//Media/stones.dds</diffusemap>
-            <nmhmap>//Media/stones_NM_height.dds</nmhmap>
-            <alpha>1.0</alpha>
-          </provider>
-        </mesh>
-      </node>
+<node name="scene">
+  <node name="env" type="environment">
+    <node name="dir" type="light">
+      <location><position>4.0f, 4.0f, 0.0f</position></location>
+      <light type="directional_light">
+        <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+        <diffuse>0.5, 0.5, 0.4, 1.0</diffuse>
+        <specular>0.1, 0.1, 0.1, 1.0</specular>
+        <directional>0.0, -1.0, -1.0</directional>
+      </light>
+    </node>
+    <node name="spot" type="light">
+      <location><position>-8.0f, 4.0f, 4.0f</position></location>
+      <light type="spot_light">
+        <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+        <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
+        <specular>0.1, 0.1, 0.1, 1.0</specular>
+        <directional>-1.0, 0.0, 1.0</directional>
+        <inner_angle>30</inner_angle>
+        <outer_angle>40</outer_angle>
+        <falloff>0.5</falloff>
+        <range>30</range>
+      </light>
     </node>
   </node>
-</scene>
+  <node name="plane" type="mesh">
+    <location>
+      <position>0.0f, 3.0f, 0.0f</position>
+      <scale>0.05f, 0.05f, 0.05f</scale>
+    </location>
+    <mesh>
+      <path>//Media/Disc.x</path>
+      <effect name="MyEffect"/>
+      <provider name="MaterialProvider">
+        <ambient>0.01</ambient>
+        <specular>0.8</specular>
+        <emission>0.0, 0.0, 0.0, 0.0</emission>
+        <diffusemap>//Media/stones.dds</diffusemap>
+        <nmhmap>//Media/stones_NM_height.dds</nmhmap>
+        <alpha>1.0</alpha>
+      </provider>
+    </mesh>
+  </node>
+</node>

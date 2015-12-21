@@ -1,8 +1,12 @@
 
 static_library("base") {
   sources = [
+    "effect_dict.cc",
+    "effect_dict.h",
     "resource_util.cc",
     "resource_util.h",
+    "scene_loader.cc",
+    "scene_loader.h",
   ]
 
   deps = [

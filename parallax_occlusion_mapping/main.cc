@@ -1,7 +1,8 @@
 #include <memory>
 
 #include "lordaeron/sandbox/sandbox.h"
-#include "demo/parallax_occlusion_mapping/scene_loader.h"
+#include "demo/base/effect_dict.h"
+#include "demo/base/scene_loader.h"
 #include "demo/parallax_occlusion_mapping/effect.h"
 #include "demo/parallax_occlusion_mapping/effect_adapter.h"
 
@@ -12,9 +13,6 @@ using lord::SceneNodePtr;
 using lord::SceneNode;
 using namespace azer;
 using namespace lord;
-using lord::sandbox::SimpleSceneNodeLoader;
-
-class RendererInfoPane;
 
 class MyRenderWindow : public lord::SceneRenderWindow {
  public:
@@ -30,6 +28,7 @@ class MyRenderWindow : public lord::SceneRenderWindow {
   SceneRenderNodePtr bvolumn_root_;
   scoped_ptr<SimpleRenderTreeRenderer> tree_render_;
   scoped_ptr<FileSystem> fsystem_;
+  EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -58,14 +57,14 @@ int main(int argc, char* argv[]) {
 
 SceneNodePtr MyRenderWindow::OnInitScene() {
   effect_ = sandbox::CreateMyEffect();
+  dict_.RegisterEffect(effect_.get());
   Context* ctx = Context::instance();
   fsystem_.reset(new azer::NativeFileSystem(
       FilePath(UTF8ToUTF16("demo/parallax_occlusion_mapping/"))));
 
   scoped_ptr<SceneNodeLoader> light_loader(new LightNodeLoader());
   scoped_ptr<SceneNodeLoader> env_loader(new EnvNodeLoader());
-  scoped_ptr<SimpleSceneNodeLoader> node_loader(new SimpleSceneNodeLoader(
-      fsystem_.get(), effect_.get()));
+  scoped_ptr<MeshNodeLoader> node_loader(new MeshNodeLoader(fsystem_.get(), &dict_));
   SceneLoader loader(fsystem_.get());
   loader.RegisterSceneNodeLoader(node_loader.Pass());
   loader.RegisterSceneNodeLoader(env_loader.Pass());

@@ -31,7 +31,7 @@ MeshPtr SimpleSceneNodeLoader::LoadMesh(ConfigNode* config,
     return MeshPtr();
   }
       
-  ModelLoader loader(fsystem_);
+  MeshLoader loader(fsystem_);
   MeshPtr obj = loader.Load(ResPath(::base::UTF8ToUTF16(pathstr)), 
                                   effect_->vertex_desc());
   if (obj.get()) {
