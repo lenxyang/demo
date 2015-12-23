@@ -1,0 +1,51 @@
+<root>
+  <light name="dir" type="directional_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.5, 0.5, 0.4, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>0.0, -1.0, -1.0</directional>
+  </light>
+
+  <light name="point" type="point_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <attenuation>
+      <coefficient>0.0, 0.0, 1.0</coefficient>
+      <range>10</range>
+    </attenuation>
+  </light>
+
+  <light name="spot" type="spot_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>0.0, 0.0, 1.0</directional>
+    <inner_angle>30</inner_angle>
+    <outer_angle>40</outer_angle>
+    <falloff>0.5</falloff>
+    <range>30</range>
+  </light>
+
+  <mesh name="teaport">
+    <refer type="vertex_desc" path=":vertex_desc" />
+    
+    <refer type="effect" path=":DiffuseEffect"/>
+    <refer type="material" path=":mtrl"/>
+    <data path="//media/model/teapot.obj"/>
+  </mesh>
+
+  <material name="mtrl" provider_name="lord::ColorMaterial">
+    <color>0.3f, 0.3f, 0.3f, 1.0f</color>
+  </material>
+
+  <vertex_desc name="vertex_desc">
+    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
+  </vertex_desc>
+
+  <effect name="DiffuseEffect" effect_name="MyEffect" vertex_desc=":vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//sandbox/lighting/effect.hlsl.vs" />
+    <shader stage="pixel" entry="psmain" path="//sandbox/lighting/effect.hlsl.ps" />
+  </effect>
+</root>

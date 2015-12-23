@@ -2,7 +2,6 @@
 group("demo") {
   deps = [
     "parallax_occlusion_mapping",
-    "displacement_mapping",
     "base",
   ]
 }

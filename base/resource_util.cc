@@ -6,21 +6,6 @@
 #include "azer/render/render.h"
 
 using namespace azer;
-bool ReadFileContents(const ResPath& path, FileContents* contents, FileSystem* fs) {
-  FilePtr ptr = fs->OpenFile(path);
-  if (!ptr.get()) {
-    LOG(ERROR) << "Failed to open file: " << path.fullpath();
-    return false;
-  }
-
-  if (ptr->PRead(0, -1, contents)) {
-    return true;
-  } else {
-    LOG(ERROR) << "Failed to read file";
-    return false;
-  }
-}
-
 TexturePtr Load2DTexture(const ResPath& path, FileSystem* fs) {
   FileContents contents;
   if (!ReadFileContents(path, &contents, fs)) {

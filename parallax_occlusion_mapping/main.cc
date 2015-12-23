@@ -1,8 +1,8 @@
 #include <memory>
 
 #include "lordaeron/sandbox/sandbox.h"
+#include "lordaeron/resource/resource.h"
 #include "demo/base/effect_dict.h"
-#include "demo/base/scene_loader.h"
 #include "demo/parallax_occlusion_mapping/effect.h"
 #include "demo/parallax_occlusion_mapping/effect_adapter.h"
 
@@ -22,8 +22,6 @@ class MyRenderWindow : public lord::SceneRenderWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  sandbox::MyEffectPtr effect_;
-
   SceneRenderNodePtr render_root_;
   SceneRenderNodePtr bvolumn_root_;
   scoped_ptr<SimpleRenderTreeRenderer> tree_render_;
@@ -56,20 +54,16 @@ int main(int argc, char* argv[]) {
 }
 
 SceneNodePtr MyRenderWindow::OnInitScene() {
-  effect_ = sandbox::CreateMyEffect();
-  dict_.RegisterEffect(effect_.get());
   Context* ctx = Context::instance();
   fsystem_.reset(new azer::NativeFileSystem(
       FilePath(UTF8ToUTF16("demo/parallax_occlusion_mapping/"))));
 
-  scoped_ptr<SceneNodeLoader> light_loader(new LightNodeLoader());
-  scoped_ptr<SceneNodeLoader> env_loader(new EnvNodeLoader());
-  scoped_ptr<MeshNodeLoader> node_loader(new MeshNodeLoader(fsystem_.get(), &dict_));
-  SceneLoader loader(fsystem_.get());
-  loader.RegisterSceneNodeLoader(node_loader.Pass());
-  loader.RegisterSceneNodeLoader(env_loader.Pass());
-  loader.RegisterSceneNodeLoader(light_loader.Pass());
-  SceneNodePtr root = loader.Load(ResPath(UTF8ToUTF16("//scene.xml")), "//");
+  ResourceLoader resloader(fsystem_.get());
+  InitDefaultLoader(&resloader);
+  ResPath respath(UTF8ToUTF16("//scene.xml"));
+  lord::Resource res = resloader.Load(respath);
+  SceneNodePtr root = res.scene;
+  CHECK(root.get()) << "Failed to init scene";
 
   tree_render_.reset(new SimpleRenderTreeRenderer);
   LoadSceneRenderNodeDelegateFactory factory(tree_render_.get());
