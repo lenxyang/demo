@@ -1,0 +1,31 @@
+group("shadow") {
+  deps = [
+    ":shadow_depth",
+  ]
+}
+
+static_library("effect") {
+  sources = [
+    "effect.h",
+    "effect.cc",
+    "shadow_render_tree.cc",
+    "shadow_render_tree.h",
+  ]
+
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("shadow_depth") {
+  sources = [
+    "main.cc",
+  ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":effect",
+  ]
+}
+
