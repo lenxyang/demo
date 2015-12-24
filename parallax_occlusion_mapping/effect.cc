@@ -11,6 +11,8 @@
 #include "azer/render/util/shader_util.h"
 #include "lordaeron/resource/resource_loader.h"
 #include "demo/base/resource_util.h"
+#include "lordaeron/scene/scene_node.h"
+#include "lordaeron/scene/scene_render_tree.h"
 
 using namespace azer;
 using base::UTF8ToUTF16;

@@ -4,7 +4,6 @@
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/effect_dict.h"
 #include "demo/parallax_occlusion_mapping/effect.h"
-#include "demo/parallax_occlusion_mapping/effect_adapter.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
