@@ -15,10 +15,8 @@
 #include "lordaeron/scene/scene_render_tree.h"
 
 using namespace azer;
+using namespace lord;
 using base::UTF8ToUTF16;
-
-namespace lord {
-namespace sandbox {
 
 namespace {
 // class TexPosNormalVertex
@@ -225,5 +223,3 @@ void SceneRenderEnvNodeEffectAdapter::Apply(
     }
   }
 }
-}  // namespace sandbox
-}  // namespace lord

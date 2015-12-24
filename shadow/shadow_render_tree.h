@@ -58,7 +58,7 @@ class ShadowDepthRenderDelegate : public lord::SceneRenderNodeDelegate,
  private:
   void Init();
   ShadowDepthRenderer* tree_renderer_;
-  azer::MeshPtr mesh_;
+  azer::MeshPtr shadow_;
   azer::Matrix4 world_;
   DISALLOW_COPY_AND_ASSIGN(ShadowDepthRenderDelegate);
 };

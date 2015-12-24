@@ -20,7 +20,7 @@ static_library("effect") {
 
 executable("shadow_depth") {
   sources = [
-    "main.cc",
+    "depth.cc",
   ]
   deps = [
     "//lordaeron",

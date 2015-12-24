@@ -9,8 +9,6 @@
 #include "lordaeron/effect/light.h"
 #include "lordaeron/effect/material.h"
 
-namespace lord {
-namespace sandbox {
 class MyEffect : public azer::Effect {
  public:
   static const char kEffectName[];
@@ -129,5 +127,3 @@ class SceneRenderEnvNodeEffectAdapter : public EffectParamsAdapter {
  private:
   DISALLOW_COPY_AND_ASSIGN(SceneRenderEnvNodeEffectAdapter);
 };
-}  // namespace sandbox
-}  // namespace lord

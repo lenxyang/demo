@@ -76,12 +76,17 @@ ShadowDepthRenderDelegate::~ShadowDepthRenderDelegate() {
 }
 
 void ShadowDepthRenderDelegate::Init() {
+  MeshPtr mesh = node_->GetSceneNode()->mutable_data()->GetMesh();
+  shadow_ = tree_renderer_->CreateShadowMesh(mesh);
+  shadow_->AddProvider(this);
 }
   
 void ShadowDepthRenderDelegate::Update(const azer::FrameArgs& args) {
+  shadow_->UpdateProviderParams(args);
 }
 
 void ShadowDepthRenderDelegate::Render(azer::Renderer* renderer) {
+  shadow_->Render(renderer);
 }
 
 // class ShadowEffectAdapter
@@ -175,7 +180,9 @@ MeshPartPtr CreateShadowMeshPtr(MeshPart* part, Effect* effect) {
 }
 
 MeshPtr ShadowDepthRenderer::CreateShadowMesh(MeshPtr mesh) {
-  MeshPtr shadow = new Mesh(effect_);
-  
+  MeshPtr shadow = new Mesh(mesh->adapter_context());
+  for (int32 i = 0; i < mesh->part_count(); ++i) {
+    shadow->AddMeshPart(CreateShadowMeshPtr(mesh->part_at(i), effect_));
+  }
   return shadow;
 }
