@@ -64,7 +64,6 @@ void ShadowEffect::ApplyGpuConstantTable(Renderer* renderer) {
     GpuConstantsTable* tb = gpu_table_[(int)kVertexStage].get();
     DCHECK(tb != NULL);
     tb->SetValue(0, &pvw, sizeof(Matrix4));
-    tb->SetValue(1, &world_, sizeof(Matrix4));
   }
 }
 
