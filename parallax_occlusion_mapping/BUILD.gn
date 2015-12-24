@@ -4,8 +4,6 @@ executable("parallax_occlusion_mapping") {
     "main.cc",
     "effect.h",
     "effect.cc",
-    "effect_adapter.h",
-    "effect_adapter.cc",
   ]
   deps = [
     "//lordaeron",
