@@ -21,7 +21,6 @@ class ShadowEffect : public azer::Effect {
 #pragma pack(push, 4)
   struct vs_cbuffer {
     azer::Matrix4 pvw;
-    azer::Matrix4 world;
   };
 #pragma pack(pop)
 
@@ -29,7 +28,6 @@ class ShadowEffect : public azer::Effect {
   void SetWorld(const azer::Matrix4& value);
   static azer::Effect* CreateObject() { return new ShadowEffect;}
  protected:
-  void UseTexture(azer::Renderer* renderer) override;
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitTechnique(const ShaderPrograms& source);
   void InitGpuConstantTable();
@@ -54,7 +52,7 @@ class ShadowDepthRenderDelegate : public lord::SceneRenderNodeDelegate,
   const azer::Matrix4& GetWorld() const { return world_;}
   const azer::Matrix4& GetPV() const;
   const char* GetProviderName() const override { return kEffectProviderName;}
-  void UpdateParams(const azer::FrameArgs& args) override {}
+  void UpdateParams(const azer::FrameArgs& args) override;
  private:
   void Init();
   ShadowDepthRenderer* tree_renderer_;

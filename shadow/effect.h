@@ -26,9 +26,9 @@ class MyEffect : public azer::Effect {
   };
 
   struct ps_cbuffer {
-    DirLight light;
-    PointLight pointlight;
-    SpotLight  spotlight;
+    lord::DirLight light;
+    lord::PointLight pointlight;
+    lord::SpotLight  spotlight;
     float ambient_scalar;
     float specular_scalar;
     float pad1;
@@ -39,9 +39,9 @@ class MyEffect : public azer::Effect {
   void SetPV(const azer::Matrix4& value);
   void SetWorld(const azer::Matrix4& value);
   void SetCameraPos(const azer::Vector4& CameraPos);
-  void SetDirLight(const DirLight& value);
-  void SetPointLight(const PointLight& value);
-  void SetSpotLight(const SpotLight& value);
+  void SetDirLight(const lord::DirLight& value);
+  void SetPointLight(const lord::PointLight& value);
+  void SetSpotLight(const lord::SpotLight& value);
   void set_ambient_scalar(float scalar) { ambient_scalar_ = scalar;}
   void set_specular_scalar(float scalar) { specular_scalar_ = scalar;}
   void set_diffuse_texture(azer::Texture* tex) { diffuse_map_ = tex;}
@@ -61,19 +61,19 @@ class MyEffect : public azer::Effect {
   azer::TexturePtr nmh_map_;
   float ambient_scalar_;
   float specular_scalar_;
-  DirLight dir_light_;
-  PointLight point_light_;
-  SpotLight spot_light_;
+  lord::DirLight dir_light_;
+  lord::PointLight point_light_;
+  lord::SpotLight spot_light_;
   DECLARE_EFFECT_DYNCREATE(MyEffect);
   DISALLOW_COPY_AND_ASSIGN(MyEffect);
 };
 
-class MaterialProvider : public Material {
+class MaterialProvider : public lord::Material {
  public:
   static const char kEffectProviderName[];
   MaterialProvider();
   const char* GetProviderName() const override;
-  bool Init(const azer::ConfigNode* node, ResourceLoadContext* ctx) override;
+  bool Init(const azer::ConfigNode* node, lord::ResourceLoadContext* ctx) override;
   void UpdateParams(const azer::FrameArgs& args) override {}
   float ambient_scalar() const { return ambient_scalar_;}
   float specular_scalar() const { return specular_scalar_;}

@@ -1,5 +1,7 @@
 #include "demo/shadow/shadow_render_tree.h"
 
+#include "azer/render/util/shader_util.h"
+
 using namespace lord;
 using namespace azer;
 namespace {
@@ -13,6 +15,12 @@ IMPLEMENT_EFFECT_DYNCREATE(ShadowEffect);
 const char ShadowEffect::kEffectName[] = "ShadowEffect";
 ShadowEffect::ShadowEffect() {
   vertex_desc_ptr_ = new VertexDesc(kVertexDescArray, arraysize(kVertexDescArray));
+  Effect::ShaderPrograms shaders;
+  CHECK(LoadShaderAtStage(kVertexStage, "demo/shadow/shadow_depth.hlsl.vs",
+                          &shaders));
+  CHECK(LoadShaderAtStage(kPixelStage, "demo/shadow/shadow_depth.hlsl.ps",
+                          &shaders));
+  Init(shaders);
 }
 
 ShadowEffect::~ShadowEffect() {}
@@ -35,8 +43,6 @@ void ShadowEffect::InitGpuConstantTable() {
   GpuConstantsTable::Desc vs_table_desc[] = {
     GpuConstantsTable::Desc("pvw", GpuConstantsType::kMatrix4,
                             offsetof(vs_cbuffer, pvw), 1),
-    GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
-                            offsetof(vs_cbuffer, world), 1),
   };
   gpu_table_[kVertexStage] = rs->CreateGpuConstantsTable(
       arraysize(vs_table_desc), vs_table_desc);
@@ -76,17 +82,30 @@ ShadowDepthRenderDelegate::~ShadowDepthRenderDelegate() {
 }
 
 void ShadowDepthRenderDelegate::Init() {
-  MeshPtr mesh = node_->GetSceneNode()->mutable_data()->GetMesh();
-  shadow_ = tree_renderer_->CreateShadowMesh(mesh);
-  shadow_->AddProvider(this);
+  SceneNode* scene_node = node_->GetSceneNode();
+  if (scene_node->type() == kObjectSceneNode) {
+    MeshPtr mesh = scene_node->mutable_data()->GetMesh();
+    shadow_ = tree_renderer_->CreateShadowMesh(mesh);
+    shadow_->AddProvider(this);
+  }
+}
+
+const azer::Matrix4& ShadowDepthRenderDelegate::GetPV() const {
+  return tree_renderer_->GetCamera().GetProjViewMatrix();
+}
+
+void ShadowDepthRenderDelegate::UpdateParams(const azer::FrameArgs& args) {
+  world_ = node_->GetWorld();
 }
   
 void ShadowDepthRenderDelegate::Update(const azer::FrameArgs& args) {
-  shadow_->UpdateProviderParams(args);
+  if (shadow_.get())
+    shadow_->UpdateProviderParams(args);
 }
 
 void ShadowDepthRenderDelegate::Render(azer::Renderer* renderer) {
-  shadow_->Render(renderer);
+  if (shadow_.get())
+    shadow_->Render(renderer);
 }
 
 // class ShadowEffectAdapter
@@ -122,6 +141,7 @@ CreateDelegate(lord::SceneRenderNode* node) {
 ShadowDepthRenderer::ShadowDepthRenderer()
     : root_(NULL),
       need_update_(true) {
+  effect_ = new ShadowEffect();
 }
 
 ShadowDepthRenderer::~ShadowDepthRenderer() {
@@ -130,6 +150,13 @@ ShadowDepthRenderer::~ShadowDepthRenderer() {
 void ShadowDepthRenderer::SetLight(lord::LightPtr light) {
   light_ = light;
   need_update_ = true;
+  if (light_->type() == kSpotLight) {
+    const Vector3& position = light->spot_light().position;
+    const Vector3& dir = light->spot_light().direction;
+    camera_.reset(position, position + dir * 10, Vector3(0.0f, 1.0f, 0.0f));
+  } else {
+    NOTREACHED();
+  }
 }
 
 void ShadowDepthRenderer::UpdateNode(SceneRenderNode* node,

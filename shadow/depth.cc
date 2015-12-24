@@ -61,16 +61,19 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
 
   ResourceLoader resloader(fsystem_.get());
   InitDefaultLoader(&resloader);
-  ResPath respath(UTF8ToUTF16("//scene.xml"));
+  ResPath respath(UTF8ToUTF16("//scene.xml:root"));
   VariantResource res = resloader.Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
+  SceneNode* light_node = root->GetNode("//root/scene/env/spot");
+  DCHECK(light_node);
 
   tree_render_.reset(new ShadowDepthRenderer);
   ShadowRenderNodeDelegateFactory factory(tree_render_.get());
   SceneRenderTreeBuilder builder(&factory);
   render_root_ = builder.Build(root.get(), &camera());
   tree_render_->SetSceneNode(render_root_.get());
+  tree_render_->SetLight(light_node->mutable_data()->light());
   LOG(ERROR) << "\n" << render_root_->DumpTree();
   
   return root;

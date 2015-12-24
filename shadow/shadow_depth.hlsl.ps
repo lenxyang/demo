@@ -1,0 +1,11 @@
+// using row_major
+#pragma pack_matrix(row_major)
+
+struct VsOutput {
+  float4 position:SV_POSITION;
+};
+
+float4 ps_main(VsOutput o):SV_TARGET {
+  float d = o.position.z / o.position.w;
+  return float4(d, d, d, 1.0f);
+}

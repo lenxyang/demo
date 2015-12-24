@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xml>
-  <node name="scene">
-    <node name="node">
+  <node name="root">
+    <node name="scene">
       <node name="env" type="environment">
 	<node name="dir">
 	  <location><position>8.0f, 8.0f, 0.0f</position></location>

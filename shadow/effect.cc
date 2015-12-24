@@ -213,7 +213,7 @@ void SceneRenderEnvNodeEffectAdapter::Apply(
   for (auto iter = provider->lights().begin(); 
        iter != provider->lights().end();
        ++iter) {
-    Light* light = iter->get();
+    lord::Light* light = iter->get();
     if (light->type() == kDirectionalLight) {
       effect->SetDirLight(light->dir_light());
     } else if (light->type() == kPointLight) {
