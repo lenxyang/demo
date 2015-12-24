@@ -1,0 +1,13 @@
+
+executable("compute_shader") {
+  sources = [
+    "main.cc",
+    "effect.h",
+    "effect.cc",
+  ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+

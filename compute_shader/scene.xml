@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xml>
+  <node name="scene">
+    <node name="node">
+      <node name="env" type="environment">
+	<node name="dir">
+	  <location><position>8.0f, 8.0f, 0.0f</position></location>
+	  <refer type="light" path=":dir" />
+	</node>
+        <node name="spot">
+	  <location><position>-8.0f, 8.0f, 0.0f</position></location>
+	  <refer type="light" path=":spot" />
+	</node>
+      </node>
+      <node name="sphere1">
+	<location><position>-5.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="sphere2">
+	<location><position>0.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="sphere3">
+	<location><position>5.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+    </node>
+  </node>
+
+  <light name="spot" type="spot_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>-1.0, 0.0, 1.0</directional>
+    <inner_angle>30</inner_angle>
+    <outer_angle>40</outer_angle>
+    <falloff>0.5</falloff>
+    <range>30</range>
+  </light>
+
+  <light name="dir" type="directional_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.5, 0.5, 0.4, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>0.0, -1.0, -1.0</directional>
+  </light>
+
+  <mesh name="sphere">
+    <refer type="vertex_desc" path=":vertex_desc" />
+    <refer type="effect" path=":myeffect"/>
+    <refer type="material" path=":mtrl"/>
+    <data path="//Media/sphere.x"/>
+  </mesh>
+
+  <vertex_desc name="vertex_desc">
+    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="normal" semindex="0" slot="1" data_type="vector4" />
+    <desc semantic="binormal" semindex="0" slot="1" data_type="vector4" />
+    <desc semantic="tangent" semindex="0" slot="1" data_type="vector4" />
+    <desc semantic="texcoord" semindex="0" slot="1" data_type="vector2" />
+  </vertex_desc>
+
+  <material name="mtrl" provider_name="MaterialProvider">
+    <ambient>0.01</ambient>
+    <specular>0.8</specular>
+    <emission>0.0, 0.0, 0.0, 0.0</emission>
+    <diffusemap>//Media/earth.dds</diffusemap>
+    <alpha>1.0</alpha>
+  </material>
+
+  <effect name="myeffect" effect_name="MyEffect" vertex_desc=":vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//effect.hlsl.vs" />
+    <shader stage="pixel" entry="psmain" path="//effect.hlsl.ps" />
+  </effect>
+</xml>

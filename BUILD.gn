@@ -1,6 +1,7 @@
 
 group("demo") {
   deps = [
+    "compute_shader",
     "parallax_occlusion_mapping",
     "shadow",
     "base",
