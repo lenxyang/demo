@@ -5,14 +5,16 @@
 #include "azer/base/config_node.h"
 #include "azer/base/file_system.h"
 #include "azer/render/render.h"
+#include "azer/render/effect_creator.h"
 #include "lordaeron/effect/light.h"
+#include "lordaeron/effect/material.h"
 
 namespace lord {
 namespace sandbox {
 class MyEffect : public azer::Effect {
  public:
   static const char kEffectName[];
-  MyEffect(azer::VertexDescPtr desc);
+  MyEffect();
   ~MyEffect();
 
   const char* GetEffectName() const override;
@@ -46,6 +48,8 @@ class MyEffect : public azer::Effect {
   void set_specular_scalar(float scalar) { specular_scalar_ = scalar;}
   void set_diffuse_texture(azer::Texture* tex) { diffuse_map_ = tex;}
   void set_nmh_texture(azer::Texture* tex) { nmh_map_ = tex;}
+
+  static azer::Effect* CreateObject() { return new MyEffect;}
  protected:
   void UseTexture(azer::Renderer* renderer) override;
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
@@ -62,32 +66,33 @@ class MyEffect : public azer::Effect {
   DirLight dir_light_;
   PointLight point_light_;
   SpotLight spot_light_;
+  DECLARE_EFFECT_DYNCREATE(MyEffect);
   DISALLOW_COPY_AND_ASSIGN(MyEffect);
 };
 
-class MaterialProvider : public azer::EffectParamsProvider {
+class MaterialProvider : public Material {
  public:
-  static const char kEffectParamsProviderName[];
+  static const char kEffectProviderName[];
   MaterialProvider();
   const char* name() const override;
+  bool Init(const azer::ConfigNode* node, ResourceLoadContext* ctx) override;
   void UpdateParams(const azer::FrameArgs& args) override {}
-  void InitFromConfigNode(azer::ConfigNode* config, azer::FileSystem* fs);
-
   float ambient_scalar() const { return ambient_scalar_;}
   float specular_scalar() const { return specular_scalar_;}
   const azer::Vector4& emission() const { return emission_;}
   azer::Texture* diffuse_map() { return diffuse_map_.get();}
   azer::Texture* nmh_map() { return nmh_map_.get();};
+  static azer::EffectParamsProvider* CreateObject() { return new MaterialProvider;}
  private:
   float ambient_scalar_;
   float specular_scalar_;
   azer::Vector4 emission_;
   azer::TexturePtr diffuse_map_;
   azer::TexturePtr nmh_map_;
+  DECLARE_EFFECT_PROVIDER_DYNCREATE(MaterialProvider);
   DISALLOW_COPY_AND_ASSIGN(MaterialProvider);
 };
 
 typedef scoped_refptr<MyEffect> MyEffectPtr;
-MyEffectPtr CreateMyEffect();
 }  // namespace sandbox
 }  // namespace lord

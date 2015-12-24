@@ -8,7 +8,7 @@
 using namespace azer;
 TexturePtr Load2DTexture(const ResPath& path, FileSystem* fs) {
   FileContents contents;
-  if (!ReadFileContents(path, &contents, fs)) {
+  if (!azer::LoadFileContents(path, &contents, fs)) {
     return TexturePtr();
   }
 

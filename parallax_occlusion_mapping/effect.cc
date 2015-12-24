@@ -9,6 +9,7 @@
 #include "azer/render/render.h"
 #include "azer/render/util/effects/vertex_desc.h"
 #include "azer/render/util/shader_util.h"
+#include "lordaeron/resource/resource_loader.h"
 #include "demo/base/resource_util.h"
 
 using namespace azer;
@@ -16,9 +17,22 @@ using base::UTF8ToUTF16;
 
 namespace lord {
 namespace sandbox {
+
+namespace {
+// class TexPosNormalVertex
+const VertexDesc::Desc kVertexDescArray[] = {
+  {"POSITION", 0, kVec4, 0, 0, false},
+  {"NORMAL",   0, kVec4, 1, 0, false},
+  {"BINORMAL", 0, kVec4, 1, 0, false},
+  {"TANGENT",  0, kVec4, 1, 0, false},
+  {"TEXCOORD", 0, kVec2, 1, 0, false},
+};
+}  // namespace
+
+IMPLEMENT_EFFECT_DYNCREATE(MyEffect);
 const char MyEffect::kEffectName[] = "MyEffect";
-MyEffect::MyEffect(VertexDescPtr desc) 
-    : Effect(RenderSystem::Current()) {
+MyEffect::MyEffect() {
+  VertexDescPtr desc(new VertexDesc(kVertexDescArray, arraysize(kVertexDescArray)));
   vertex_desc_ptr_ = desc;
 }
 
@@ -38,6 +52,7 @@ bool MyEffect::Init(const ShaderPrograms& sources) {
 }
 
 void MyEffect::InitGpuConstantTable() {
+  RenderSystem* rs = RenderSystem::Current();
   // generate GpuTable init for stage kVertexStage
   GpuConstantsTable::Desc vs_table_desc[] = {
     GpuConstantsTable::Desc("pvw", GpuConstantsType::kMatrix4,
@@ -47,7 +62,7 @@ void MyEffect::InitGpuConstantTable() {
     GpuConstantsTable::Desc("camerapos", GpuConstantsType::kVector4,
                             offsetof(vs_cbuffer, camerapos), 1),
   };
-  gpu_table_[kVertexStage] = render_system_->CreateGpuConstantsTable(
+  gpu_table_[kVertexStage] = rs->CreateGpuConstantsTable(
       arraysize(vs_table_desc), vs_table_desc);
   // generate GpuTable init for stage kPixelStage
   GpuConstantsTable::Desc ps_table_desc[] = {
@@ -66,7 +81,7 @@ void MyEffect::InitGpuConstantTable() {
     GpuConstantsTable::Desc("pad2", GpuConstantsType::kFloat,
                             offsetof(ps_cbuffer, pad2), 1),
   };
-  gpu_table_[kPixelStage] = render_system_->CreateGpuConstantsTable(
+  gpu_table_[kPixelStage] = rs->CreateGpuConstantsTable(
       arraysize(ps_table_desc), ps_table_desc);
 }
 void MyEffect::InitTechnique(const ShaderPrograms& sources) {
@@ -122,46 +137,24 @@ void MyEffect::UseTexture(Renderer* renderer) {
   renderer->UseTexture(kPixelStage, 1, nmh_map_.get());
 }
 
-namespace {
-// class TexPosNormalVertex
-const VertexDesc::Desc kVertexDesc[] = {
-  {"POSITION", 0, kVec4, 0, 0, false},
-  {"NORMAL",   0, kVec4, 1, 0, false},
-  {"BINORMAL", 0, kVec4, 1, 0, false},
-  {"TANGENT",  0, kVec4, 1, 0, false},
-  {"TEXCOORD", 0, kVec2, 1, 0, false},
-};
-}  // namespace
-
-MyEffectPtr CreateMyEffect() {
-  Effect::ShaderPrograms shaders;
-  CHECK(LoadShaderAtStage(kVertexStage, 
-                          "demo/parallax_occlusion_mapping/effect.hlsl.vs",
-                          &shaders));
-  CHECK(LoadShaderAtStage(kPixelStage, 
-                          "demo/parallax_occlusion_mapping/effect.hlsl.ps",
-                          &shaders));
-  
-  VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
-  MyEffectPtr ptr(new MyEffect(desc));
-  ptr->Init(shaders);
-  return ptr;
-}
-
-const char MaterialProvider::kEffectParamsProviderName[] = "MaterialProvider";
+// class MaterialProvider
+IMPLEMENT_EFFECT_PROVIDER_DYNCREATE(MaterialProvider);
+const char MaterialProvider::kEffectProviderName[] = "MaterialProvider";
 MaterialProvider::MaterialProvider() {
 }
 
-const char* MaterialProvider::name() const { return kEffectParamsProviderName;}
-void MaterialProvider::InitFromConfigNode(ConfigNode* config, FileSystem* fs) {
-  CHECK(config->GetChildTextAsFloat("ambient", &ambient_scalar_));
-  CHECK(config->GetChildTextAsFloat("specular", &specular_scalar_));
-  CHECK(config->GetChildTextAsVec4("emission", &emission_));
+bool MaterialProvider::Init(const azer::ConfigNode* node, ResourceLoadContext* ctx) {
+  CHECK(node->GetChildTextAsFloat("ambient", &ambient_scalar_));
+  CHECK(node->GetChildTextAsFloat("specular", &specular_scalar_));
+  CHECK(node->GetChildTextAsVec4("emission", &emission_));
   std::string diffusemap_path, nmhmap_path;
-  CHECK(config->GetChildText("diffusemap", &diffusemap_path));
-  CHECK(config->GetChildText("nmhmap", &nmhmap_path));
-  diffuse_map_ = Load2DTexture(ResPath(UTF8ToUTF16(diffusemap_path)), fs);
-  nmh_map_ = Load2DTexture(ResPath(UTF8ToUTF16(nmhmap_path)), fs);
+  CHECK(node->GetChildText("diffusemap", &diffusemap_path));
+  CHECK(node->GetChildText("nmhmap", &nmhmap_path));
+  diffuse_map_ = Load2DTexture(ResPath(UTF8ToUTF16(diffusemap_path)), ctx->filesystem);
+  nmh_map_ = Load2DTexture(ResPath(UTF8ToUTF16(nmhmap_path)), ctx->filesystem);
+  return true;
 }
+
+const char* MaterialProvider::name() const { return kEffectParamsProviderName;}
 }  // namespace sandbox
 }  // namespace lord

@@ -1,7 +1,7 @@
 #include <memory>
 
 #include "lordaeron/sandbox/sandbox.h"
-#include "lordaeron/resource/resource.h"
+#include "lordaeron/resource/variant_resource.h"
 #include "demo/base/effect_dict.h"
 #include "demo/parallax_occlusion_mapping/effect.h"
 #include "demo/parallax_occlusion_mapping/effect_adapter.h"
@@ -61,7 +61,7 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
   ResourceLoader resloader(fsystem_.get());
   InitDefaultLoader(&resloader);
   ResPath respath(UTF8ToUTF16("//scene.xml"));
-  lord::Resource res = resloader.Load(respath);
+  VariantResource res = resloader.Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
 
