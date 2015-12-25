@@ -15,4 +15,15 @@
     <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadow_depth.hlsl.vs" />
     <shader stage="pixel" entry="psmain" path="//base/hlsl/color_depth.hlsl.ps" />
   </effect>
+
+  <vertex_desc name="tex_vertex_desc">
+    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="texcoord" semindex="0" slot="0" data_type="vector2" />
+  </vertex_desc>
+  <effect name="tex_effect" effect_name="TexturedEffect" 
+          vertex_desc=":tex_vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/tex.hlsl.vs" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/tex.hlsl.ps" />
+  </effect>
 </effects>

@@ -3,7 +3,7 @@
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/effect_dict.h"
-#include "demo/compute_shader/effect.h"
+#include "demo/base/textured_effect.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -34,9 +34,9 @@ int main(int argc, char* argv[]) {
 
   lord::Context* ctx = lord::Context::instance();
   azer::EffectAdapterContext* adapterctx = ctx->GetEffectAdapterContext();
-  adapterctx->RegisteAdapter(new lord::sandbox::MaterialEffectAdapter);
-  adapterctx->RegisteAdapter(new lord::sandbox::SceneRenderNodeEffectAdapter);
-  adapterctx->RegisteAdapter(new lord::sandbox::SceneRenderEnvNodeEffectAdapter);
+  adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new SceneRenderNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new SceneRenderEnvNodeTexEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -55,11 +55,11 @@ int main(int argc, char* argv[]) {
 SceneNodePtr MyRenderWindow::OnInitScene() {
   Context* ctx = Context::instance();
   fsystem_.reset(new azer::NativeFileSystem(
-      FilePath(UTF8ToUTF16("demo/compute_shader/"))));
+      FilePath(UTF8ToUTF16("demo/"))));
 
   ResourceLoader resloader(fsystem_.get());
   InitDefaultLoader(&resloader);
-  ResPath respath(UTF8ToUTF16("//scene.xml"));
+  ResPath respath(UTF8ToUTF16("//compute_shader/scene.xml"));
   VariantResource res = resloader.Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
