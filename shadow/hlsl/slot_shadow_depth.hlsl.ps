@@ -7,5 +7,5 @@ struct VsOutput {
 
 float4 ps_main(VsOutput o):SV_TARGET {
   float d = o.position.z / o.position.w;
-  return float4(d, d, d, 1.0f);
+  return float4(0.3, 0.3, d, 1.0f);
 }

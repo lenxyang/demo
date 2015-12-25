@@ -4,6 +4,7 @@
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/effect_dict.h"
 #include "demo/shadow/effect.h"
+#include "demo/shadow/shadow_render_tree.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -23,8 +24,9 @@ class MyRenderWindow : public lord::SceneRenderWindow {
  private:
   SceneRenderNodePtr render_root_;
   SceneRenderNodePtr bvolumn_root_;
-  scoped_ptr<SimpleRenderTreeRenderer> tree_render_;
+  scoped_ptr<ShadowDepthRenderer> tree_render_;
   scoped_ptr<FileSystem> fsystem_;
+  RendererPtr depth_renderer_;
   EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
@@ -34,6 +36,7 @@ int main(int argc, char* argv[]) {
 
   lord::Context* ctx = lord::Context::instance();
   azer::EffectAdapterContext* adapterctx = ctx->GetEffectAdapterContext();
+  adapterctx->RegisteAdapter(new ShadowEffectAdapter);
   adapterctx->RegisteAdapter(new MaterialEffectAdapter);
   adapterctx->RegisteAdapter(new SceneRenderNodeEffectAdapter);
   adapterctx->RegisteAdapter(new SceneRenderEnvNodeEffectAdapter);
@@ -54,7 +57,8 @@ int main(int argc, char* argv[]) {
 
 SceneNodePtr MyRenderWindow::OnInitScene() {
   Context* ctx = Context::instance();
-  fsystem_.reset(new azer::NativeFileSystem(FilePath(UTF8ToUTF16("demo/shadow/"))));
+  fsystem_.reset(new azer::NativeFileSystem(
+      FilePath(UTF8ToUTF16("demo/shadow/"))));
 
   ResourceLoader resloader(fsystem_.get());
   InitDefaultLoader(&resloader);
@@ -62,15 +66,22 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
   VariantResource res = resloader.Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
+  SceneNode* light_node = root->GetNode("//root/scene/env/spot");
+  DCHECK(light_node);
 
-  tree_render_.reset(new SimpleRenderTreeRenderer);
-  LoadSceneRenderNodeDelegateFactory factory(tree_render_.get());
+  tree_render_.reset(new ShadowDepthRenderer);
+  ShadowRenderNodeDelegateFactory factory(tree_render_.get());
   SceneRenderTreeBuilder builder(&factory);
-
   render_root_ = builder.Build(root.get(), &camera());
   tree_render_->SetSceneNode(render_root_.get());
+  tree_render_->SetLight(light_node->mutable_data()->light());
   LOG(ERROR) << "\n" << render_root_->DumpTree();
-  
+
+  Texture::Options options;
+  options.size = gfx::Size(800, 600);
+  options.target = (Texture::BindTarget)(Texture::kRenderTarget | Texture::kShaderResource);
+  RenderSystem* rs = RenderSystem::Current();
+  depth_renderer_ = rs->CreateRenderer(options);
   return root;
 }
 
@@ -93,5 +104,8 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
+  // renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+  // renderer->ClearDepthAndStencil();
+  // tree_render_->Render(depth_renderer_);
   tree_render_->Render(renderer);
 }

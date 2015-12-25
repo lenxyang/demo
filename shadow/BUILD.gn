@@ -1,6 +1,7 @@
 group("shadow") {
   deps = [
     ":shadow_depth",
+    ":slot_shadow_depth",
   ]
 }
 
@@ -21,6 +22,17 @@ static_library("effect") {
 executable("shadow_depth") {
   sources = [
     "depth.cc",
+  ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":effect",
+  ]
+}
+
+executable("slot_shadow_depth") {
+  sources = [
+    "slot_depth.cc",
   ]
   deps = [
     "//lordaeron",

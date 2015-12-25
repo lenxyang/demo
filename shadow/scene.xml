@@ -65,7 +65,7 @@
   </material>
 
   <effect name="myeffect" effect_name="MyEffect" vertex_desc=":vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//effect.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//effect.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//hlsl/effect.hlsl.vs" />
+    <shader stage="pixel" entry="psmain" path="//hlsl/effect.hlsl.ps" />
   </effect>
 </xml>

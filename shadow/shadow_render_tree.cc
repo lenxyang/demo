@@ -16,9 +16,11 @@ const char ShadowEffect::kEffectName[] = "ShadowEffect";
 ShadowEffect::ShadowEffect() {
   vertex_desc_ptr_ = new VertexDesc(kVertexDescArray, arraysize(kVertexDescArray));
   Effect::ShaderPrograms shaders;
-  CHECK(LoadShaderAtStage(kVertexStage, "demo/shadow/shadow_depth.hlsl.vs",
+  CHECK(LoadShaderAtStage(kVertexStage, 
+                          "demo/shadow/hlsl/slot_shadow_depth.hlsl.vs",
                           &shaders));
-  CHECK(LoadShaderAtStage(kPixelStage, "demo/shadow/shadow_depth.hlsl.ps",
+  CHECK(LoadShaderAtStage(kPixelStage, 
+                          "demo/shadow/hlsl/slot_shadow_depth.hlsl.ps",
                           &shaders));
   Init(shaders);
 }
