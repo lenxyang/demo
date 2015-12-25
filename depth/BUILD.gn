@@ -1,0 +1,9 @@
+executable("depth") {
+  sources = [
+    "main.cc",
+  ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}

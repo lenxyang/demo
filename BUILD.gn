@@ -4,6 +4,7 @@ group("demo") {
     "compute_shader",
     "parallax_occlusion_mapping",
     "shadow",
+    "depth",
     "base",
   ]
 }

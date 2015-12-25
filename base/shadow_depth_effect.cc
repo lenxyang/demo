@@ -16,14 +16,6 @@ IMPLEMENT_EFFECT_DYNCREATE(ShadowDepthEffect);
 const char ShadowDepthEffect::kEffectName[] = "ShadowDepthEffect";
 ShadowDepthEffect::ShadowDepthEffect() {
   vertex_desc_ptr_ = new VertexDesc(kVertexDescArray, arraysize(kVertexDescArray));
-  Effect::ShaderPrograms shaders;
-  CHECK(LoadShaderAtStage(kVertexStage, 
-                          "demo/base/hlsl/shadow_depth.hlsl.vs",
-                          &shaders));
-  CHECK(LoadShaderAtStage(kPixelStage, 
-                          "demo/base/hlsl/shadow_depth.hlsl.ps",
-                          &shaders));
-  Init(shaders);
 }
 
 ShadowDepthEffect::~ShadowDepthEffect() {}
@@ -68,4 +60,19 @@ void ShadowDepthEffect::ApplyGpuConstantTable(Renderer* renderer) {
     DCHECK(tb != NULL);
     tb->SetValue(0, &pvw, sizeof(Matrix4));
   }
+}
+
+EffectAdapterKey SceneRenderNodeDepthEffectAdapter::key() const {
+  return std::make_pair(typeid(ShadowDepthEffect).name(),
+                        typeid(lord::SceneRenderNode).name());
+}
+
+void SceneRenderNodeDepthEffectAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const {
+  CHECK(typeid(*e) == typeid(ShadowDepthEffect));
+  CHECK(typeid(*params) == typeid(lord::SceneRenderNode));
+  const lord::SceneRenderNode* provider = (const lord::SceneRenderNode*)params;
+  ShadowDepthEffect* effect = dynamic_cast<ShadowDepthEffect*>(e);
+  effect->SetWorld(provider->GetWorld());
+  effect->SetPV(provider->camera()->GetProjViewMatrix());
 }
