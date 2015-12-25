@@ -2,6 +2,7 @@
 
 struct VsOutput {
   float4 position:SV_POSITION;
+  float4 pos: POS;
 };
 
 struct VSInput {
@@ -20,5 +21,6 @@ cbuffer c_buffer {
 VsOutput vs_main(VSInput input) {
   VsOutput o;
   o.position = mul(pvw, input.position);
+  o.pos = o.position;
   return o;
 }

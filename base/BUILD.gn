@@ -5,6 +5,8 @@ static_library("base") {
     "effect_dict.h",
     "resource_util.cc",
     "resource_util.h",
+    "shadow_depth_effect.cc",
+    "shadow_depth_effect.h",
   ]
 
   deps = [

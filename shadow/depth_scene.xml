@@ -12,12 +12,21 @@
 	  <refer type="light" path=":spot" />
 	</node>
       </node>
-      <node name="disc">
-	<location>
-          <position>0.0f, 0.0f, 0.0f</position>
-          <scale>0.1f, 0.1f, 0.1f</scale>
-        </location>
-	<refer type="mesh" path=":disc"/>
+      <node name="sphere1">
+	<location><position>0.0f, 0.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+      <node name="sphere2">
+	<location><position>0.0f, 0.0f, 10.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+      <node name="sphere3">
+	<location><position>0.0f, 0.0f, -10.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+      <node name="plane">
+	<location><position>0.0f, 0.0f, -10.0f</position></location>
+	<refer type="mesh" path=":plane"/>
       </node>
     </node>
   </node>
@@ -40,11 +49,18 @@
     <directional>0.0, -1.0, -1.0</directional>
   </light>
 
-  <mesh name="disc">
+  <mesh name="sphere">
     <refer type="vertex_desc" path=":vertex_desc" />
     <refer type="effect" path=":myeffect"/>
     <refer type="material" path=":mtrl"/>
-    <data path="//Media/Disc.x"/>
+    <data path="//Media/sphere.x"/>
+  </mesh>
+
+  <mesh name="plane">
+    <refer type="vertex_desc" path=":vertex_desc" />
+    <refer type="effect" path=":myeffect"/>
+    <refer type="material" path=":mtrl"/>
+    <data path="//Media/plane.obj"/>
   </mesh>
 
   <vertex_desc name="vertex_desc">
