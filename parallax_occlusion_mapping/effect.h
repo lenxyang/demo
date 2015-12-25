@@ -74,7 +74,7 @@ class MaterialProvider : public Material {
  public:
   static const char kEffectProviderName[];
   MaterialProvider();
-  const char* name() const override;
+  const char* GetProviderName() const override;
   bool Init(const azer::ConfigNode* node, ResourceLoadContext* ctx) override;
   void UpdateParams(const azer::FrameArgs& args) override {}
   float ambient_scalar() const { return ambient_scalar_;}

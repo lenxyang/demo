@@ -12,12 +12,19 @@
 	  <refer type="light" path=":spot" />
 	</node>
       </node>
-      <node name="disc">
-	<location>
-          <position>0.0f, 0.0f, 0.0f</position>
-          <scale>0.1f, 0.1f, 0.1f</scale>
-        </location>
-	<refer type="mesh" path=":disc"/>
+      <node name="sphere1">
+	<location><position>-5.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="sphere2">
+	<location><position>0.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="sphere3">
+	<location><position>5.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
       </node>
     </node>
   </node>
@@ -40,32 +47,19 @@
     <directional>0.0, -1.0, -1.0</directional>
   </light>
 
-  <mesh name="disc">
-    <refer type="vertex_desc" path=":vertex_desc" />
-    <refer type="effect" path=":myeffect"/>
+  <mesh name="sphere">
+    <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:tex_effect"/>
     <refer type="material" path=":mtrl"/>
-    <data path="//data/media/Disc.x"/>
+    <data path="//data/media/sphere.x"/>
   </mesh>
 
-  <vertex_desc name="vertex_desc">
-    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
-    <desc semantic="normal" semindex="0" slot="1" data_type="vector4" />
-    <desc semantic="binormal" semindex="0" slot="1" data_type="vector4" />
-    <desc semantic="tangent" semindex="0" slot="1" data_type="vector4" />
-    <desc semantic="texcoord" semindex="0" slot="1" data_type="vector2" />
-  </vertex_desc>
-
-  <material name="mtrl" provider_name="MaterialProvider">
+  <material name="mtrl" provider_name="TexMaterial">
     <ambient>0.01</ambient>
     <specular>0.8</specular>
     <emission>0.0, 0.0, 0.0, 0.0</emission>
-    <diffusemap>//data/media/stones.dds</diffusemap>
-    <nmhmap>//data/media/stones_NM_height.dds</nmhmap>
+    <diffusemap>//data/media/earth.dds</diffusemap>
     <alpha>1.0</alpha>
   </material>
 
-  <effect name="myeffect" effect_name="MyEffect" vertex_desc=":vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//effect.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//effect.hlsl.ps" />
-  </effect>
 </xml>

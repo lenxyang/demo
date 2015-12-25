@@ -15,7 +15,7 @@ namespace {
 const VertexDesc::Desc kVertexDescArray[] = {
   {"POSITION", 0, kVec4, 0, 0, false},
   {"NORMAL",   0, kVec4, 0, 0, false},
-  {"TEXCOORD", 0, kVec2, 0, 0, false},
+  {"TEXCOORD", 0, kVec2, 1, 0, false},
 };
 }  // namespace
 

@@ -21,6 +21,13 @@
     <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
     <desc semantic="texcoord" semindex="0" slot="0" data_type="vector2" />
   </vertex_desc>
+
+  <vertex_desc name="mslot_tex_vertex_desc">
+    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="texcoord" semindex="0" slot="1" data_type="vector2" />
+  </vertex_desc>
+
   <effect name="tex_effect" effect_name="TexturedEffect" 
           vertex_desc=":tex_vertex_desc">
     <shader stage="vertex" entry="vsmain" path="//base/hlsl/tex.hlsl.vs" />

@@ -157,7 +157,7 @@ bool MaterialProvider::Init(const azer::ConfigNode* node, ResourceLoadContext* c
   return true;
 }
 
-const char* MaterialProvider::name() const { return kEffectParamsProviderName;}
+const char* MaterialProvider::GetProviderName() const { return kEffectParamsProviderName;}
 
 
 MaterialEffectAdapter::MaterialEffectAdapter() {
