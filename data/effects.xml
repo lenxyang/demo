@@ -33,4 +33,10 @@
     <shader stage="vertex" entry="vsmain" path="//base/hlsl/tex.hlsl.vs" />
     <shader stage="pixel" entry="psmain" path="//base/hlsl/tex.hlsl.ps" />
   </effect>
+
+  <effect name="shadowmap" effect_name="ShadowMapEffect"
+	  vertex_desc=":tex_vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadowmap.hlsl.vs" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/shadowmap.hlsl.ps" />
+  </effect>
 </effects>

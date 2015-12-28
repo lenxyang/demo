@@ -3,6 +3,7 @@ group("shadow") {
   deps = [
     ":shadow_scene",
     ":shadow_depth",
+    ":shadowmap",
   ]
 }
 
@@ -25,6 +26,17 @@ executable("shadow_depth") {
     "//demo/base",
   ]
 }
+
+executable("shadowmap") {
+  sources = [
+    "shadowmap.cc",
+  ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
 
 executable("shadow_depth_to_texture") {
   sources = [
