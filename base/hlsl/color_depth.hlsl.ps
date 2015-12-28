@@ -6,7 +6,6 @@ struct VsOutput {
 };
 
 float4 ps_main(VsOutput o):SV_TARGET {
-  return float4(1.0, 0.0, 0.0, 1.0);
   float depth = o.position.z;
   if (depth < 0.9f) {
       return float4(1.0, 0.0, 0.0, 1.0);

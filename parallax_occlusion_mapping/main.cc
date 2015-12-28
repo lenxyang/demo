@@ -30,17 +30,17 @@ class MyRenderWindow : public lord::SceneRenderWindow {
 };
 
 int main(int argc, char* argv[]) {
-  CHECK(lord::Context::InitContext(argc, argv));
+  CHECK(LordEnv::InitEnv(argc, argv));
 
-  lord::Context* ctx = lord::Context::instance();
-  azer::EffectAdapterContext* adapterctx = ctx->GetEffectAdapterContext();
+  LordEnv* env = LordEnv::instance();
+  azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new lord::sandbox::MaterialEffectAdapter);
   adapterctx->RegisteAdapter(new lord::sandbox::SceneRenderNodeEffectAdapter);
   adapterctx->RegisteAdapter(new lord::sandbox::SceneRenderEnvNodeEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
-  nelf::ResourceBundle* bundle = lord::Context::instance()->resource_bundle();
+  nelf::ResourceBundle* bundle = LordEnv::instance()->resource_bundle();
   window->SetWindowIcon(*bundle->GetImageSkiaNamed(IDR_ICON_CAPTION_RULE));
   window->SetShowIcon(true);
   window->Init();
@@ -53,13 +53,13 @@ int main(int argc, char* argv[]) {
 }
 
 SceneNodePtr MyRenderWindow::OnInitScene() {
-  Context* ctx = Context::instance();
-  fsystem_.reset(new azer::NativeFileSystem(FilePath(UTF8ToUTF16("demo/"))));
-
-  ResourceLoader resloader(fsystem_.get());
-  InitDefaultLoader(&resloader);
+  LordEnv* env = LordEnv::instance();
+  scoped_ptr<azer::FileSystem> fs(new NativeFileSystem(FilePath(UTF8ToUTF16("demo/"))));
+  env->SetFileSystem(fs.Pass());
+  ResourceLoader* resloader = env->resource_loader();
+  InitDefaultLoader(resloader);
   ResPath respath(UTF8ToUTF16("//parallax_occlusion_mapping/scene.xml"));
-  VariantResource res = resloader.Load(respath);
+  VariantResource res = resloader->Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
 
