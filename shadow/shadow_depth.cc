@@ -3,6 +3,7 @@
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/effect_dict.h"
+#include "demo/base/shadow_depth_effect.h"
 #include "demo/base/shadow_render_tree.h"
 #include "demo/base/textured_effect.h"
 
@@ -38,6 +39,7 @@ int main(int argc, char* argv[]) {
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new SceneRenderNodeTexEffectAdapter);
   adapterctx->RegisteAdapter(new SceneRenderEnvNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new SceneRenderNodeDepthEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));

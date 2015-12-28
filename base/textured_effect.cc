@@ -2,6 +2,8 @@
 
 #include "base/strings/utf_string_conversions.h"
 #include "azer/render/util/shader_util.h"
+#include "lordaeron/env.h"
+#include "lordaeron/resource/resource_util.h"
 #include "lordaeron/resource/resource_loader.h"
 #include "demo/base/resource_util.h"
 
@@ -10,20 +12,14 @@ using namespace azer;
 
 using base::UTF8ToUTF16;
 
-namespace {
-// class TexPosNormalVertex
-const VertexDesc::Desc kVertexDescArray[] = {
-  {"POSITION", 0, kVec4, 0, 0, false},
-  {"NORMAL",   0, kVec4, 0, 0, false},
-  {"TEXCOORD", 0, kVec2, 1, 0, false},
-};
-}  // namespace
-
 IMPLEMENT_EFFECT_DYNCREATE(TexturedEffect);
 const char TexturedEffect::kEffectName[] = "TexturedEffect";
 TexturedEffect::TexturedEffect() {
-  VertexDescPtr desc(new VertexDesc(kVertexDescArray, arraysize(kVertexDescArray)));
-  vertex_desc_ptr_ = desc;
+  ResourceLoader* loader = LordEnv::instance()->resource_loader();
+  ResPath effect_path(UTF8ToUTF16("//data/effects.xml:tex_vertex_desc"));
+  VariantResource res = LoadResource(effect_path, kResTypeVertexDesc, loader);
+  CHECK(res.type == kResTypeVertexDesc);
+  vertex_desc_ptr_ = res.vertex_desc;
 }
 
 TexturedEffect::~TexturedEffect() {

@@ -18,6 +18,16 @@ executable("shadow_scene") {
 
 executable("shadow_depth") {
   sources = [
+    "depth.cc",
+  ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("shadow_depth_to_texture") {
+  sources = [
     "shadow_depth.cc",
   ]
   deps = [

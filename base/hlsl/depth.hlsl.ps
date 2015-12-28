@@ -3,10 +3,9 @@
 
 struct VsOutput {
   float4 position:SV_POSITION;
-  float4 pos: POS;
 };
 
 float4 ps_main(VsOutput o):SV_TARGET {
-  float depth = o.pos.z / o.pos.w;
+  float depth = o.position.z;
   return float4(depth, depth, depth, 1.0);
 }

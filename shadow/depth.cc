@@ -3,6 +3,8 @@
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/effect_dict.h"
+#include "demo/base/shadow_render_tree.h"
+#include "demo/base/depth_effect.h"
 #include "demo/base/textured_effect.h"
 
 using base::FilePath;
@@ -24,7 +26,6 @@ class MyRenderWindow : public lord::SceneRenderWindow {
   SceneRenderNodePtr render_root_;
   SceneRenderNodePtr bvolumn_root_;
   scoped_ptr<SimpleRenderTreeRenderer> tree_render_;
-  scoped_ptr<FileSystem> fsystem_;
   EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
@@ -32,15 +33,17 @@ class MyRenderWindow : public lord::SceneRenderWindow {
 int main(int argc, char* argv[]) {
   CHECK(lord::LordEnv::InitEnv(argc, argv));
 
-  LordEnv* env = LordEnv::instance();
+  lord::LordEnv* env = lord::LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new ShadowRenderDepthEffectAdapter);
+  adapterctx->RegisteAdapter(new SceneRenderNodeDepthEffectAdapter);
   adapterctx->RegisteAdapter(new SceneRenderNodeTexEffectAdapter);
   adapterctx->RegisteAdapter(new SceneRenderEnvNodeTexEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
-  nelf::ResourceBundle* bundle = LordEnv::instance()->resource_bundle();
+  nelf::ResourceBundle* bundle = lord::LordEnv::instance()->resource_bundle();
   window->SetWindowIcon(*bundle->GetImageSkiaNamed(IDR_ICON_CAPTION_RULE));
   window->SetShowIcon(true);
   window->Init();
@@ -60,7 +63,7 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
 
   ResourceLoader* resloader = env->resource_loader();
   InitDefaultLoader(resloader);
-  ResPath respath(UTF8ToUTF16("//compute_shader/scene.xml"));
+  ResPath respath(UTF8ToUTF16("//shadow/depth_scene.xml:scene"));
   VariantResource res = resloader->Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
@@ -71,7 +74,8 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
   render_root_ = builder.Build(root.get(), &camera());
   tree_render_->SetSceneNode(render_root_.get());
   LOG(ERROR) << "\n" << render_root_->DumpTree();
-  
+
+
   return root;
 }
 

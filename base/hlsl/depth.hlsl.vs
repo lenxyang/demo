@@ -1,8 +1,7 @@
 #pragma pack_matrix(row_major)
 
 struct VsOutput {
-  float4 position:SV_POSITION;
-  float4 orgpos : POSITION;
+  float4 position : SV_POSITION;
 };
 
 struct VSInput {
@@ -16,6 +15,5 @@ cbuffer c_buffer {
 VsOutput vs_main(VSInput input) {
   VsOutput o;
   o.position = mul(pvw, input.position);
-  o.orgpos = o.position;
   return o;
 }

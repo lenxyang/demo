@@ -5,11 +5,11 @@
 #include "lordaeron/scene/scene_render_tree.h"
 #include "lordaeron/resource/resource_util.h"
 
-class ShadowDepthEffect : public azer::Effect {
+class DepthEffect : public azer::Effect {
  public:
   static const char kEffectName[];
-  ShadowDepthEffect();
-  ~ShadowDepthEffect();
+  DepthEffect();
+  ~DepthEffect();
 
   const char* GetEffectName() const override;
   bool Init(const ShaderPrograms& source) override;
@@ -22,7 +22,7 @@ class ShadowDepthEffect : public azer::Effect {
 
   void SetPV(const azer::Matrix4& value);
   void SetWorld(const azer::Matrix4& value);
-  static azer::Effect* CreateObject() { return new ShadowDepthEffect();}
+  static azer::Effect* CreateObject() { return new DepthEffect();}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitTechnique(const ShaderPrograms& source);
@@ -30,8 +30,8 @@ class ShadowDepthEffect : public azer::Effect {
 
   azer::Matrix4 pv_;
   azer::Matrix4 world_;
-  DECLARE_EFFECT_DYNCREATE(ShadowDepthEffect);
-  DISALLOW_COPY_AND_ASSIGN(ShadowDepthEffect);
+  DECLARE_EFFECT_DYNCREATE(DepthEffect);
+  DISALLOW_COPY_AND_ASSIGN(DepthEffect);
 };
 
 
@@ -47,4 +47,14 @@ class SceneRenderNodeDepthEffectAdapter : public EffectParamsAdapter {
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
   DISALLOW_COPY_AND_ASSIGN(SceneRenderNodeDepthEffectAdapter);
+};
+
+class ShadowRenderDepthEffectAdapter : public EffectParamsAdapter {
+ public:
+  ShadowRenderDepthEffectAdapter() {}
+
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ShadowRenderDepthEffectAdapter);
 };
