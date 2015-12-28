@@ -2,6 +2,7 @@
 <effects>
   <vertex_desc name="depth_vertex_desc">
     <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
   </vertex_desc>
 
   <effect name="shadow_depth_effect" effect_name="ShadowDepthEffect" 

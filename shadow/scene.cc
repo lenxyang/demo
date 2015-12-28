@@ -3,8 +3,8 @@
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/effect_dict.h"
-#include "demo/shadow/effect.h"
-#include "demo/shadow/shadow_render_tree.h"
+#include "demo/base/shadow_render_tree.h"
+#include "demo/base/textured_effect.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -24,26 +24,23 @@ class MyRenderWindow : public lord::SceneRenderWindow {
  private:
   SceneRenderNodePtr render_root_;
   SceneRenderNodePtr bvolumn_root_;
-  scoped_ptr<ShadowDepthRenderer> tree_render_;
-  scoped_ptr<FileSystem> fsystem_;
-  RendererPtr depth_renderer_;
+  scoped_ptr<SimpleRenderTreeRenderer> tree_render_;
   EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
 int main(int argc, char* argv[]) {
-  CHECK(lord::Context::InitContext(argc, argv));
+  CHECK(lord::LordEnv::InitEnv(argc, argv));
 
-  lord::Context* ctx = lord::Context::instance();
-  azer::EffectAdapterContext* adapterctx = ctx->GetEffectAdapterContext();
-  adapterctx->RegisteAdapter(new ShadowEffectAdapter);
-  adapterctx->RegisteAdapter(new MaterialEffectAdapter);
-  adapterctx->RegisteAdapter(new SceneRenderNodeEffectAdapter);
-  adapterctx->RegisteAdapter(new SceneRenderEnvNodeEffectAdapter);
+  lord::LordEnv* env = lord::LordEnv::instance();
+  azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
+  adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new SceneRenderNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new SceneRenderEnvNodeTexEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
-  nelf::ResourceBundle* bundle = lord::Context::instance()->resource_bundle();
+  nelf::ResourceBundle* bundle = lord::LordEnv::instance()->resource_bundle();
   window->SetWindowIcon(*bundle->GetImageSkiaNamed(IDR_ICON_CAPTION_RULE));
   window->SetShowIcon(true);
   window->Init();
@@ -56,32 +53,26 @@ int main(int argc, char* argv[]) {
 }
 
 SceneNodePtr MyRenderWindow::OnInitScene() {
-  Context* ctx = Context::instance();
-  fsystem_.reset(new azer::NativeFileSystem(
-      FilePath(UTF8ToUTF16("demo/shadow/"))));
+  LordEnv* env = LordEnv::instance();
+  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
+      FilePath(UTF8ToUTF16("demo/"))));
+  env->SetFileSystem(fs.Pass());
 
-  ResourceLoader resloader(fsystem_.get());
-  InitDefaultLoader(&resloader);
-  ResPath respath(UTF8ToUTF16("//scene.xml:root"));
-  VariantResource res = resloader.Load(respath);
+  ResourceLoader* resloader = env->resource_loader();
+  InitDefaultLoader(resloader);
+  ResPath respath(UTF8ToUTF16("//shadow/scene.xml"));
+  VariantResource res = resloader->Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
-  SceneNode* light_node = root->GetNode("//root/scene/env/spot");
-  DCHECK(light_node);
 
-  tree_render_.reset(new ShadowDepthRenderer);
-  ShadowRenderNodeDelegateFactory factory(tree_render_.get());
+  tree_render_.reset(new SimpleRenderTreeRenderer);
+  LoadSceneRenderNodeDelegateFactory factory(tree_render_.get());
   SceneRenderTreeBuilder builder(&factory);
   render_root_ = builder.Build(root.get(), &camera());
   tree_render_->SetSceneNode(render_root_.get());
-  tree_render_->SetLight(light_node->mutable_data()->light());
   LOG(ERROR) << "\n" << render_root_->DumpTree();
 
-  Texture::Options options;
-  options.size = gfx::Size(800, 600);
-  options.target = (Texture::BindTarget)(Texture::kRenderTarget | Texture::kShaderResource);
-  RenderSystem* rs = RenderSystem::Current();
-  depth_renderer_ = rs->CreateRenderer(options);
+
   return root;
 }
 
@@ -104,8 +95,5 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  // renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
-  // renderer->ClearDepthAndStencil();
-  // tree_render_->Render(depth_renderer_);
   tree_render_->Render(renderer);
 }

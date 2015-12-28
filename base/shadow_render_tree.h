@@ -3,6 +3,7 @@
 #include "azer/render/render.h"
 #include "azer/render/effect_creator.h"
 #include "lordaeron/effect/light.h"
+#include "lordaeron/resource/resource_util.h"
 #include "lordaeron/scene/scene_node_traverse.h"
 #include "lordaeron/scene/scene_render_tree.h"
 
@@ -59,7 +60,7 @@ class ShadowRenderNodeDelegateFactory
 
 class ShadowDepthRenderer : public lord::LightObserver {
  public:
-  ShadowDepthRenderer();
+  ShadowDepthRenderer(lord::ResourceLoader* loader);
   ~ShadowDepthRenderer();
   const azer::Camera& GetCamera() const { return camera_;}
   void SetSceneNode(lord::SceneRenderNode* root) { root_ = root;}

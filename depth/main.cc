@@ -4,7 +4,6 @@
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/shadow_depth_effect.h"
 #include "demo/base/effect_dict.h"
-#include "demo/shadow/effect.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -25,22 +24,21 @@ class MyRenderWindow : public lord::SceneRenderWindow {
   SceneRenderNodePtr render_root_;
   SceneRenderNodePtr bvolumn_root_;
   scoped_ptr<SimpleRenderTreeRenderer> tree_render_;
-  scoped_ptr<FileSystem> fsystem_;
   EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
 int main(int argc, char* argv[]) {
-  CHECK(lord::Context::InitContext(argc, argv));
+  CHECK(lord::LordEnv::InitEnv(argc, argv));
 
-  lord::Context* ctx = lord::Context::instance();
-  azer::EffectAdapterContext* adapterctx = ctx->GetEffectAdapterContext();
+  lord::LordEnv* env = lord::LordEnv::instance();
+  azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   
   adapterctx->RegisteAdapter(new SceneRenderNodeDepthEffectAdapter);
   
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
-  nelf::ResourceBundle* bundle = lord::Context::instance()->resource_bundle();
+  nelf::ResourceBundle* bundle = lord::LordEnv::instance()->resource_bundle();
   window->SetWindowIcon(*bundle->GetImageSkiaNamed(IDR_ICON_CAPTION_RULE));
   window->SetShowIcon(true);
   window->Init();
@@ -53,13 +51,15 @@ int main(int argc, char* argv[]) {
 }
 
 SceneNodePtr MyRenderWindow::OnInitScene() {
-  Context* ctx = Context::instance();
-  fsystem_.reset(new azer::NativeFileSystem(FilePath(UTF8ToUTF16("demo/"))));
+  LordEnv* env = LordEnv::instance();
+  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
+      FilePath(UTF8ToUTF16("demo/"))));
+  env->SetFileSystem(fs.Pass());
 
-  ResourceLoader resloader(fsystem_.get());
-  InitDefaultLoader(&resloader);
+  ResourceLoader* resloader = env->resource_loader();
+  InitDefaultLoader(resloader);
   ResPath respath(UTF8ToUTF16("//depth/scene.xml:root"));
-  VariantResource res = resloader.Load(respath);
+  VariantResource res = resloader->Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
 

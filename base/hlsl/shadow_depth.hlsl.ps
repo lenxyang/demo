@@ -9,17 +9,4 @@ struct VsOutput {
 float4 ps_main(VsOutput o):SV_TARGET {
   float depth = o.pos.z / o.pos.w;
   return float4(depth, depth, depth, 1.0);
-  if (depth > 0.95) {
-     return float4(1.0, 0.0, 0.0, 1.0);
-  } else if (depth > 0.93) {
-          return float4(0.0, 1.0, 0.0, 1.0);
-  } else if (depth > 0.92) {
-      return float4(0.0, 0.0, 1.0, 1.0);
-  } else if (depth > 0.91) {
-      return float4(1.0, 0.0, 1.0, 1.0);
-  } else if ( depth > 0.85){
-      return float4(0.8, 0.8, 0.8, 1.0);
-  } else {
-      return float4(0.1, 0.1, 0.1, 1.0);
-  }
 }

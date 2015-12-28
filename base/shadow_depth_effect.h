@@ -3,6 +3,7 @@
 #include "azer/render/effect_creator.h"
 #include "azer/render/render.h"
 #include "lordaeron/scene/scene_render_tree.h"
+#include "lordaeron/resource/resource_util.h"
 
 class ShadowDepthEffect : public azer::Effect {
  public:
@@ -21,7 +22,7 @@ class ShadowDepthEffect : public azer::Effect {
 
   void SetPV(const azer::Matrix4& value);
   void SetWorld(const azer::Matrix4& value);
-  static azer::Effect* CreateObject() { return new ShadowDepthEffect;}
+  static azer::Effect* CreateObject() { return new ShadowDepthEffect();}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitTechnique(const ShaderPrograms& source);

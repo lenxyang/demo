@@ -3,6 +3,7 @@
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/effect_dict.h"
+#include "demo/base/shadow_render_tree.h"
 #include "demo/base/textured_effect.h"
 
 using base::FilePath;
@@ -24,12 +25,14 @@ class MyRenderWindow : public lord::SceneRenderWindow {
   SceneRenderNodePtr render_root_;
   SceneRenderNodePtr bvolumn_root_;
   scoped_ptr<SimpleRenderTreeRenderer> tree_render_;
+  scoped_ptr<ShadowDepthRenderer> depth_render_;
   EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
 int main(int argc, char* argv[]) {
   CHECK(lord::LordEnv::InitEnv(argc, argv));
+
   lord::LordEnv* env = lord::LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
@@ -58,7 +61,7 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
 
   ResourceLoader* resloader = env->resource_loader();
   InitDefaultLoader(resloader);
-  ResPath respath(UTF8ToUTF16("//multislot/scene.xml"));
+  ResPath respath(UTF8ToUTF16("//shadow/scene.xml"));
   VariantResource res = resloader->Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
@@ -69,6 +72,19 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
   render_root_ = builder.Build(root.get(), &camera());
   tree_render_->SetSceneNode(render_root_.get());
   LOG(ERROR) << "\n" << render_root_->DumpTree();
+
+
+  {
+    SceneNode* light_node = root->GetNode("//scene/node/env/spot");
+    DCHECK(light_node);
+    depth_render_.reset(new ShadowDepthRenderer(resloader));
+    ShadowRenderNodeDelegateFactory factory(depth_render_.get());
+    SceneRenderTreeBuilder builder(&factory);
+    render_root_ = builder.Build(root.get(), &camera());
+    depth_render_->SetSceneNode(render_root_.get());
+    depth_render_->SetLight(light_node->mutable_data()->light());
+    LOG(ERROR) << "\n" << render_root_->DumpTree();
+  }
   
   return root;
 }
@@ -88,9 +104,11 @@ void MyRenderWindow::OnInitUI() {
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
-  tree_render_->Update(args);
+  // tree_render_->Update(args);
+  depth_render_->Update(args);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  tree_render_->Render(renderer);
+  // tree_render_->Render(renderer);
+  depth_render_->Render(renderer);
 }

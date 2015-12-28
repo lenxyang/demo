@@ -1,9 +1,13 @@
-#include "demo/shadow/shadow_render_tree.h"
+#include "demo/base/shadow_render_tree.h"
 
+#include "base/strings/utf_string_conversions.h"
 #include "azer/render/util/shader_util.h"
+#include "lordaeron/resource/resource_util.h"
+#include "demo/base/shadow_depth_effect.h"
 
 using namespace lord;
 using namespace azer;
+using base::UTF8ToUTF16;
 
 // class ShadowDepthRenderDelegate
 const char ShadowDepthRenderDelegate::kEffectProviderName[] = 
@@ -48,15 +52,15 @@ void ShadowDepthRenderDelegate::Render(azer::Renderer* renderer) {
 // class ShadowEffectAdapter
 ShadowEffectAdapter::ShadowEffectAdapter() {}
 EffectAdapterKey ShadowEffectAdapter::key() const {
-  return std::make_pair(typeid(ShadowEffect).name(),
+  return std::make_pair(typeid(ShadowDepthEffect).name(),
                         typeid(ShadowDepthRenderDelegate).name());
 }
 
 void ShadowEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params) const  {
-  CHECK(typeid(*e) == typeid(ShadowEffect));
+  CHECK(typeid(*e) == typeid(ShadowDepthEffect));
   CHECK(typeid(*params) == typeid(ShadowDepthRenderDelegate));
   ShadowDepthRenderDelegate* provider = (ShadowDepthRenderDelegate*)params;
-  ShadowEffect* effect = dynamic_cast<ShadowEffect*>(e);
+  ShadowDepthEffect* effect = dynamic_cast<ShadowDepthEffect*>(e);
   effect->SetWorld(provider->GetWorld());
   effect->SetPV(provider->GetPV());
 }
@@ -75,10 +79,13 @@ CreateDelegate(lord::SceneRenderNode* node) {
 }
 
 // class ShadowDepthRenderer
-ShadowDepthRenderer::ShadowDepthRenderer()
+ShadowDepthRenderer::ShadowDepthRenderer(ResourceLoader* loader)
     : root_(NULL),
       need_update_(true) {
-  effect_ = new ShadowEffect();
+  ResPath effect_path(UTF8ToUTF16("//data/effects.xml:shadow_depth_effect"));
+  VariantResource res = LoadResource(effect_path, kResTypeEffect, loader);
+  CHECK(res.type == kResTypeEffect);
+  effect_ = res.effect;
 }
 
 ShadowDepthRenderer::~ShadowDepthRenderer() {

@@ -7,6 +7,8 @@ static_library("base") {
     "resource_util.h",
     "shadow_depth_effect.cc",
     "shadow_depth_effect.h",
+    "shadow_render_tree.cc",
+    "shadow_render_tree.h",
     "textured_effect.cc",
     "textured_effect.h",
   ]

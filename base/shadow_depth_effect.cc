@@ -1,21 +1,22 @@
 #include "demo/base/shadow_depth_effect.h"
 
+#include "base/strings/utf_string_conversions.h"
 #include "azer/render/util/shader_util.h"
+#include "lordaeron/env.h"
+#include "lordaeron/resource/resource_loader.h"
 
 using namespace lord;
 using namespace azer;
-
-namespace {
-// class TexPosNormalVertex
-const VertexDesc::Desc kVertexDescArray[] = {
-  {"POSITION", 0, kVec4, 0, 0, false},
-};
-}  // namespace
+using base::UTF8ToUTF16;
 
 IMPLEMENT_EFFECT_DYNCREATE(ShadowDepthEffect);
 const char ShadowDepthEffect::kEffectName[] = "ShadowDepthEffect";
 ShadowDepthEffect::ShadowDepthEffect() {
-  vertex_desc_ptr_ = new VertexDesc(kVertexDescArray, arraysize(kVertexDescArray));
+  ResourceLoader* loader = LordEnv::instance()->resource_loader();
+  ResPath effect_path(UTF8ToUTF16("//data/effects.xml:depth_vertex_desc"));
+  VariantResource res = LoadResource(effect_path, kResTypeVertexDesc, loader);
+  CHECK(res.type == kResTypeVertexDesc);
+  vertex_desc_ptr_ = res.vertex_desc;
 }
 
 ShadowDepthEffect::~ShadowDepthEffect() {}
