@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <effects>
+  <!-- for depth -->
   <vertex_desc name="depth_vertex_desc">
     <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
   </vertex_desc>
-
+  
   <effect name="depth_effect" effect_name="DepthEffect" 
           vertex_desc=":depth_vertex_desc">
     <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.hlsl.vs" />
@@ -14,6 +15,17 @@
           vertex_desc=":depth_vertex_desc">
     <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.hlsl.vs" />
     <shader stage="pixel" entry="psmain" path="//base/hlsl/color_depth.hlsl.ps" />
+  </effect>
+
+  <!-- for shadow depth -->
+  <vertex_desc name="shadow_depth_vertex_desc">
+    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
+  </vertex_desc>
+  <effect name="shadow_depth_effect" effect_name="ShadowDepthEffect" 
+          vertex_desc=":shadow_depth_vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadow_depth.hlsl.vs" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/shadow_depth.hlsl.ps" />
   </effect>
 
   <vertex_desc name="tex_vertex_desc">

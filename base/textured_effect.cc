@@ -23,17 +23,13 @@ TexturedEffect::~TexturedEffect() {
 const char* TexturedEffect::GetEffectName() const {
   return kEffectName;
 }
-bool TexturedEffect::Init(const ShaderPrograms& sources) {
+bool TexturedEffect::Init(VertexDesc* desc, const ShaderPrograms& sources) {
   DCHECK(sources.size() == kRenderPipelineStageNum);
   DCHECK(!sources[kVertexStage].code.empty());
   DCHECK(!sources[kPixelStage].code.empty());
 
-  ResourceLoader* loader = LordEnv::instance()->resource_loader();
-  ResPath effect_path(UTF8ToUTF16("//data/effects.xml:tex_vertex_desc"));
-  VariantResource res = LoadResource(effect_path, kResTypeVertexDesc, loader);
-  CHECK(res.type == kResTypeVertexDesc);
-  vertex_desc_ptr_ = res.vertex_desc;
-
+  DCHECK(desc);
+  vertex_desc_ = desc;
   InitTechnique(sources);
   InitGpuConstantTable();
   return true;

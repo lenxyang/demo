@@ -55,12 +55,17 @@ LampNodeRenderDelegate::LampNodeRenderDelegate(SceneRenderNode* node)
 
 bool LampNodeRenderDelegate::Init() {
   SceneNode* scene_node = GetSceneNode();
+  lord::LordEnv* env = lord::LordEnv::instance();
+  ResourceLoader* loader = env->resource_loader();
   Light* light = scene_node->mutable_data()->light();
   switch (light->type()) {
     case kDirectionalLight:
       break;
-    case kSpotLight:
+    case kSpotLight: 
       light->InitShadowmapRenderer(gfx::Size(1024, 1024));
+      InitShadowMapCamera(light, &camera_);
+      scene_renderer_.reset(new ShadowDepthRenderer(loader, light));
+      scene_renderer_->Init(scene_node->root(), &camera_);
       break;
     case kPointLight:
       break;
@@ -68,11 +73,6 @@ bool LampNodeRenderDelegate::Init() {
       CHECK(false);
   }
 
-  InitShadowMapCamera(light, &camera_);
-  lord::LordEnv* env = lord::LordEnv::instance();
-  ResourceLoader* loader = env->resource_loader();
-  scene_renderer_.reset(new ShadowDepthRenderer(loader, light));
-  scene_renderer_->Init(scene_node->root(), &camera_);
   return true;
 }
 
@@ -139,7 +139,8 @@ void EffectedSceneRenderer::Render(Renderer* renderer) {
   RenderNode(root_, renderer);
 }
 
-void EffectedSceneRenderer::UpdateNode(SceneRenderNode* node, const FrameArgs& args) {
+void EffectedSceneRenderer::UpdateNode(SceneRenderNode* node, 
+                                       const FrameArgs& args) {
   node->Update(args);
   for (auto iter = node->children().begin(); 
        iter != node->children().end(); ++iter) {
