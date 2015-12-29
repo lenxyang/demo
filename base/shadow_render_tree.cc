@@ -32,7 +32,7 @@ void ShadowDepthRenderDelegate::Init() {
 }
 
 const azer::Matrix4& ShadowDepthRenderDelegate::GetPV() const {
-  return tree_renderer_->GetCamera().GetProjViewMatrix();
+  return tree_renderer_->camera()->GetProjViewMatrix();
 }
 
 void ShadowDepthRenderDelegate::UpdateParams(const azer::FrameArgs& args) {
@@ -90,7 +90,8 @@ CreateDelegate(lord::SceneRenderNode* node) {
 
 // class ShadowDepthRenderer
 ShadowDepthRenderer::ShadowDepthRenderer(ResourceLoader* loader, lord::Light* light)
-    : need_update_(true) {
+    : need_update_(true)
+    , camera_(NULL) {
   ResPath effect_path(UTF8ToUTF16("//data/effects.xml:shadow_depth_effect"));
   VariantResource res = LoadResource(effect_path, kResTypeEffect, loader);
   CHECK(res.type == kResTypeEffect);
@@ -104,12 +105,14 @@ ShadowDepthRenderer::~ShadowDepthRenderer() {
 
 void ShadowDepthRenderer::Init(lord::SceneNode* root, const azer::Camera* camera) {
   CHECK(root_ == NULL);
+  camera_ = camera;
   NodeDelegateFactory factory(this);
   SceneRenderTreeBuilder builder(&factory);
   root_ = builder.Build(root, camera);
 }
 
 void ShadowDepthRenderer::SetLight(lord::LightPtr light) {
+  /*
   light_ = light;
   need_update_ = true;
   if (light_->type() == kSpotLight) {
@@ -119,6 +122,7 @@ void ShadowDepthRenderer::SetLight(lord::LightPtr light) {
   } else {
     NOTREACHED();
   }
+  */
 }
 
 void ShadowDepthRenderer::UpdateNode(SceneRenderNode* node,
