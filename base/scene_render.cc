@@ -16,7 +16,7 @@ ObjectNodeRenderDelegate::ObjectNodeRenderDelegate(
     : SceneRenderNodeDelegate(node),
       tree_renderer_(renderer) {
   Init();
-      }
+}
 
 bool ObjectNodeRenderDelegate::Init() {
   SceneNode* scene_node = GetSceneNode();
@@ -46,8 +46,7 @@ void ObjectNodeRenderDelegate::Render(Renderer* renderer) {
 
 // class LampNodeRenderDelegate
 LampNodeRenderDelegate::LampNodeRenderDelegate(SceneRenderNode* node)
-    : SceneRenderNodeDelegate(node),
-      controller_(NULL) {
+    : SceneRenderNodeDelegate(node) {
   SceneNode* scene_node = GetSceneNode();
   CHECK(scene_node->type() == kLampSceneNode);
   CHECK(scene_node->parent() && scene_node->parent()->type() == kEnvSceneNode);
@@ -59,29 +58,35 @@ bool LampNodeRenderDelegate::Init() {
   Light* light = scene_node->mutable_data()->light();
   switch (light->type()) {
     case kDirectionalLight:
-      controller_ = new DirLightController(node_);
       break;
     case kSpotLight:
-      controller_ = new SpotLightController(node_);
+      light->InitShadowmapRenderer(gfx::Size(1024, 1024));
       break;
     case kPointLight:
-      controller_ = new PointLightController(node_);
       break;
     default:
       CHECK(false);
   }
 
-  scene_node->SetMin(controller_->GetLightMesh()->vmin());
-  scene_node->SetMax(controller_->GetLightMesh()->vmax());
+  InitShadowMapCamera(light, &camera_);
+  lord::LordEnv* env = lord::LordEnv::instance();
+  ResourceLoader* loader = env->resource_loader();
+  scene_renderer_.reset(new ShadowDepthRenderer(loader, light));
+  scene_renderer_->Init(scene_node->root(), &camera_);
   return true;
 }
 
 void LampNodeRenderDelegate::Update(const FrameArgs& args) {
-  controller_->Update(args);
+  scene_renderer_->Update(args);
 }
 
-void LampNodeRenderDelegate::Render(Renderer* renderer) {
-  controller_->Render(renderer);
+void LampNodeRenderDelegate::Render(Renderer*) {
+  SceneNode* scene_node = GetSceneNode();
+  Light* light = scene_node->mutable_data()->light();
+  Renderer* renderer = light->shadowmap_renderer();
+  if (renderer) {
+    scene_renderer_->Render(renderer);
+  }
 }
 
 namespace {
@@ -147,9 +152,7 @@ void EffectedSceneRenderer::RenderNode(SceneRenderNode* node, Renderer* renderer
     return;
   }
 
-  if (node->GetSceneNode()->type() != kLampSceneNode) {
-    node->Render(renderer);
-  }
+  node->Render(renderer);
   for (auto iter = node->children().begin(); 
        iter != node->children().end(); ++iter) {
     RenderNode(iter->get(), renderer);

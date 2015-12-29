@@ -69,20 +69,6 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
   tree_render_.reset(new EffectedSceneRenderer);
   tree_render_->Init(root, &camera());
 
-  /*
-  {
-    SceneNode* light_node = root->GetNode("//scene/node/env/spot");
-    DCHECK(light_node);
-    depth_render_.reset(new ShadowDepthRenderer(resloader));
-    ShadowRenderNodeDelegateFactory factory(depth_render_.get());
-    SceneRenderTreeBuilder builder(&factory);
-    render_root_ = builder.Build(root.get(), &camera());
-    depth_render_->SetSceneNode(render_root_.get());
-    depth_render_->SetLight(light_node->mutable_data()->light());
-    LOG(ERROR) << "\n" << render_root_->DumpTree();
-  }
-  */
-
   return root;
 }
 

@@ -46,31 +46,19 @@ class ShadowEffectAdapter : public EffectParamsAdapter {
   DISALLOW_COPY_AND_ASSIGN(ShadowEffectAdapter);
 };
 
-
-class ShadowRenderNodeDelegateFactory 
-    : public lord::SceneRenderNodeDelegateFactory {
- public:
-  ShadowRenderNodeDelegateFactory(ShadowDepthRenderer* renderer);
-  scoped_ptr<lord::SceneRenderNodeDelegate> CreateDelegate(
-      lord::SceneRenderNode* node) override;
- private:
-  ShadowDepthRenderer* tree_renderer_;
-  DISALLOW_COPY_AND_ASSIGN(ShadowRenderNodeDelegateFactory);
-};
-
 class ShadowDepthRenderer : public lord::LightObserver {
  public:
-  ShadowDepthRenderer(lord::ResourceLoader* loader);
+  ShadowDepthRenderer(lord::ResourceLoader* loader, lord::Light* light);
   ~ShadowDepthRenderer();
   const azer::Camera& GetCamera() const { return camera_;}
-  void SetSceneNode(lord::SceneRenderNode* root) { root_ = root;}
-  void SetLight(lord::LightPtr light);
+  void Init(lord::SceneNode* root, const azer::Camera* camera);
   void Update(const azer::FrameArgs& args);
   void Render(azer::Renderer* renderer);
   azer::MeshPtr CreateShadowMesh(azer::MeshPtr mesh);
  private:
   void UpdateNode(lord::SceneRenderNode* node, const azer::FrameArgs& args);
   void RenderNode(lord::SceneRenderNode* node, azer::Renderer* renderer);
+  void SetLight(lord::LightPtr light);
   lord::SceneRenderNode* root_;
   lord::LightPtr light_;
   azer::Camera camera_;

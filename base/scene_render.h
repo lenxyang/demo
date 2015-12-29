@@ -3,6 +3,7 @@
 #include "azer/render/render.h"
 #include "lordaeron/scene/scene_node_traverse.h"
 #include "lordaeron/scene/scene_render_tree.h"
+#include "demo/base/shadow_render_tree.h"
 
 namespace lord {
 class SceneNode;
@@ -33,7 +34,8 @@ class LampNodeRenderDelegate : public lord::SceneRenderNodeDelegate {
   void Render(azer::Renderer* renderer) override;
  private:
   bool Init();
-  lord::LightController* controller_;
+  azer::Camera camera_;
+  scoped_ptr<ShadowDepthRenderer> scene_renderer_;
   DISALLOW_COPY_AND_ASSIGN(LampNodeRenderDelegate);
 };
  

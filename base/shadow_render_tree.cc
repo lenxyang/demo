@@ -65,30 +65,49 @@ void ShadowEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params) c
   effect->SetPV(provider->GetPV());
 }
 
-// class ShadowRenderNodeDelegateFactory
-ShadowRenderNodeDelegateFactory::ShadowRenderNodeDelegateFactory(
+namespace {
+class NodeDelegateFactory : public SceneRenderNodeDelegateFactory {
+ public:
+  NodeDelegateFactory(ShadowDepthRenderer* renderer);
+  scoped_ptr<lord::SceneRenderNodeDelegate> CreateDelegate(
+      lord::SceneRenderNode* node) override;
+ private:
+  ShadowDepthRenderer* tree_renderer_;
+  DISALLOW_COPY_AND_ASSIGN(NodeDelegateFactory);
+};
+NodeDelegateFactory::NodeDelegateFactory(
     ShadowDepthRenderer* renderer)
     : tree_renderer_(renderer) {
 }
 
-scoped_ptr<lord::SceneRenderNodeDelegate> ShadowRenderNodeDelegateFactory::
+scoped_ptr<lord::SceneRenderNodeDelegate> NodeDelegateFactory::
 CreateDelegate(lord::SceneRenderNode* node) {
   scoped_ptr<lord::SceneRenderNodeDelegate> p(
       new ShadowDepthRenderDelegate(node, tree_renderer_));
   return p.Pass();
 }
+}  // namespace
 
 // class ShadowDepthRenderer
-ShadowDepthRenderer::ShadowDepthRenderer(ResourceLoader* loader)
+ShadowDepthRenderer::ShadowDepthRenderer(ResourceLoader* loader, lord::Light* light)
     : root_(NULL),
       need_update_(true) {
   ResPath effect_path(UTF8ToUTF16("//data/effects.xml:shadow_depth_effect"));
   VariantResource res = LoadResource(effect_path, kResTypeEffect, loader);
   CHECK(res.type == kResTypeEffect);
   effect_ = res.effect;
+
+  SetLight(light);
 }
 
 ShadowDepthRenderer::~ShadowDepthRenderer() {
+}
+
+void ShadowDepthRenderer::Init(lord::SceneNode* root, const azer::Camera* camera) {
+  CHECK(root_ == NULL);
+  NodeDelegateFactory factory(this);
+  SceneRenderTreeBuilder builder(&factory);
+  root_ = builder.Build(root, camera);
 }
 
 void ShadowDepthRenderer::SetLight(lord::LightPtr light) {
@@ -104,7 +123,7 @@ void ShadowDepthRenderer::SetLight(lord::LightPtr light) {
 }
 
 void ShadowDepthRenderer::UpdateNode(SceneRenderNode* node,
-                                       const azer::FrameArgs& args) {
+                                     const azer::FrameArgs& args) {
   node->Update(args);
   for (auto iter = node->children().begin(); 
        iter != node->children().end(); ++iter) {

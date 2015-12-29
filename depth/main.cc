@@ -21,9 +21,8 @@ class MyRenderWindow : public lord::SceneRenderWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  SceneRenderNodePtr render_root_;
   SceneRenderNodePtr bvolumn_root_;
-  scoped_ptr<SimpleRenderTreeRenderer> tree_render_;
+  scoped_ptr<UISceneRenderer> tree_render_;
   EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
@@ -64,12 +63,8 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
 
-  tree_render_.reset(new SimpleRenderTreeRenderer);
-  LoadSceneRenderNodeDelegateFactory factory(tree_render_.get());
-  SceneRenderTreeBuilder builder(&factory);
-
-  render_root_ = builder.Build(root.get(), &camera());
-  tree_render_->SetSceneNode(render_root_.get());
+  tree_render_.reset(new UISceneRenderer);
+  tree_render_->Init(root, &camera());
   LOG(ERROR) << "\n" << render_root_->DumpTree();
   
   return root;
