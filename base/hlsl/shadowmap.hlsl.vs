@@ -26,7 +26,7 @@ VsOutput vs_main(VSInput input) {
   VsOutput o;
   o.position = mul(pvw, input.position);
   o.worldpos = mul(world, input.position).xyz;
-  o.projtex  = mul(pvw, input.position);
+  o.projtex  = mul(lightpvw, input.position);
   o.normal = normalize(mul(world, input.normal)).xyz;
   o.viewin = normalize(camerapos - o.worldpos);
   o.texcoord = input.texcoord;

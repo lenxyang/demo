@@ -90,8 +90,7 @@ CreateDelegate(lord::SceneRenderNode* node) {
 
 // class ShadowDepthRenderer
 ShadowDepthRenderer::ShadowDepthRenderer(ResourceLoader* loader, lord::Light* light)
-    : need_update_(true)
-    , camera_(NULL) {
+    : need_update_(true) {
   ResPath effect_path(UTF8ToUTF16("//data/effects.xml:shadow_depth_effect"));
   VariantResource res = LoadResource(effect_path, kResTypeEffect, loader);
   CHECK(res.type == kResTypeEffect);
@@ -124,7 +123,7 @@ void ShadowDepthRenderer::SetLight(lord::LightPtr light) {
 }
 
 const Camera* ShadowDepthRenderer::camera() const {
-  return &(light->camera());
+  return &(light_->camera());
 }
 
 void ShadowDepthRenderer::UpdateNode(SceneRenderNode* node, const FrameArgs& args) {

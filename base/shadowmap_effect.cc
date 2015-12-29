@@ -168,6 +168,7 @@ void SceneRenderEnvNodeShadowMapEffectAdapter::Apply(
     } else if (light->type() == kSpotLight) {
       effect->SetSpotLight(light->spot_light());
       effect->SetSpotLightShadowMap(light->shadowmap());
+      effect->SetSpotLightPVW(light->camera().GetProjViewMatrix());
     }
   }
 }
