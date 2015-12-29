@@ -31,20 +31,20 @@ void ShadowDepthRenderDelegate::Init() {
   }
 }
 
-const azer::Matrix4& ShadowDepthRenderDelegate::GetPV() const {
+const Matrix4& ShadowDepthRenderDelegate::GetPV() const {
   return tree_renderer_->camera()->GetProjViewMatrix();
 }
 
-void ShadowDepthRenderDelegate::UpdateParams(const azer::FrameArgs& args) {
+void ShadowDepthRenderDelegate::UpdateParams(const FrameArgs& args) {
   world_ = node_->GetWorld();
 }
   
-void ShadowDepthRenderDelegate::Update(const azer::FrameArgs& args) {
+void ShadowDepthRenderDelegate::Update(const FrameArgs& args) {
   if (shadow_.get())
     shadow_->UpdateProviderParams(args);
 }
 
-void ShadowDepthRenderDelegate::Render(azer::Renderer* renderer) {
+void ShadowDepthRenderDelegate::Render(Renderer* renderer) {
   if (shadow_.get())
     shadow_->Render(renderer);
 }
@@ -103,30 +103,31 @@ ShadowDepthRenderer::ShadowDepthRenderer(ResourceLoader* loader, lord::Light* li
 ShadowDepthRenderer::~ShadowDepthRenderer() {
 }
 
-void ShadowDepthRenderer::Init(lord::SceneNode* root, const azer::Camera* camera) {
+void ShadowDepthRenderer::Init(lord::SceneNode* root, const Camera* camera) {
   CHECK(root_ == NULL);
-  camera_ = camera;
   NodeDelegateFactory factory(this);
   SceneRenderTreeBuilder builder(&factory);
   root_ = builder.Build(root, camera);
 }
 
 void ShadowDepthRenderer::SetLight(lord::LightPtr light) {
-  /*
   light_ = light;
   need_update_ = true;
   if (light_->type() == kSpotLight) {
     const Vector3& position = light->spot_light().position;
     const Vector3& dir = light->spot_light().direction;
-    camera_.reset(position, position + dir * 10, Vector3(0.0f, 1.0f, 0.0f));
+    light->mutable_camera()->reset(position, position + dir * 10, 
+                                   Vector3(0.0f, 1.0f, 0.0f));
   } else {
     NOTREACHED();
   }
-  */
 }
 
-void ShadowDepthRenderer::UpdateNode(SceneRenderNode* node,
-                                     const azer::FrameArgs& args) {
+const Camera* ShadowDepthRenderer::camera() const {
+  return &(light->camera());
+}
+
+void ShadowDepthRenderer::UpdateNode(SceneRenderNode* node, const FrameArgs& args) {
   node->Update(args);
   for (auto iter = node->children().begin(); 
        iter != node->children().end(); ++iter) {
@@ -134,7 +135,7 @@ void ShadowDepthRenderer::UpdateNode(SceneRenderNode* node,
   }
 }
 
-void ShadowDepthRenderer::Update(const azer::FrameArgs& args) {
+void ShadowDepthRenderer::Update(const FrameArgs& args) {
   if (need_update_) {
     UpdateNode(root_, args);
     need_update_ = false;
@@ -156,7 +157,7 @@ void ShadowDepthRenderer::RenderNode(SceneRenderNode* node, Renderer* renderer) 
   }
 }
 
-void ShadowDepthRenderer::Render(azer::Renderer* renderer) {
+void ShadowDepthRenderer::Render(Renderer* renderer) {
   RenderNode(root_, renderer);
 }
 

@@ -43,6 +43,8 @@ void ShadowMapEffect::InitGpuConstantTable() {
                             offsetof(vs_cbuffer, pvw), 1),
     GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
                             offsetof(vs_cbuffer, world), 1),
+    GpuConstantsTable::Desc("spotlight_pvw", GpuConstantsType::kMatrix4,
+                            offsetof(vs_cbuffer, spotlight_pvw), 1),
     GpuConstantsTable::Desc("camerapos", GpuConstantsType::kVector4,
                             offsetof(vs_cbuffer, camerapos), 1),
   };
@@ -101,7 +103,8 @@ void ShadowMapEffect::ApplyGpuConstantTable(Renderer* renderer) {
     DCHECK(tb != NULL);
     tb->SetValue(0, &pvw, sizeof(Matrix4));
     tb->SetValue(1, &world_, sizeof(Matrix4));
-    tb->SetValue(2, &camerapos_, sizeof(Vector4));
+    tb->SetValue(2, &spotlight_pvw_, sizeof(Matrix4));
+    tb->SetValue(3, &camerapos_, sizeof(Vector4));
   }
   {
     GpuConstantsTable* tb = gpu_table_[(int)kPixelStage].get();

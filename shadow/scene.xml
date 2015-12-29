@@ -8,7 +8,7 @@
 	  <refer type="light" path=":dir" />
 	</node>
         <node name="spot">
-	  <location><position>-8.0f, 8.0f, 0.0f</position></location>
+	  <location><position>-8.0f, 8.0f, 8.0f</position></location>
 	  <refer type="light" path=":spot" />
 	</node>
       </node>
@@ -61,7 +61,7 @@
 
   <mesh name="plane">
     <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
-    <refer type="effect" path="//data/effects.xml:tex_effect"/>
+    <refer type="effect" path="//data/effects.xml:shadowmap_effect"/>
     <refer type="material" path=":mtrl"/>
     <data path="//data/media/plane.obj"/>
   </mesh>

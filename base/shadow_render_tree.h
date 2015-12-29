@@ -50,7 +50,7 @@ class ShadowDepthRenderer : public lord::LightObserver {
  public:
   ShadowDepthRenderer(lord::ResourceLoader* loader, lord::Light* light);
   ~ShadowDepthRenderer();
-  const azer::Camera* camera() const { return camera_;}
+  const azer::Camera* camera() const;
   void Init(lord::SceneNode* root, const azer::Camera* camera);
   void Update(const azer::FrameArgs& args);
   void Render(azer::Renderer* renderer);
@@ -62,7 +62,6 @@ class ShadowDepthRenderer : public lord::LightObserver {
   void SetLight(lord::LightPtr light);
   lord::SceneRenderNodePtr root_;
   lord::LightPtr light_;
-  const azer::Camera* camera_;
   azer::EffectPtr effect_;
   bool need_update_;
   DISALLOW_COPY_AND_ASSIGN(ShadowDepthRenderer);

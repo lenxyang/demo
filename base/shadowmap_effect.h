@@ -19,6 +19,7 @@ class ShadowMapEffect : public azer::Effect {
   struct vs_cbuffer {
     azer::Matrix4 pvw;
     azer::Matrix4 world;
+    azer::Matrix4 spotlight_pvw;
     azer::Vector4 camerapos;
   };
 
@@ -40,6 +41,7 @@ class ShadowMapEffect : public azer::Effect {
   void SetPointLight(const lord::PointLight& value);
   void SetSpotLight(const lord::SpotLight& value);
   void SetSpotLightShadowMap(azer::Texture* tex) { spotlight_shadowmap_ = tex;}
+  void SetSpotLightPVW(const azer::Matrix4& pvw) { spotlight_pvw_ = pvw;}
   void set_ambient_scalar(float scalar) { ambient_scalar_ = scalar;}
   void set_specular_scalar(float scalar) { specular_scalar_ = scalar;}
   void set_diffuse_texture(azer::Texture* tex) { diffuse_map_ = tex;}
@@ -56,6 +58,7 @@ class ShadowMapEffect : public azer::Effect {
   azer::Vector4 camerapos_;
   azer::TexturePtr diffuse_map_;
   azer::TexturePtr spotlight_shadowmap_;
+  azer::Matrix4 spotlight_pvw_;
   float ambient_scalar_;
   float specular_scalar_;
   lord::DirLight dir_light_;
