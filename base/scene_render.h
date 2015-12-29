@@ -29,13 +29,15 @@ class ObjectNodeRenderDelegate : public lord::SceneRenderNodeDelegate {
 
 class LampNodeRenderDelegate : public lord::SceneRenderNodeDelegate {
  public:
-  explicit LampNodeRenderDelegate(lord::SceneRenderNode* node);
+  explicit LampNodeRenderDelegate(lord::SceneRenderNode* node, 
+                                  EffectedSceneRenderer* tree_render);
   void Update(const azer::FrameArgs& args) override;
   void Render(azer::Renderer* renderer) override;
  private:
   bool Init();
   azer::Camera camera_;
   scoped_ptr<ShadowDepthRenderer> scene_renderer_;
+  EffectedSceneRenderer* tree_render_;
   DISALLOW_COPY_AND_ASSIGN(LampNodeRenderDelegate);
 };
  
@@ -45,9 +47,12 @@ class EffectedSceneRenderer {
   void Init(lord::SceneNode* root, const azer::Camera* camera);
   void Update(const azer::FrameArgs& args);
   void Render(azer::Renderer* renderer);
+  lord::SceneRenderNode* root() { return root_;}
+  const azer::Camera* camera() { return camera_;}
  private:
   void UpdateNode(lord::SceneRenderNode* node, const azer::FrameArgs& args);
   void RenderNode(lord::SceneRenderNode* node, azer::Renderer* renderer);
+  const azer::Camera* camera_;
   lord::SceneRenderNodePtr root_;
   DISALLOW_COPY_AND_ASSIGN(EffectedSceneRenderer);
 };

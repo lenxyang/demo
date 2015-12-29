@@ -45,8 +45,10 @@ void ObjectNodeRenderDelegate::Render(Renderer* renderer) {
 }
 
 // class LampNodeRenderDelegate
-LampNodeRenderDelegate::LampNodeRenderDelegate(SceneRenderNode* node)
-    : SceneRenderNodeDelegate(node) {
+LampNodeRenderDelegate::LampNodeRenderDelegate(SceneRenderNode* node, 
+                                               EffectedSceneRenderer* tree_render)
+    : SceneRenderNodeDelegate(node),
+      tree_render_(tree_render) {
   SceneNode* scene_node = GetSceneNode();
   CHECK(scene_node->type() == kLampSceneNode);
   CHECK(scene_node->parent() && scene_node->parent()->type() == kEnvSceneNode);
@@ -65,7 +67,6 @@ bool LampNodeRenderDelegate::Init() {
       light->InitShadowmapRenderer(gfx::Size(1024, 1024));
       InitShadowMapCamera(light, &camera_);
       scene_renderer_.reset(new ShadowDepthRenderer(loader, light));
-      scene_renderer_->Init(scene_node->root(), &camera_);
       break;
     case kPointLight:
       break;
@@ -77,15 +78,26 @@ bool LampNodeRenderDelegate::Init() {
 }
 
 void LampNodeRenderDelegate::Update(const FrameArgs& args) {
-  scene_renderer_->Update(args);
+  if (scene_renderer_) {
+    if (!scene_renderer_->root()) {
+      SceneNode* scene_node = GetSceneNode();
+      // scene_renderer_->Init(scene_node->root(), &camera_);
+      scene_renderer_->Init(scene_node->root(), tree_render_->camera());
+    }
+    scene_renderer_->Update(args);
+  }
 }
 
-void LampNodeRenderDelegate::Render(Renderer*) {
+void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {
   SceneNode* scene_node = GetSceneNode();
   Light* light = scene_node->mutable_data()->light();
   Renderer* renderer = light->shadowmap_renderer();
   if (renderer) {
+    renderer->Use();
+    renderer->ClearDepthAndStencil();
+    renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     scene_renderer_->Render(renderer);
+    orgrenderer->Use();
   }
 }
 
@@ -112,7 +124,7 @@ NodeDelegateFactory::CreateDelegate(SceneRenderNode* node) {
           new ObjectNodeRenderDelegate(node, tree_renderer_)).Pass();
     case kLampSceneNode:
       return scoped_ptr<SceneRenderNodeDelegate>(
-          new LampNodeRenderDelegate(node)).Pass();
+          new LampNodeRenderDelegate(node, tree_renderer_)).Pass();
     default:
       NOTREACHED() << "no such type supported: " << node->GetSceneNode()->type();
       return scoped_ptr<SceneRenderNodeDelegate>().Pass();
@@ -121,10 +133,12 @@ NodeDelegateFactory::CreateDelegate(SceneRenderNode* node) {
 }
 
 // class EffectedSceneRenderer
-EffectedSceneRenderer::EffectedSceneRenderer() {
+EffectedSceneRenderer::EffectedSceneRenderer()
+    : camera_(NULL) {
 }
 
 void EffectedSceneRenderer::Init(lord::SceneNode* root, const Camera* camera) {
+  camera_ = camera;
   CHECK(root_ == NULL);
   NodeDelegateFactory factory(this);
   SceneRenderTreeBuilder builder(&factory);

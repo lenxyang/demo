@@ -54,7 +54,7 @@
 
   <mesh name="sphere">
     <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
-    <refer type="effect" path="//data/effects.xml:tex_effect"/>
+    <refer type="effect" path="//data/effects.xml:shadowmap_effect"/>
     <refer type="material" path=":mtrl"/>
     <data path="//data/media/sphere.x"/>
   </mesh>

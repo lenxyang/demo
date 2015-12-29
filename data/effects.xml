@@ -18,11 +18,18 @@
   </effect>
 
   <!-- for shadow depth -->
+  <effect name="shadow_depth_effect" effect_name="DepthEffect" 
+          vertex_desc=":depth_vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.hlsl.vs" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/depth.hlsl.ps" />
+  </effect>
+
+  <!-- for shadow depth -->
   <vertex_desc name="shadow_depth_vertex_desc">
     <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
     <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
   </vertex_desc>
-  <effect name="shadow_depth_effect" effect_name="ShadowDepthEffect" 
+  <effect name="shadow_depth_effect2" effect_name="DepthEffect" 
           vertex_desc=":shadow_depth_vertex_desc">
     <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadow_depth.hlsl.vs" />
     <shader stage="pixel" entry="psmain" path="//base/hlsl/shadow_depth.hlsl.ps" />
@@ -46,7 +53,7 @@
     <shader stage="pixel" entry="psmain" path="//base/hlsl/tex.hlsl.ps" />
   </effect>
 
-  <effect name="shadowmap" effect_name="ShadowMapEffect"
+  <effect name="shadowmap_effect" effect_name="ShadowMapEffect"
 	  vertex_desc=":tex_vertex_desc">
     <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadowmap.hlsl.vs" />
     <shader stage="pixel" entry="psmain" path="//base/hlsl/shadowmap.hlsl.ps" />

@@ -1,10 +1,6 @@
 #include <memory>
 
-#include "lordaeron/sandbox/sandbox.h"
-#include "lordaeron/resource/variant_resource.h"
-#include "demo/base/effect_dict.h"
-#include "demo/base/shadow_render_tree.h"
-#include "demo/base/textured_effect.h"
+#include "demo/base/base.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -22,10 +18,7 @@ class MyRenderWindow : public lord::SceneRenderWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  SceneRenderNodePtr render_root_;
-  SceneRenderNodePtr bvolumn_root_;
   scoped_ptr<UISceneRenderer> tree_render_;
-  EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 

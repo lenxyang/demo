@@ -90,8 +90,7 @@ CreateDelegate(lord::SceneRenderNode* node) {
 
 // class ShadowDepthRenderer
 ShadowDepthRenderer::ShadowDepthRenderer(ResourceLoader* loader, lord::Light* light)
-    : root_(NULL),
-      need_update_(true) {
+    : need_update_(true) {
   ResPath effect_path(UTF8ToUTF16("//data/effects.xml:shadow_depth_effect"));
   VariantResource res = LoadResource(effect_path, kResTypeEffect, loader);
   CHECK(res.type == kResTypeEffect);

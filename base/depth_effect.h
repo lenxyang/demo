@@ -49,12 +49,12 @@ class SceneRenderNodeDepthEffectAdapter : public EffectParamsAdapter {
   DISALLOW_COPY_AND_ASSIGN(SceneRenderNodeDepthEffectAdapter);
 };
 
-class ShadowRenderDepthEffectAdapter : public EffectParamsAdapter {
+class ShadowMapDepthEffectAdapter : public EffectParamsAdapter {
  public:
-  ShadowRenderDepthEffectAdapter() {}
+  ShadowMapDepthEffectAdapter() {}
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(ShadowRenderDepthEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(ShadowMapDepthEffectAdapter);
 };

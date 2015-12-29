@@ -1,11 +1,6 @@
 #include <memory>
 
-#include "lordaeron/sandbox/sandbox.h"
-#include "lordaeron/resource/variant_resource.h"
-#include "demo/base/effect_dict.h"
-#include "demo/base/shadow_render_tree.h"
-#include "demo/base/scene_render.h"
-#include "demo/base/textured_effect.h"
+#include "demo/base/base.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -35,6 +30,10 @@ int main(int argc, char* argv[]) {
 
   lord::LordEnv* env = lord::LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
+  adapterctx->RegisteAdapter(new SceneRenderNodeShadowMapEffectAdapter);
+  adapterctx->RegisteAdapter(new SceneRenderEnvNodeShadowMapEffectAdapter);
+  adapterctx->RegisteAdapter(new ShadowMapMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new SceneRenderNodeTexEffectAdapter);
   adapterctx->RegisteAdapter(new SceneRenderEnvNodeTexEffectAdapter);
@@ -87,11 +86,9 @@ void MyRenderWindow::OnInitUI() {
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
-  // depth_render_->Update(args);
   tree_render_->Update(args);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  // depth_render_->Render(renderer);
   tree_render_->Render(renderer);
 }

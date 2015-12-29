@@ -55,11 +55,12 @@ class ShadowDepthRenderer : public lord::LightObserver {
   void Update(const azer::FrameArgs& args);
   void Render(azer::Renderer* renderer);
   azer::MeshPtr CreateShadowMesh(azer::MeshPtr mesh);
+  lord::SceneRenderNode* root() { return root_;}
  private:
   void UpdateNode(lord::SceneRenderNode* node, const azer::FrameArgs& args);
   void RenderNode(lord::SceneRenderNode* node, azer::Renderer* renderer);
   void SetLight(lord::LightPtr light);
-  lord::SceneRenderNode* root_;
+  lord::SceneRenderNodePtr root_;
   lord::LightPtr light_;
   azer::Camera camera_;
   azer::EffectPtr effect_;

@@ -120,44 +120,6 @@ void TexturedEffect::UseTexture(Renderer* renderer) {
   renderer->UseTexture(kPixelStage, 0, diffuse_map_.get());
 }
 
-// class TexMaterial
-IMPLEMENT_EFFECT_PROVIDER_DYNCREATE(TexMaterial);
-const char TexMaterial::kEffectProviderName[] = "TexMaterial";
-TexMaterial::TexMaterial() {
-}
-
-bool TexMaterial::Init(const azer::ConfigNode* node, ResourceLoadContext* ctx) {
-  CHECK(node->GetChildTextAsFloat("ambient", &ambient_scalar_));
-  CHECK(node->GetChildTextAsFloat("specular", &specular_scalar_));
-  CHECK(node->GetChildTextAsVec4("emission", &emission_));
-  std::string diffusemap_path;
-  CHECK(node->GetChildText("diffusemap", &diffusemap_path));
-  diffuse_map_ = Load2DTexture(ResPath(UTF8ToUTF16(diffusemap_path)), ctx->filesystem);
-  return true;
-}
-
-const char* TexMaterial::GetProviderName() const { return kEffectParamsProviderName;}
-
-
-TexMaterialEffectAdapter::TexMaterialEffectAdapter() {
-}
-
-EffectAdapterKey TexMaterialEffectAdapter::key() const {
-  return std::make_pair(typeid(TexturedEffect).name(),
-                        typeid(TexMaterial).name());
-}
-
-void TexMaterialEffectAdapter::Apply(
-    Effect* e, const EffectParamsProvider* params) const  {
-  CHECK(typeid(*e) == typeid(TexturedEffect));
-  CHECK(typeid(*params) == typeid(TexMaterial));
-  TexMaterial* provider = (TexMaterial*)params;
-  TexturedEffect* effect = dynamic_cast<TexturedEffect*>(e);
-  effect->set_ambient_scalar(provider->ambient_scalar());
-  effect->set_specular_scalar(provider->specular_scalar());
-  effect->set_diffuse_texture(provider->diffuse_map());
-}
-
 // class SceneRenderNodeTexturedEffectAdapter
 SceneRenderNodeTexEffectAdapter::SceneRenderNodeTexEffectAdapter() {}
 EffectAdapterKey SceneRenderNodeTexEffectAdapter::key() const {
@@ -203,3 +165,4 @@ void SceneRenderEnvNodeTexEffectAdapter::Apply(
     }
   }
 }
+

@@ -78,12 +78,12 @@ void SceneRenderNodeDepthEffectAdapter::Apply(
 }
 
 
-EffectAdapterKey ShadowRenderDepthEffectAdapter::key() const {
+EffectAdapterKey ShadowMapDepthEffectAdapter::key() const {
   return std::make_pair(typeid(DepthEffect).name(),
                         typeid(ShadowDepthRenderDelegate).name());
 }
 
-void ShadowRenderDepthEffectAdapter::Apply(
+void ShadowMapDepthEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const {
   CHECK(typeid(*e) == typeid(DepthEffect));
   CHECK(typeid(*params) == typeid(ShadowDepthRenderDelegate));
