@@ -3,6 +3,7 @@
 #include "azer/render/render.h"
 #include "lordaeron/scene/scene_node_traverse.h"
 #include "lordaeron/scene/scene_render_tree.h"
+#include "lordaeron/scene/scene_renderer.h"
 #include "demo/base/shadow_render_tree.h"
 
 namespace lord {
@@ -41,19 +42,10 @@ class LampNodeRenderDelegate : public lord::SceneRenderNodeDelegate {
   DISALLOW_COPY_AND_ASSIGN(LampNodeRenderDelegate);
 };
  
-class EffectedSceneRenderer {
+class EffectedSceneRenderer : public lord::SceneRenderer {
  public:
   EffectedSceneRenderer();
-  void Init(lord::SceneNode* root, const azer::Camera* camera);
-  void Update(const azer::FrameArgs& args);
-  void Render(azer::Renderer* renderer);
-  lord::SceneRenderNode* root() { return root_;}
-  const azer::Camera* camera() { return camera_;}
  private:
-  void UpdateNode(lord::SceneRenderNode* node, const azer::FrameArgs& args);
-  void RenderNode(lord::SceneRenderNode* node, azer::Renderer* renderer);
-  const azer::Camera* camera_;
-  lord::SceneRenderNodePtr root_;
   DISALLOW_COPY_AND_ASSIGN(EffectedSceneRenderer);
 };
 

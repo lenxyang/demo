@@ -7,6 +7,7 @@
 #include "lordaeron/interactive/light_controller.h"
 #include "lordaeron/scene/scene_node.h"
 #include "lordaeron/scene/scene_render_tree.h"
+#include "lordaeron/scene/scene_renderer.h"
 
 using namespace lord;
 using namespace azer;
@@ -102,7 +103,7 @@ void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {
 }
 
 namespace {
-class NodeDelegateFactory : public lord::SceneRenderNodeDelegateFactory {
+class NodeDelegateFactory : public lord::SceneNodeRenderDelegateFactory {
  public:
   NodeDelegateFactory(EffectedSceneRenderer* renderer)
       : tree_renderer_(renderer) {}
@@ -133,44 +134,7 @@ NodeDelegateFactory::CreateDelegate(SceneRenderNode* node) {
 }
 
 // class EffectedSceneRenderer
-EffectedSceneRenderer::EffectedSceneRenderer()
-    : camera_(NULL) {
+EffectedSceneRenderer::EffectedSceneRenderer() {
+  scoped_ptr<NodeDelegateFactory> factory(new NodeDelegateFactory(this));
+  SetDelegateFactory(factory.Pass());
 }
-
-void EffectedSceneRenderer::Init(lord::SceneNode* root, const Camera* camera) {
-  camera_ = camera;
-  CHECK(root_ == NULL);
-  NodeDelegateFactory factory(this);
-  SceneRenderTreeBuilder builder(&factory);
-  root_ = builder.Build(root, camera);
-}
-
-void EffectedSceneRenderer::Update(const FrameArgs& args) {
-  UpdateNode(root_, args);
-}
-
-void EffectedSceneRenderer::Render(Renderer* renderer) {
-  RenderNode(root_, renderer);
-}
-
-void EffectedSceneRenderer::UpdateNode(SceneRenderNode* node, 
-                                       const FrameArgs& args) {
-  node->Update(args);
-  for (auto iter = node->children().begin(); 
-       iter != node->children().end(); ++iter) {
-    UpdateNode(iter->get(), args);
-  }
-}
-
-void EffectedSceneRenderer::RenderNode(SceneRenderNode* node, Renderer* renderer) {
-  if (!node->GetSceneNode()->visible()) {
-    return;
-  }
-
-  node->Render(renderer);
-  for (auto iter = node->children().begin(); 
-       iter != node->children().end(); ++iter) {
-    RenderNode(iter->get(), renderer);
-  }
-}
-

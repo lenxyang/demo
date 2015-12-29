@@ -45,9 +45,6 @@ int main(int argc, char* argv[]) {
   window->SetShowIcon(true);
   window->Init();
   window->Show();
-
-  lord::ObjectControlToolbar* toolbar =
-      new lord::ObjectControlToolbar(window, window->GetInteractive());
   window->GetRenderLoop()->Run();
   return 0;
 }

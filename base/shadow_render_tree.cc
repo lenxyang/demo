@@ -3,6 +3,7 @@
 #include "base/strings/utf_string_conversions.h"
 #include "azer/render/util/shader_util.h"
 #include "lordaeron/resource/resource_util.h"
+#include "lordaeron/scene/scene_renderer.h"
 #include "demo/base/depth_effect.h"
 
 using namespace lord;
@@ -66,7 +67,7 @@ void ShadowEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params) c
 }
 
 namespace {
-class NodeDelegateFactory : public SceneRenderNodeDelegateFactory {
+class NodeDelegateFactory : public SceneNodeRenderDelegateFactory {
  public:
   NodeDelegateFactory(ShadowDepthRenderer* renderer);
   scoped_ptr<lord::SceneRenderNodeDelegate> CreateDelegate(
