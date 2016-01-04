@@ -33,21 +33,17 @@ const VertexDesc::Desc kVertexDescArray[] = {
 
 IMPLEMENT_EFFECT_DYNCREATE(MyEffect);
 const char MyEffect::kEffectName[] = "MyEffect";
-MyEffect::MyEffect() {
-  VertexDescPtr desc(new VertexDesc(kVertexDescArray, arraysize(kVertexDescArray)));
-  vertex_desc_ptr_ = desc;
-}
-
-MyEffect::~MyEffect() {
-}
+MyEffect::MyEffect() {}
+MyEffect::~MyEffect() {}
 
 const char* MyEffect::GetEffectName() const {
   return kEffectName;
 }
-bool MyEffect::Init(const ShaderPrograms& sources) {
+bool MyEffect::Init(VertexDesc* d, const ShaderPrograms& sources) {
   DCHECK(sources.size() == kRenderPipelineStageNum);
   DCHECK(!sources[kVertexStage].code.empty());
   DCHECK(!sources[kPixelStage].code.empty());
+  vertex_desc_ = new VertexDesc(kVertexDescArray, arraysize(kVertexDescArray));
   InitTechnique(sources);
   InitGpuConstantTable();
   return true;

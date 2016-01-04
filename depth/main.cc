@@ -4,6 +4,8 @@
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/depth_effect.h"
 #include "demo/base/effect_dict.h"
+#include "demo/base/material.h"
+#include "demo/base/shadowmap_effect.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -13,11 +15,10 @@ using lord::SceneNode;
 using namespace azer;
 using namespace lord;
 
-class MyRenderWindow : public lord::SceneRenderWindow {
+class MyRenderWindow : public lord::FrameWindow {
  public:
-  MyRenderWindow(const gfx::Rect& rect) : lord::SceneRenderWindow(rect) {}
-  SceneNodePtr OnInitScene() override;
-  void OnInitUI() override;
+  MyRenderWindow(const gfx::Rect& rect) : lord::FrameWindow(rect) {}
+  SceneNodePtr InitScene() override;
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]) {
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   
   adapterctx->RegisteAdapter(new SceneRenderNodeDepthEffectAdapter);
-  adapterctx->RegisteAdapter(new ShadowRenderDepthEffectAdapter);
+  adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
   
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -50,7 +51,7 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-SceneNodePtr MyRenderWindow::OnInitScene() {
+SceneNodePtr MyRenderWindow::InitScene() {
   LordEnv* env = LordEnv::instance();
   scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
       FilePath(UTF8ToUTF16("demo/"))));
@@ -65,25 +66,8 @@ SceneNodePtr MyRenderWindow::OnInitScene() {
 
   tree_render_.reset(new UISceneRenderer);
   tree_render_->Init(root, &camera());
-  LOG(ERROR) << "\n" << render_root_->DumpTree();
-  
   return root;
 }
-
-void MyRenderWindow::OnInitUI() {
-  gfx::Rect bounds(300, 360);
-  nelf::TabbedWindow* wnd = CreateSceneTreeViewWindow(bounds, root(), this);
-  wnd->Dock(nelf::kDockLeft);
-
-  SceneNodeInspectorWindow* inspector = new SceneNodeInspectorWindow(bounds, this);
-  inspector->Init();
-  GetInteractive()->AddObserver(inspector->inspector_pane());
-  inspector->Show();
-  mutable_camera()->reset(Vector3(0.0f, 8.0f, 12.0f), Vector3(0.0f, 0.0f, 0.0f),
-                          Vector3(0.0f, 1.0f, 0.0f));
-  inspector->Dock(nelf::kDockLeft);
-}
-
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
   tree_render_->Update(args);
 }
