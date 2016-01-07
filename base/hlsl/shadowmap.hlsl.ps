@@ -25,13 +25,11 @@ SamplerState texsampler;
 Texture2D shadowmap;
 SamplerState shadowmap_sampler;
 
-
-
 float4 ps_main(VsOutput o):SV_TARGET {
-  float2 maptex = o.projtex.xy / o.projtex.w;;
-  maptex.x= (o.projtex.x + 1.0f) * 0.5f;
-  maptex.y = (1.0f - o.projtex.y) * 0.5f;
-  float depth = shadowmap.Sample(shadowmap_sampler, maptex);
+  o.projtex = o.projtex / o.projtex.w;;
+  o.projtex.x = clamp((o.projtex.x + 1.0f) * 0.5f, 0.0f, 1.0);
+  o.projtex.y = clamp((1.0f - o.projtex.y) * 0.5f, 0.0f, 1.0);
+  float depth = shadowmap.Sample(shadowmap_sampler, o.projtex.xy);
   float4 color = diffuse_map.Sample(texsampler, o.texcoord);
   float3 normal = o.normal;
   Matrial mtrl;

@@ -14,13 +14,17 @@ class MyRenderWindow : public lord::FrameWindow {
  public:
   MyRenderWindow(const gfx::Rect& rect) 
       : lord::FrameWindow(rect),
-        default_renderer_(false) {
+        default_renderer_(true),
+        switching_(false) {
   }
 
   SceneNodePtr InitScene() override;
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
-  void switch_renderer() { default_renderer_ = !default_renderer_;}
+  void switch_renderer() {
+    default_renderer_ = !default_renderer_;
+    switching_ = true;
+  }
  private:
   SceneRenderNodePtr bvolumn_root_;
   scoped_ptr<EffectedSceneRenderer> effected_render_;
@@ -111,9 +115,11 @@ SceneNodePtr MyRenderWindow::InitScene() {
 
   effected_render_.reset(new EffectedSceneRenderer);
   effected_render_->Init(root, &camera());
+  LOG(ERROR) << effected_render_->root()->DumpTree();
 
   scene_render_.reset(new UISceneRenderer);
   scene_render_->Init(root, &camera());
+  LOG(ERROR) << scene_render_->root()->DumpTree();
 
   return root;
 }
@@ -127,6 +133,10 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
+  if (switching_) {
+    switching_ = false;
+    return;
+  }
   if (default_renderer_) {
     scene_render_->Render(renderer);
   } else {
