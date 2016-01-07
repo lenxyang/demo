@@ -2,7 +2,7 @@
 
 #include "azer/render/effect_creator.h"
 #include "azer/render/render.h"
-#include "lordaeron/scene/scene_render_tree.h"
+#include "lordaeron/scene/render_node.h"
 #include "lordaeron/resource/resource_util.h"
 
 class DepthEffect : public azer::Effect {
@@ -39,14 +39,14 @@ using azer::Effect;
 using azer::EffectParamsProvider;
 using azer::EffectAdapterKey;
 using azer::EffectParamsAdapter;
-class SceneRenderNodeDepthEffectAdapter : public EffectParamsAdapter {
+class RenderNodeDepthEffectAdapter : public EffectParamsAdapter {
  public:
-  SceneRenderNodeDepthEffectAdapter() {}
+  RenderNodeDepthEffectAdapter() {}
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(SceneRenderNodeDepthEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(RenderNodeDepthEffectAdapter);
 };
 
 class ShadowMapDepthEffectAdapter : public EffectParamsAdapter {

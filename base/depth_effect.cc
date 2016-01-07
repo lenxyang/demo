@@ -63,15 +63,15 @@ void DepthEffect::ApplyGpuConstantTable(Renderer* renderer) {
   }
 }
 
-EffectAdapterKey SceneRenderNodeDepthEffectAdapter::key() const {
-  return std::make_pair(typeid(DepthEffect).name(), typeid(SceneRenderNode).name());
+EffectAdapterKey RenderNodeDepthEffectAdapter::key() const {
+  return std::make_pair(typeid(DepthEffect).name(), typeid(RenderNode).name());
 }
 
-void SceneRenderNodeDepthEffectAdapter::Apply(
+void RenderNodeDepthEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const {
   CHECK(typeid(*e) == typeid(DepthEffect));
-  CHECK(typeid(*params) == typeid(SceneRenderNode));
-  const SceneRenderNode* provider = (const SceneRenderNode*)params;
+  CHECK(typeid(*params) == typeid(RenderNode));
+  const RenderNode* provider = (const RenderNode*)params;
   DepthEffect* effect = dynamic_cast<DepthEffect*>(e);
   effect->SetWorld(provider->GetWorld());
   effect->SetPV(provider->GetPV());

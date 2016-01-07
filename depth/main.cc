@@ -22,7 +22,7 @@ class MyRenderWindow : public lord::FrameWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  SceneRenderNodePtr bvolumn_root_;
+  RenderNodePtr bvolumn_root_;
   scoped_ptr<UISceneRenderer> tree_render_;
   EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   lord::LordEnv* env = lord::LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   
-  adapterctx->RegisteAdapter(new SceneRenderNodeDepthEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeDepthEffectAdapter);
   adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
   
   gfx::Rect init_bounds(0, 0, 800, 600);

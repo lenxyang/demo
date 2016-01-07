@@ -110,24 +110,24 @@ class MaterialEffectAdapter : public EffectParamsAdapter {
   DISALLOW_COPY_AND_ASSIGN(MaterialEffectAdapter);
 };
 
-class SceneRenderNodeEffectAdapter : public EffectParamsAdapter {
+class RenderNodeEffectAdapter : public EffectParamsAdapter {
  public:
-  SceneRenderNodeEffectAdapter();
+  RenderNodeEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(SceneRenderNodeEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(RenderNodeEffectAdapter);
 };
 
-class SceneRenderEnvNodeEffectAdapter : public EffectParamsAdapter {
+class RenderEnvNodeEffectAdapter : public EffectParamsAdapter {
  public:
-  SceneRenderEnvNodeEffectAdapter();
+  RenderEnvNodeEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(SceneRenderEnvNodeEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(RenderEnvNodeEffectAdapter);
 };
 }  // namespace sandbox
 }  // namespace lord

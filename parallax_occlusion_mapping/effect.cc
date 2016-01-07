@@ -11,8 +11,9 @@
 #include "azer/render/util/shader_util.h"
 #include "lordaeron/resource/resource_loader.h"
 #include "demo/base/resource_util.h"
+#include "lordaeron/scene/render_env_node.h"
+#include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/scene_node.h"
-#include "lordaeron/scene/scene_render_tree.h"
 
 using namespace azer;
 using base::UTF8ToUTF16;
@@ -175,37 +176,36 @@ void MaterialEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params)
   effect->set_nmh_texture(provider->nmh_map());
 }
 
-// class SceneRenderNodeMyEffectAdapter
-SceneRenderNodeEffectAdapter::SceneRenderNodeEffectAdapter() {}
-EffectAdapterKey SceneRenderNodeEffectAdapter::key() const {
+// class RenderNodeMyEffectAdapter
+RenderNodeEffectAdapter::RenderNodeEffectAdapter() {}
+EffectAdapterKey RenderNodeEffectAdapter::key() const {
   return std::make_pair(typeid(MyEffect).name(),
-                        typeid(SceneRenderNode).name());
+                        typeid(RenderNode).name());
 }
 
-void SceneRenderNodeEffectAdapter::Apply(
+void RenderNodeEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(MyEffect));
-  CHECK(typeid(*params) == typeid(SceneRenderNode));
-  const SceneRenderNode* provider = (const SceneRenderNode*)params;
+  CHECK(typeid(*params) == typeid(RenderNode));
+  const RenderNode* provider = (const RenderNode*)params;
   MyEffect* effect = dynamic_cast<MyEffect*>(e);
   effect->SetWorld(provider->GetWorld());
   effect->SetPV(provider->camera()->GetProjViewMatrix());
   effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
 }
 
-SceneRenderEnvNodeEffectAdapter::SceneRenderEnvNodeEffectAdapter() {
-}
+RenderEnvNodeEffectAdapter::RenderEnvNodeEffectAdapter() {}
 
-EffectAdapterKey SceneRenderEnvNodeEffectAdapter::key() const {
+EffectAdapterKey RenderEnvNodeEffectAdapter::key() const {
   return std::make_pair(typeid(MyEffect).name(),
-                        typeid(SceneRenderEnvNode).name());
+                        typeid(RenderEnvNode).name());
 }
 
-void SceneRenderEnvNodeEffectAdapter::Apply(
+void RenderEnvNodeEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(MyEffect));
-  CHECK(typeid(*params) == typeid(SceneRenderEnvNode));
-  const SceneRenderEnvNode* provider = (const SceneRenderEnvNode*)params;
+  CHECK(typeid(*params) == typeid(RenderEnvNode));
+  const RenderEnvNode* provider = (const RenderEnvNode*)params;
   MyEffect* effect = dynamic_cast<MyEffect*>(e);
   for (auto iter = provider->lights().begin(); 
        iter != provider->lights().end();

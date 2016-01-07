@@ -20,8 +20,8 @@ class MyRenderWindow : public lord::FrameWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  SceneRenderNodePtr render_root_;
-  SceneRenderNodePtr bvolumn_root_;
+  RenderNodePtr render_root_;
+  RenderNodePtr bvolumn_root_;
   scoped_ptr<UISceneRenderer> tree_render_;
   scoped_ptr<FileSystem> fsystem_;
   EffectDict dict_;
@@ -34,8 +34,8 @@ int main(int argc, char* argv[]) {
   LordEnv* env = LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new lord::sandbox::MaterialEffectAdapter);
-  adapterctx->RegisteAdapter(new lord::sandbox::SceneRenderNodeEffectAdapter);
-  adapterctx->RegisteAdapter(new lord::sandbox::SceneRenderEnvNodeEffectAdapter);
+  adapterctx->RegisteAdapter(new lord::sandbox::RenderNodeEffectAdapter);
+  adapterctx->RegisteAdapter(new lord::sandbox::RenderEnvNodeEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));

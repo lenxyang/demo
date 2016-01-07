@@ -23,9 +23,9 @@ int main(int argc, char* argv[]) {
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
-  adapterctx->RegisteAdapter(new SceneRenderNodeDepthEffectAdapter);
-  adapterctx->RegisteAdapter(new SceneRenderNodeTexEffectAdapter);
-  adapterctx->RegisteAdapter(new SceneRenderEnvNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeDepthEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderEnvNodeTexEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));

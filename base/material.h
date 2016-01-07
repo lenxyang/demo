@@ -4,7 +4,7 @@
 #include "azer/render/render.h"
 #include "lordaeron/effect/material.h"
 #include "lordaeron/effect/light.h"
-#include "lordaeron/scene/scene_render_tree.h"
+#include "lordaeron/scene/render_node.h"
 
 class TexMaterial : public lord::Material {
  public:

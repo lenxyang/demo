@@ -38,7 +38,7 @@
     <ambient>1.0, 1.0, 1.0, 1.0</ambient>
     <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
     <specular>0.1, 0.1, 0.1, 1.0</specular>
-    <directional>1.0, 0.2, 0.0</directional>
+    <directional>0.0, -1.0, -0.2</directional>
     <inner_angle>30</inner_angle>
     <outer_angle>40</outer_angle>
     <falloff>0.5</falloff>

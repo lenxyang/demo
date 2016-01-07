@@ -1,8 +1,8 @@
 #pragma once
 
 #include "azer/render/render.h"
+#include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/scene_node_traverse.h"
-#include "lordaeron/scene/scene_render_tree.h"
 #include "lordaeron/scene/scene_renderer.h"
 #include "demo/base/shadow_render_tree.h"
 
@@ -13,9 +13,9 @@ class LightController;
 
 
 class EffectedSceneRenderer;
-class ObjectNodeRenderDelegate : public lord::SceneRenderNodeDelegate {
+class ObjectNodeRenderDelegate : public lord::RenderNodeDelegate {
  public:
-  ObjectNodeRenderDelegate(lord::SceneRenderNode* node, 
+  ObjectNodeRenderDelegate(lord::RenderNode* node, 
                            EffectedSceneRenderer* renderer);
   void Update(const azer::FrameArgs& args) override;
   void Render(azer::Renderer* renderer) override;
@@ -28,9 +28,9 @@ class ObjectNodeRenderDelegate : public lord::SceneRenderNodeDelegate {
   DISALLOW_COPY_AND_ASSIGN(ObjectNodeRenderDelegate);
 };
 
-class LampNodeRenderDelegate : public lord::SceneRenderNodeDelegate {
+class LampNodeRenderDelegate : public lord::RenderNodeDelegate {
  public:
-  explicit LampNodeRenderDelegate(lord::SceneRenderNode* node, 
+  explicit LampNodeRenderDelegate(lord::RenderNode* node, 
                                   EffectedSceneRenderer* tree_render);
   void Update(const azer::FrameArgs& args) override;
   void Render(azer::Renderer* renderer) override;

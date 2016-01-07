@@ -26,7 +26,7 @@ class MyRenderWindow : public lord::FrameWindow {
     switching_ = true;
   }
  private:
-  SceneRenderNodePtr bvolumn_root_;
+  RenderNodePtr bvolumn_root_;
   scoped_ptr<EffectedSceneRenderer> effected_render_;
   scoped_ptr<UISceneRenderer> scene_render_;
   scoped_ptr<ShadowDepthRenderer> depth_render_;
@@ -77,13 +77,13 @@ int main(int argc, char* argv[]) {
 
   lord::LordEnv* env = lord::LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
-  adapterctx->RegisteAdapter(new SceneRenderNodeShadowMapEffectAdapter);
-  adapterctx->RegisteAdapter(new SceneRenderEnvNodeShadowMapEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeShadowMapEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderEnvNodeShadowMapEffectAdapter);
   adapterctx->RegisteAdapter(new ShadowMapMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
-  adapterctx->RegisteAdapter(new SceneRenderNodeTexEffectAdapter);
-  adapterctx->RegisteAdapter(new SceneRenderEnvNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderEnvNodeTexEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));

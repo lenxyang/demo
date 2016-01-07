@@ -5,16 +5,17 @@
 #include "lordaeron/effect/diffuse_effect.h"
 #include "lordaeron/effect/normal_line_effect.h"
 #include "lordaeron/interactive/light_controller.h"
+#include "lordaeron/scene/render_node.h"
+#include "lordaeron/scene/render_env_node.h"
 #include "lordaeron/scene/scene_node.h"
-#include "lordaeron/scene/scene_render_tree.h"
 #include "lordaeron/scene/scene_renderer.h"
 
 using namespace lord;
 using namespace azer;
 // class ObjectNodeRenderDelegate
 ObjectNodeRenderDelegate::ObjectNodeRenderDelegate(
-    SceneRenderNode* node, EffectedSceneRenderer* renderer)
-    : SceneRenderNodeDelegate(node),
+    RenderNode* node, EffectedSceneRenderer* renderer)
+    : RenderNodeDelegate(node),
       tree_renderer_(renderer) {
   Init();
 }
@@ -46,9 +47,9 @@ void ObjectNodeRenderDelegate::Render(Renderer* renderer) {
 }
 
 // class LampNodeRenderDelegate
-LampNodeRenderDelegate::LampNodeRenderDelegate(SceneRenderNode* node, 
+LampNodeRenderDelegate::LampNodeRenderDelegate(RenderNode* node, 
                                                EffectedSceneRenderer* tree_render)
-    : SceneRenderNodeDelegate(node),
+    : RenderNodeDelegate(node),
       tree_render_(tree_render) {
   SceneNode* scene_node = GetSceneNode();
   CHECK(scene_node->type() == kLampSceneNode);
@@ -103,32 +104,32 @@ void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {
 }
 
 namespace {
-class NodeDelegateFactory : public lord::SceneNodeRenderDelegateFactory {
+class NodeDelegateFactory : public lord::RenderNodeDelegateFactory {
  public:
   NodeDelegateFactory(EffectedSceneRenderer* renderer)
       : tree_renderer_(renderer) {}
-  scoped_ptr<lord::SceneRenderNodeDelegate> CreateDelegate(
-      lord::SceneRenderNode* node) override;
+  scoped_ptr<lord::RenderNodeDelegate> CreateDelegate(
+      lord::RenderNode* node) override;
  private:
   EffectedSceneRenderer* tree_renderer_;
 };
 
 
-scoped_ptr<lord::SceneRenderNodeDelegate>
-NodeDelegateFactory::CreateDelegate(SceneRenderNode* node) {
+scoped_ptr<lord::RenderNodeDelegate>
+NodeDelegateFactory::CreateDelegate(RenderNode* node) {
   switch (node->GetSceneNode()->type()) {
     case kEnvSceneNode:
       return NULL;
     case kSceneNode:
     case kObjectSceneNode:
-      return scoped_ptr<SceneRenderNodeDelegate>(
+      return scoped_ptr<RenderNodeDelegate>(
           new ObjectNodeRenderDelegate(node, tree_renderer_)).Pass();
     case kLampSceneNode:
-      return scoped_ptr<SceneRenderNodeDelegate>(
+      return scoped_ptr<RenderNodeDelegate>(
           new LampNodeRenderDelegate(node, tree_renderer_)).Pass();
     default:
       NOTREACHED() << "no such type supported: " << node->GetSceneNode()->type();
-      return scoped_ptr<SceneRenderNodeDelegate>().Pass();
+      return scoped_ptr<RenderNodeDelegate>().Pass();
   }
 }
 }

@@ -14,8 +14,8 @@ using base::UTF8ToUTF16;
 const char ShadowDepthRenderDelegate::kEffectProviderName[] = 
     "ShadowDepthRenderDelegate";
 ShadowDepthRenderDelegate::ShadowDepthRenderDelegate(
-    lord::SceneRenderNode* node, ShadowDepthRenderer* tree_renderer)
-    : lord::SceneRenderNodeDelegate(node),
+    lord::RenderNode* node, ShadowDepthRenderer* tree_renderer)
+    : lord::RenderNodeDelegate(node),
       tree_renderer_(tree_renderer) {
   Init();
 }
@@ -33,7 +33,7 @@ void ShadowDepthRenderDelegate::Init() {
 }
 
 const Matrix4& ShadowDepthRenderDelegate::GetPV() const {
-  return tree_renderer_->camera()->GetProjViewMatrix();
+  return tree_renderer_->camera().GetProjViewMatrix();
 }
 
 void ShadowDepthRenderDelegate::UpdateParams(const FrameArgs& args) {
@@ -67,11 +67,11 @@ void ShadowEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params) c
 }
 
 namespace {
-class NodeDelegateFactory : public SceneNodeRenderDelegateFactory {
+class NodeDelegateFactory : public RenderNodeDelegateFactory {
  public:
   NodeDelegateFactory(ShadowDepthRenderer* renderer);
-  scoped_ptr<lord::SceneRenderNodeDelegate> CreateDelegate(
-      lord::SceneRenderNode* node) override;
+  scoped_ptr<lord::RenderNodeDelegate> CreateDelegate(
+      lord::RenderNode* node) override;
  private:
   ShadowDepthRenderer* tree_renderer_;
   DISALLOW_COPY_AND_ASSIGN(NodeDelegateFactory);
@@ -81,9 +81,9 @@ NodeDelegateFactory::NodeDelegateFactory(
     : tree_renderer_(renderer) {
 }
 
-scoped_ptr<lord::SceneRenderNodeDelegate> NodeDelegateFactory::
-CreateDelegate(lord::SceneRenderNode* node) {
-  scoped_ptr<lord::SceneRenderNodeDelegate> p(
+scoped_ptr<lord::RenderNodeDelegate> NodeDelegateFactory::
+CreateDelegate(lord::RenderNode* node) {
+  scoped_ptr<lord::RenderNodeDelegate> p(
       new ShadowDepthRenderDelegate(node, tree_renderer_));
   return p.Pass();
 }
@@ -106,43 +106,30 @@ ShadowDepthRenderer::~ShadowDepthRenderer() {
 void ShadowDepthRenderer::Init(lord::SceneNode* root, const Camera* camera) {
   CHECK(root_ == NULL);
   NodeDelegateFactory factory(this);
-  SceneRenderTreeBuilder builder(&factory);
+  RenderTreeBuilder builder(&factory);
   root_ = builder.Build(root, camera);
 }
 
 void ShadowDepthRenderer::SetLight(lord::LightPtr light) {
   light_ = light;
   need_update_ = true;
-  if (light_->type() == kSpotLight) {
-    const Vector3& position = light->spot_light().position;
-    const Vector3& dir = light->spot_light().direction;
-    light->mutable_camera()->reset(position, position + dir * 10, 
-                                   Vector3(0.0f, 1.0f, 0.0f));
-  } else {
-    NOTREACHED();
-  }
 }
 
-const Camera* ShadowDepthRenderer::camera() const {
-  return &(light_->camera());
-}
-
-void ShadowDepthRenderer::UpdateNode(SceneRenderNode* node, const FrameArgs& args) {
+void ShadowDepthRenderer::OnUpdateNode(RenderNode* node, const FrameArgs& args) {
   node->Update(args);
   for (auto iter = node->children().begin(); 
        iter != node->children().end(); ++iter) {
-    UpdateNode(iter->get(), args);
+    OnUpdateNode(iter->get(), args);
   }
 }
 
 void ShadowDepthRenderer::Update(const FrameArgs& args) {
-  if (need_update_) {
-    UpdateNode(root_, args);
-    need_update_ = false;
-  }
+  InitShadowMapCamera(light_, &camera_);
+  OnUpdateNode(root_, args);
+  need_update_ = false;
 }
 
-void ShadowDepthRenderer::RenderNode(SceneRenderNode* node, Renderer* renderer) {
+void ShadowDepthRenderer::OnRenderNode(RenderNode* node, Renderer* renderer) {
   if (!node->GetSceneNode()->visible()) {
     return;
   }
@@ -153,12 +140,12 @@ void ShadowDepthRenderer::RenderNode(SceneRenderNode* node, Renderer* renderer) 
 
   for (auto iter = node->children().begin(); 
        iter != node->children().end(); ++iter) {
-    RenderNode(iter->get(), renderer);
+    OnRenderNode(iter->get(), renderer);
   }
 }
 
 void ShadowDepthRenderer::Render(Renderer* renderer) {
-  RenderNode(root_, renderer);
+  OnRenderNode(root_, renderer);
 }
 
 MeshPartPtr CreateShadowMeshPtr(MeshPart* part, Effect* effect) {

@@ -20,17 +20,24 @@ cbuffer c_buffer {
    float      specular_scalar;
 };
 
-Texture2D diffuse_map;
-SamplerState texsampler;
+Texture2D texmap;
 Texture2D shadowmap;
-SamplerState shadowmap_sampler;
+SamplerState texsampler;
+SamplerState smsampler {
+  Filter = MIN_MAG_MIP_LINEAR;
+  AddressU = Clamp;
+  AddressV = Clamp;
+};
 
 float4 ps_main(VsOutput o):SV_TARGET {
   o.projtex = o.projtex / o.projtex.w;;
   o.projtex.x = clamp((o.projtex.x + 1.0f) * 0.5f, 0.0f, 1.0);
   o.projtex.y = clamp((1.0f - o.projtex.y) * 0.5f, 0.0f, 1.0);
-  float depth = shadowmap.Sample(shadowmap_sampler, o.projtex.xy);
-  float4 color = diffuse_map.Sample(texsampler, o.texcoord);
+  float depth = shadowmap.Sample(smsampler, o.projtex.xy);
+  float4 color = texmap.Sample(texsampler, o.texcoord);
+  return float4(depth, depth, depth, 1.0);
+  
+
   float3 normal = o.normal;
   Matrial mtrl;
   mtrl.ambient  = (ambient_scalar) * color;
@@ -45,6 +52,6 @@ float4 ps_main(VsOutput o):SV_TARGET {
                                            normal, o.viewin, mtrl);
   float3 spot_color = CalcSpotLightColor(spotlight, o.worldpos,
                                          normal, o.viewin, mtrl);
-  float3 spot_factor = (depth < o.position.z) ? 1.0 : 0.0f; 
+  float spot_factor = (depth < o.position.z) ? 1.0 : 0.0f; 
   return float4(spot_color * spot_factor + dir_color + point_color, mtrl.alpha);
 }

@@ -5,6 +5,9 @@
 #include "lordaeron/env.h"
 #include "lordaeron/resource/resource_util.h"
 #include "lordaeron/resource/resource_loader.h"
+#include "lordaeron/scene/render_node.h"
+#include "lordaeron/scene/render_env_node.h"
+#include "lordaeron/scene/scene_node.h"
 #include "demo/base/resource_util.h"
 
 using namespace lord;
@@ -120,37 +123,37 @@ void TexturedEffect::UseTexture(Renderer* renderer) {
   renderer->UseTexture(kPixelStage, 0, diffuse_map_.get());
 }
 
-// class SceneRenderNodeTexturedEffectAdapter
-SceneRenderNodeTexEffectAdapter::SceneRenderNodeTexEffectAdapter() {}
-EffectAdapterKey SceneRenderNodeTexEffectAdapter::key() const {
+// class RenderNodeTexturedEffectAdapter
+RenderNodeTexEffectAdapter::RenderNodeTexEffectAdapter() {}
+EffectAdapterKey RenderNodeTexEffectAdapter::key() const {
   return std::make_pair(typeid(TexturedEffect).name(),
-                        typeid(SceneRenderNode).name());
+                        typeid(RenderNode).name());
 }
 
-void SceneRenderNodeTexEffectAdapter::Apply(
+void RenderNodeTexEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(TexturedEffect));
-  CHECK(typeid(*params) == typeid(SceneRenderNode));
-  const SceneRenderNode* provider = (const SceneRenderNode*)params;
+  CHECK(typeid(*params) == typeid(RenderNode));
+  const RenderNode* provider = (const RenderNode*)params;
   TexturedEffect* effect = dynamic_cast<TexturedEffect*>(e);
   effect->SetWorld(provider->GetWorld());
   effect->SetPV(provider->camera()->GetProjViewMatrix());
   effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
 }
 
-SceneRenderEnvNodeTexEffectAdapter::SceneRenderEnvNodeTexEffectAdapter() {
+RenderEnvNodeTexEffectAdapter::RenderEnvNodeTexEffectAdapter() {
 }
 
-EffectAdapterKey SceneRenderEnvNodeTexEffectAdapter::key() const {
+EffectAdapterKey RenderEnvNodeTexEffectAdapter::key() const {
   return std::make_pair(typeid(TexturedEffect).name(),
-                        typeid(SceneRenderEnvNode).name());
+                        typeid(RenderEnvNode).name());
 }
 
-void SceneRenderEnvNodeTexEffectAdapter::Apply(
+void RenderEnvNodeTexEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(TexturedEffect));
-  CHECK(typeid(*params) == typeid(SceneRenderEnvNode));
-  const SceneRenderEnvNode* provider = (const SceneRenderEnvNode*)params;
+  CHECK(typeid(*params) == typeid(RenderEnvNode));
+  const RenderEnvNode* provider = (const RenderEnvNode*)params;
   TexturedEffect* effect = dynamic_cast<TexturedEffect*>(e);
   for (auto iter = provider->lights().begin(); 
        iter != provider->lights().end();

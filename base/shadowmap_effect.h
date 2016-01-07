@@ -4,7 +4,7 @@
 #include "azer/render/render.h"
 #include "lordaeron/effect/material.h"
 #include "lordaeron/effect/light.h"
-#include "lordaeron/scene/scene_render_tree.h"
+#include "lordaeron/scene/render_node.h"
 
 class ShadowMapEffect : public azer::Effect {
  public:
@@ -73,22 +73,22 @@ using azer::EffectParamsProvider;
 using azer::EffectAdapterKey;
 using azer::EffectParamsAdapter;
 
-class SceneRenderNodeShadowMapEffectAdapter : public EffectParamsAdapter {
+class RenderNodeShadowMapEffectAdapter : public EffectParamsAdapter {
  public:
-  SceneRenderNodeShadowMapEffectAdapter();
+  RenderNodeShadowMapEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(SceneRenderNodeShadowMapEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(RenderNodeShadowMapEffectAdapter);
 };
 
-class SceneRenderEnvNodeShadowMapEffectAdapter : public EffectParamsAdapter {
+class RenderEnvNodeShadowMapEffectAdapter : public EffectParamsAdapter {
  public:
-  SceneRenderEnvNodeShadowMapEffectAdapter();
+  RenderEnvNodeShadowMapEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(SceneRenderEnvNodeShadowMapEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(RenderEnvNodeShadowMapEffectAdapter);
 };

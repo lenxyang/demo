@@ -5,6 +5,7 @@
 #include "lordaeron/env.h"
 #include "lordaeron/resource/resource_util.h"
 #include "lordaeron/resource/resource_loader.h"
+#include "lordaeron/scene/render_env_node.h"
 #include "demo/base/resource_util.h"
 
 using namespace lord;
@@ -124,38 +125,36 @@ void ShadowMapEffect::UseTexture(Renderer* renderer) {
   renderer->UseTexture(kPixelStage, 1, spotlight_shadowmap_.get());
 }
 
-// class SceneRenderNodeShadowMapEffectAdapter
-SceneRenderNodeShadowMapEffectAdapter::SceneRenderNodeShadowMapEffectAdapter() {}
-EffectAdapterKey SceneRenderNodeShadowMapEffectAdapter::key() const {
+// class RenderNodeShadowMapEffectAdapter
+RenderNodeShadowMapEffectAdapter::RenderNodeShadowMapEffectAdapter() {}
+EffectAdapterKey RenderNodeShadowMapEffectAdapter::key() const {
   return std::make_pair(typeid(ShadowMapEffect).name(),
-                        typeid(SceneRenderNode).name());
+                        typeid(RenderNode).name());
 }
 
-void SceneRenderNodeShadowMapEffectAdapter::Apply(
+void RenderNodeShadowMapEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(ShadowMapEffect));
-  CHECK(typeid(*params) == typeid(SceneRenderNode));
-  const SceneRenderNode* provider = (const SceneRenderNode*)params;
+  CHECK(typeid(*params) == typeid(RenderNode));
+  const RenderNode* provider = (const RenderNode*)params;
   ShadowMapEffect* effect = dynamic_cast<ShadowMapEffect*>(e);
   effect->SetWorld(provider->GetWorld());
   effect->SetPV(provider->camera()->GetProjViewMatrix());
   effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
 }
 
-SceneRenderEnvNodeShadowMapEffectAdapter::
-SceneRenderEnvNodeShadowMapEffectAdapter() {
-}
+RenderEnvNodeShadowMapEffectAdapter::RenderEnvNodeShadowMapEffectAdapter() {}
 
-EffectAdapterKey SceneRenderEnvNodeShadowMapEffectAdapter::key() const {
+EffectAdapterKey RenderEnvNodeShadowMapEffectAdapter::key() const {
   return std::make_pair(typeid(ShadowMapEffect).name(),
-                        typeid(SceneRenderEnvNode).name());
+                        typeid(RenderEnvNode).name());
 }
 
-void SceneRenderEnvNodeShadowMapEffectAdapter::Apply(
+void RenderEnvNodeShadowMapEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(ShadowMapEffect));
-  CHECK(typeid(*params) == typeid(SceneRenderEnvNode));
-  const SceneRenderEnvNode* provider = (const SceneRenderEnvNode*)params;
+  CHECK(typeid(*params) == typeid(RenderEnvNode));
+  const RenderEnvNode* provider = (const RenderEnvNode*)params;
   ShadowMapEffect* effect = dynamic_cast<ShadowMapEffect*>(e);
   for (auto iter = provider->lights().begin(); 
        iter != provider->lights().end();

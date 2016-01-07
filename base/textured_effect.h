@@ -4,7 +4,7 @@
 #include "azer/render/render.h"
 #include "lordaeron/effect/material.h"
 #include "lordaeron/effect/light.h"
-#include "lordaeron/scene/scene_render_tree.h"
+#include "lordaeron/scene/render_node.h"
 
 class TexturedEffect : public azer::Effect {
  public:
@@ -68,22 +68,22 @@ using azer::EffectParamsProvider;
 using azer::EffectAdapterKey;
 using azer::EffectParamsAdapter;
 
-class SceneRenderNodeTexEffectAdapter : public EffectParamsAdapter {
+class RenderNodeTexEffectAdapter : public EffectParamsAdapter {
  public:
-  SceneRenderNodeTexEffectAdapter();
+  RenderNodeTexEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(SceneRenderNodeTexEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(RenderNodeTexEffectAdapter);
 };
 
-class SceneRenderEnvNodeTexEffectAdapter : public EffectParamsAdapter {
+class RenderEnvNodeTexEffectAdapter : public EffectParamsAdapter {
  public:
-  SceneRenderEnvNodeTexEffectAdapter();
+  RenderEnvNodeTexEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(SceneRenderEnvNodeTexEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(RenderEnvNodeTexEffectAdapter);
 };
