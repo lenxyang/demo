@@ -70,9 +70,16 @@ void ShadowEffectAdapter::Apply(Effect* e, const EffectParamsProvider* params) c
 }
 
 namespace {
-class NodeDelegateFactory : public RenderNodeDelegateFactory {
+class TreeBuildDelegate : public RenderTreeBuilderDelegate {
  public:
-  NodeDelegateFactory(ShadowDepthRenderer* renderer);
+  TreeBuildDelegate(ShadowDepthRenderer* renderer);
+  bool NeedRenderNode(SceneNode* node) override {
+    if (node->type() == kEnvSceneNode) {
+      return false;
+    } else {
+      return true;
+    }
+  }
   scoped_ptr<lord::RenderNodeDelegate> CreateRenderDelegate(
   lord::RenderNode* node) override {
     scoped_ptr<lord::RenderNodeDelegate> p(
@@ -84,9 +91,9 @@ class NodeDelegateFactory : public RenderNodeDelegateFactory {
   }
  private:
   ShadowDepthRenderer* tree_renderer_;
-  DISALLOW_COPY_AND_ASSIGN(NodeDelegateFactory);
+  DISALLOW_COPY_AND_ASSIGN(TreeBuildDelegate);
 };
-NodeDelegateFactory::NodeDelegateFactory(
+TreeBuildDelegate::TreeBuildDelegate(
     ShadowDepthRenderer* renderer)
     : tree_renderer_(renderer) {
 }
@@ -108,8 +115,8 @@ ShadowDepthRenderer::~ShadowDepthRenderer() {
 
 void ShadowDepthRenderer::Init(lord::SceneNode* root, const Camera* camera) {
   CHECK(root_ == NULL);
-  NodeDelegateFactory factory(this);
-  RenderTreeBuilder builder(&factory);
+  TreeBuildDelegate delegate(this);
+  RenderTreeBuilder builder(&delegate);
   root_ = builder.Build(root, camera);
 }
 

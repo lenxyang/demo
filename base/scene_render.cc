@@ -105,12 +105,19 @@ void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {
 }
 
 namespace {
-class NodeDelegateFactory : public RenderNodeDelegateFactory {
+class TreeBuildDelegate : public RenderTreeBuilderDelegate {
  public:
-  NodeDelegateFactory(EffectedSceneRenderer* renderer)
+  TreeBuildDelegate(EffectedSceneRenderer* renderer)
       : tree_renderer_(renderer) {
   }
 
+  bool NeedRenderNode(SceneNode* node) override {
+    if (node->type() == kEnvSceneNode) {
+      return false;
+    } else {
+      return true;
+    }
+  }
   scoped_ptr<lord::RenderNodeDelegate> CreateRenderDelegate(
       lord::RenderNode* node) override;
   RenderEnvNodeDelegatePtr CreateEnvDelegate(RenderEnvNode* n) override {
@@ -118,11 +125,11 @@ class NodeDelegateFactory : public RenderNodeDelegateFactory {
   }
  private:
   EffectedSceneRenderer* tree_renderer_;
-  DISALLOW_COPY_AND_ASSIGN(NodeDelegateFactory);
+  DISALLOW_COPY_AND_ASSIGN(TreeBuildDelegate);
 };
 
 scoped_ptr<lord::RenderNodeDelegate>
-NodeDelegateFactory::CreateRenderDelegate(RenderNode* node) {
+TreeBuildDelegate::CreateRenderDelegate(RenderNode* node) {
   switch (node->GetSceneNode()->type()) {
     case kEnvSceneNode:
       return NULL;
@@ -142,6 +149,6 @@ NodeDelegateFactory::CreateRenderDelegate(RenderNode* node) {
 
 // class EffectedSceneRenderer
 EffectedSceneRenderer::EffectedSceneRenderer() {
-  scoped_ptr<NodeDelegateFactory> factory(new NodeDelegateFactory(this));
-  SetDelegateFactory(factory.Pass());
+  scoped_ptr<TreeBuildDelegate> delegate(new TreeBuildDelegate(this));
+  SetTreeBuildDelegate(delegate.Pass());
 }
