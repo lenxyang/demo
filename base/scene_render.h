@@ -12,7 +12,7 @@ class SceneNode;
 class LightController;
 }  // namespace lord
 
-
+class ShadowDepthRenderer;
 class EffectedSceneRenderer;
 class ObjectNodeRenderDelegate : public lord::RenderNodeDelegate {
  public:
@@ -46,12 +46,15 @@ class LampNodeRenderDelegate : public lord::RenderNodeDelegate {
 class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate {
  public:
   struct LightData {
+    lord::SceneNode* scene_node;
     lord::LightPtr light;
     azer::RendererPtr renderer;
+    ShadowDepthRenderer* scene_renderer;
     azer::Camera camera;
   };
 
   explicit EffectedEnvNodeDelegate(lord::RenderEnvNode* envnode);
+  ~EffectedEnvNodeDelegate();
   
   int32 light_count() const;
   const lord::Light* light_at(int32 index) const;

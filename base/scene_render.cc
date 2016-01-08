@@ -10,6 +10,7 @@
 #include "lordaeron/scene/scene_node.h"
 #include "lordaeron/scene/scene_renderer.h"
 #include "lordaeron/scene/ui_scene_render.h"
+#include "demo/base/shadow_render_tree.h"
 
 using namespace lord;
 using namespace azer;
@@ -58,36 +59,19 @@ LampNodeRenderDelegate::LampNodeRenderDelegate(RenderNode* node,
   Init();
 }
 
-bool LampNodeRenderDelegate::Init() {
-  /*
-  SceneNode* scene_node = GetSceneNode();
-  lord::LordEnv* env = lord::LordEnv::instance();
-  ResourceLoader* loader = env->resource_loader();
-  Light* light = scene_node->mutable_data()->light();
-  switch (light->type()) {
-    case kDirectionalLight:
-      break;
-    case kSpotLight: 
-      InitShadowmapRenderer(gfx::Size(1024, 1024));
-      InitShadowMapCamera(light, &camera_);
-      scene_renderer_.reset(new ShadowDepthRenderer(loader, light));
-      break;
-    case kPointLight:
-      break;
-    default:
-      CHECK(false);
-  }
-  */
-
-  return true;
-}
-
+bool LampNodeRenderDelegate::Init() {return true;}
 void LampNodeRenderDelegate::Update(const FrameArgs& args) {}
 void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {}
 
 // class EffectedEnvNodeDelegate
 EffectedEnvNodeDelegate::EffectedEnvNodeDelegate(RenderEnvNode* envnode)
     : RenderEnvNodeDelegate(envnode) {
+}
+
+EffectedEnvNodeDelegate::~EffectedEnvNodeDelegate() {
+  for (auto iter = light_data_.begin(); iter != light_data_.end(); ++iter) {
+    delete iter->scene_renderer;
+  }
 }
 
 namespace {
@@ -106,9 +90,14 @@ RendererPtr InitShadowmapRenderer(const gfx::Size& size) {
 }
 
 void EffectedEnvNodeDelegate::InitLightData(LightData* data) {
+  data->scene_renderer = NULL;
   if (data->light->type() == kSpotLight) {
+    LordEnv* env = LordEnv::instance();
+    ResourceLoader* loader = env->resource_loader();
     data->renderer = InitShadowmapRenderer(gfx::Size(512, 512));
     InitShadowMapCamera(data->light, &data->camera);
+    data->scene_renderer = new ShadowDepthRenderer(loader, data->light);
+    data->scene_renderer->Init(data->scene_node->root(), &data->camera);
   }
 }
 
@@ -121,6 +110,7 @@ void EffectedEnvNodeDelegate::RebuildLightData(SceneNode* node) {
     if (child->type() == kLampSceneNode) {
       LightData data;
       data.light = child->mutable_data()->light();
+      data.scene_node = node;
       InitLightData(&data);
       light_data_.push_back(data);
     }
@@ -142,14 +132,21 @@ void EffectedEnvNodeDelegate::Init(SceneNode* scene_node, RenderNode* node) {
 }
 
 void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data) {
-  if (data->light->type() == kSpotLight) {
+  if (data && data->renderer.get()) {
+    Renderer* renderer = data->renderer;
+    renderer->Use();
+    renderer->ClearDepthAndStencil();
+    renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+    data->scene_renderer->Render(renderer);
   }
 }
 
 void EffectedEnvNodeDelegate::OnUpdateNode(const azer::FrameArgs& args) {
   for (uint32 i = 0; i < light_data_.size(); ++i) {
     LightData& data = light_data_[i];
-    if (data.light->enable()) {
+    if (data.light->enable() && data.scene_renderer) {
+      data.scene_renderer->Update(args);
+      InitShadowMapCamera(data.light, &data.camera);
       RenderDepthMap(&data);
     }
   }
