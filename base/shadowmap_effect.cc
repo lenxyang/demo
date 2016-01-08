@@ -9,6 +9,7 @@
 #include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/ui_scene_render.h"
 #include "demo/base/resource_util.h"
+#include "demo/base/scene_render.h"
 
 using namespace lord;
 using namespace azer;
@@ -145,31 +146,31 @@ void RenderNodeShadowMapEffectAdapter::Apply(
   effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
 }
 
-LordEnvNodeDelegateShadowMapEffectAdapter::LordEnvNodeDelegateShadowMapEffectAdapter() {}
+EffectedEnvNodeDelegateShadowMapEffectAdapter
+::EffectedEnvNodeDelegateShadowMapEffectAdapter() {}
 
-EffectAdapterKey LordEnvNodeDelegateShadowMapEffectAdapter::key() const {
+EffectAdapterKey EffectedEnvNodeDelegateShadowMapEffectAdapter::key() const {
   return std::make_pair(typeid(ShadowMapEffect).name(),
-                        typeid(LordEnvNodeDelegate).name());
+                        typeid(EffectedEnvNodeDelegate).name());
 }
 
-void LordEnvNodeDelegateShadowMapEffectAdapter::Apply(
+void EffectedEnvNodeDelegateShadowMapEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(ShadowMapEffect));
-  CHECK(typeid(*params) == typeid(LordEnvNodeDelegate));
-  const LordEnvNodeDelegate* provider = (const LordEnvNodeDelegate*)params;
+  CHECK(typeid(*params) == typeid(EffectedEnvNodeDelegate));
+  const EffectedEnvNodeDelegate* provider = (const EffectedEnvNodeDelegate*)params;
   ShadowMapEffect* effect = dynamic_cast<ShadowMapEffect*>(e);
-  for (auto iter = provider->lights().begin(); 
-       iter != provider->lights().end();
-       ++iter) {
-    lord::Light* light = iter->get();
+  for (int32 index = 0; index < provider->light_count(); ++index) {
+    auto data = provider->light_data_at(index);
+    Light* light = data->light;
     if (light->type() == kDirectionalLight) {
       effect->SetDirLight(light->dir_light());
     } else if (light->type() == kPointLight) {
       effect->SetPointLight(light->point_light());
     } else if (light->type() == kSpotLight) {
       effect->SetSpotLight(light->spot_light());
-      effect->SetSpotLightShadowMap(light->shadowmap());
-      effect->SetSpotLightPVW(light->camera().GetProjViewMatrix());
+      effect->SetSpotLightShadowMap(provider->GetLightShadowmap(index));
+      effect->SetSpotLightPVW(data->camera.GetProjViewMatrix());
     }
   }
 }

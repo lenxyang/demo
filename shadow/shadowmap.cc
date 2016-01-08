@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
   lord::LordEnv* env = lord::LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new RenderNodeShadowMapEffectAdapter);
-  adapterctx->RegisteAdapter(new LordEnvNodeDelegateShadowMapEffectAdapter);
+  adapterctx->RegisteAdapter(new EffectedEnvNodeDelegateShadowMapEffectAdapter);
   adapterctx->RegisteAdapter(new ShadowMapMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);

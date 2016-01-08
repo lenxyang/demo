@@ -87,7 +87,10 @@ class TreeBuildDelegate : public RenderTreeBuilderDelegate {
     return p.Pass();
   }
   RenderEnvNodeDelegatePtr CreateEnvDelegate(RenderEnvNode* n) override {
-    return RenderEnvNodeDelegatePtr(new LordEnvNodeDelegate(n));
+    return RenderEnvNodeDelegatePtr(new FakeEnvNode(n));
+  }
+  bool NeedRenderEnvNode(SceneNode* node) override {
+    return false;
   }
  private:
   ShadowDepthRenderer* tree_renderer_;

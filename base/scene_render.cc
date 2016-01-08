@@ -59,6 +59,7 @@ LampNodeRenderDelegate::LampNodeRenderDelegate(RenderNode* node,
 }
 
 bool LampNodeRenderDelegate::Init() {
+  /*
   SceneNode* scene_node = GetSceneNode();
   lord::LordEnv* env = lord::LordEnv::instance();
   ResourceLoader* loader = env->resource_loader();
@@ -67,7 +68,7 @@ bool LampNodeRenderDelegate::Init() {
     case kDirectionalLight:
       break;
     case kSpotLight: 
-      light->InitShadowmapRenderer(gfx::Size(1024, 1024));
+      InitShadowmapRenderer(gfx::Size(1024, 1024));
       InitShadowMapCamera(light, &camera_);
       scene_renderer_.reset(new ShadowDepthRenderer(loader, light));
       break;
@@ -76,33 +77,116 @@ bool LampNodeRenderDelegate::Init() {
     default:
       CHECK(false);
   }
+  */
 
   return true;
 }
 
-void LampNodeRenderDelegate::Update(const FrameArgs& args) {
-  if (scene_renderer_) {
-    if (!scene_renderer_->root()) {
-      SceneNode* scene_node = GetSceneNode();
-      // scene_renderer_->Init(scene_node->root(), &camera_);
-      scene_renderer_->Init(scene_node->root(), tree_render_->camera());
-    }
-    scene_renderer_->Update(args);
+void LampNodeRenderDelegate::Update(const FrameArgs& args) {}
+void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {}
+
+// class EffectedEnvNodeDelegate
+EffectedEnvNodeDelegate::EffectedEnvNodeDelegate(RenderEnvNode* envnode)
+    : RenderEnvNodeDelegate(envnode) {
+}
+
+namespace {
+RendererPtr InitShadowmapRenderer(const gfx::Size& size) {
+  RenderSystem* rs = RenderSystem::Current();
+  Texture::Options opt;
+  opt.target = (Texture::BindTarget)
+      (Texture::kShaderResource | Texture::kRenderTarget);
+  opt.format = kRGBAf;
+  opt.size = size;
+  Viewport viewport(0, 0, opt.size.width(), opt.size.height());
+  RendererPtr renderer = rs->CreateRenderer(opt);
+  renderer->SetViewport(viewport);
+  return renderer;
+}
+}
+
+void EffectedEnvNodeDelegate::InitLightData(LightData* data) {
+  if (data->light->type() == kSpotLight) {
+    data->renderer = InitShadowmapRenderer(gfx::Size(512, 512));
+    InitShadowMapCamera(data->light, &data->camera);
   }
 }
 
-void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {
-  SceneNode* scene_node = GetSceneNode();
-  Light* light = scene_node->mutable_data()->light();
-  Renderer* renderer = light->shadowmap_renderer();
-  if (renderer) {
-    renderer->Use();
-    renderer->ClearDepthAndStencil();
-    renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-    scene_renderer_->Render(renderer);
-    orgrenderer->Use();
+void EffectedEnvNodeDelegate::RebuildLightData(SceneNode* node) {
+  light_data_.clear();
+  parent_light_data_.clear();
+  int32 child_count = node->child_count();
+  for (int32 i = 0; i < child_count; ++i) {
+    SceneNode* child = node->child_at(i);
+    if (child->type() == kLampSceneNode) {
+      LightData data;
+      data.light = child->mutable_data()->light();
+      InitLightData(&data);
+      light_data_.push_back(data);
+    }
+  }
+
+  RenderEnvNode* parent = this->node()->parent();
+  if (parent) {
+    EffectedEnvNodeDelegate* pdel = 
+        static_cast<EffectedEnvNodeDelegate*>(parent->delegate());
+    parent_light_data_.assign(pdel->light_data_.begin(), 
+                               pdel->light_data_.begin());
+    parent_light_data_.assign(pdel->parent_light_data_.begin(), 
+                               pdel->parent_light_data_.begin());
   }
 }
+
+void EffectedEnvNodeDelegate::Init(SceneNode* scene_node, RenderNode* node) {
+  RebuildLightData(scene_node);
+}
+
+void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data) {
+  if (data->light->type() == kSpotLight) {
+  }
+}
+
+void EffectedEnvNodeDelegate::OnUpdateNode(const azer::FrameArgs& args) {
+  for (uint32 i = 0; i < light_data_.size(); ++i) {
+    LightData& data = light_data_[i];
+    if (data.light->enable()) {
+      RenderDepthMap(&data);
+    }
+  }
+}
+
+int32 EffectedEnvNodeDelegate::light_count() const {
+  return light_data_.size() + parent_light_data_.size();
+}
+
+const Light* EffectedEnvNodeDelegate::light_at(int32 index) const {
+  const LightData* data = light_data_at(index);
+  return data->light;
+}
+
+const Matrix4& EffectedEnvNodeDelegate::GetLightShadowmapPV(int32 index) const {
+  const LightData* data = light_data_at(index);
+  return data->camera.GetProjViewMatrix();
+}
+
+Texture* EffectedEnvNodeDelegate::GetLightShadowmap(int32 index) const{
+  const LightData* data = light_data_at(index);
+  return data->renderer->GetRenderTarget(0)->GetTexture();
+}
+
+const EffectedEnvNodeDelegate::LightData* EffectedEnvNodeDelegate::light_data_at(
+    int32 index) const {
+  if (index < light_data_.size()) {
+    return &light_data_[index];
+  } else if (index <= light_data_.size() + parent_light_data_.size()) {
+    return &parent_light_data_[index - light_data_.size()];
+  } else {
+    CHECK(false);
+    return NULL;
+  }
+}
+
+void EffectedEnvNodeDelegate::UpdateParams(const FrameArgs& args) {}
 
 namespace {
 class TreeBuildDelegate : public RenderTreeBuilderDelegate {
@@ -121,7 +205,7 @@ class TreeBuildDelegate : public RenderTreeBuilderDelegate {
   scoped_ptr<lord::RenderNodeDelegate> CreateRenderDelegate(
       lord::RenderNode* node) override;
   RenderEnvNodeDelegatePtr CreateEnvDelegate(RenderEnvNode* n) override {
-    return RenderEnvNodeDelegatePtr(new LordEnvNodeDelegate(n));
+    return RenderEnvNodeDelegatePtr(new EffectedEnvNodeDelegate(n));
   }
  private:
   EffectedSceneRenderer* tree_renderer_;
