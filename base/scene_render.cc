@@ -9,6 +9,7 @@
 #include "lordaeron/scene/render_env_node.h"
 #include "lordaeron/scene/scene_node.h"
 #include "lordaeron/scene/scene_renderer.h"
+#include "lordaeron/scene/ui_scene_render.h"
 
 using namespace lord;
 using namespace azer;
@@ -29,7 +30,7 @@ bool ObjectNodeRenderDelegate::Init() {
     mesh_ = scene_node->mutable_data()->GetMesh();
     mesh_->AddProvider(node_);
     if (node_->GetEnvNode())
-      mesh_->AddProvider(node_->GetEnvNode());
+      mesh_->AddProvider(node_->GetEnvNode()->delegate());
   }
 
   return true;
@@ -104,19 +105,24 @@ void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {
 }
 
 namespace {
-class NodeDelegateFactory : public lord::RenderNodeDelegateFactory {
+class NodeDelegateFactory : public RenderNodeDelegateFactory {
  public:
   NodeDelegateFactory(EffectedSceneRenderer* renderer)
-      : tree_renderer_(renderer) {}
-  scoped_ptr<lord::RenderNodeDelegate> CreateDelegate(
+      : tree_renderer_(renderer) {
+  }
+
+  scoped_ptr<lord::RenderNodeDelegate> CreateRenderDelegate(
       lord::RenderNode* node) override;
+  RenderEnvNodeDelegatePtr CreateEnvDelegate(RenderEnvNode* n) override {
+    return RenderEnvNodeDelegatePtr(new LordEnvNodeDelegate(n));
+  }
  private:
   EffectedSceneRenderer* tree_renderer_;
+  DISALLOW_COPY_AND_ASSIGN(NodeDelegateFactory);
 };
 
-
 scoped_ptr<lord::RenderNodeDelegate>
-NodeDelegateFactory::CreateDelegate(RenderNode* node) {
+NodeDelegateFactory::CreateRenderDelegate(RenderNode* node) {
   switch (node->GetSceneNode()->type()) {
     case kEnvSceneNode:
       return NULL;

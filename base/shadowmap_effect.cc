@@ -6,6 +6,8 @@
 #include "lordaeron/resource/resource_util.h"
 #include "lordaeron/resource/resource_loader.h"
 #include "lordaeron/scene/render_env_node.h"
+#include "lordaeron/scene/render_node.h"
+#include "lordaeron/scene/ui_scene_render.h"
 #include "demo/base/resource_util.h"
 
 using namespace lord;
@@ -143,18 +145,18 @@ void RenderNodeShadowMapEffectAdapter::Apply(
   effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
 }
 
-RenderEnvNodeShadowMapEffectAdapter::RenderEnvNodeShadowMapEffectAdapter() {}
+LordEnvNodeDelegateShadowMapEffectAdapter::LordEnvNodeDelegateShadowMapEffectAdapter() {}
 
-EffectAdapterKey RenderEnvNodeShadowMapEffectAdapter::key() const {
+EffectAdapterKey LordEnvNodeDelegateShadowMapEffectAdapter::key() const {
   return std::make_pair(typeid(ShadowMapEffect).name(),
-                        typeid(RenderEnvNode).name());
+                        typeid(LordEnvNodeDelegate).name());
 }
 
-void RenderEnvNodeShadowMapEffectAdapter::Apply(
+void LordEnvNodeDelegateShadowMapEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(ShadowMapEffect));
-  CHECK(typeid(*params) == typeid(RenderEnvNode));
-  const RenderEnvNode* provider = (const RenderEnvNode*)params;
+  CHECK(typeid(*params) == typeid(LordEnvNodeDelegate));
+  const LordEnvNodeDelegate* provider = (const LordEnvNodeDelegate*)params;
   ShadowMapEffect* effect = dynamic_cast<ShadowMapEffect*>(e);
   for (auto iter = provider->lights().begin(); 
        iter != provider->lights().end();

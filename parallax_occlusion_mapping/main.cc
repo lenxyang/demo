@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new lord::sandbox::MaterialEffectAdapter);
   adapterctx->RegisteAdapter(new lord::sandbox::RenderNodeEffectAdapter);
-  adapterctx->RegisteAdapter(new lord::sandbox::RenderEnvNodeEffectAdapter);
+  adapterctx->RegisteAdapter(new lord::sandbox::LordEnvNodeDelegateEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));

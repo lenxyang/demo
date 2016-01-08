@@ -83,12 +83,12 @@ class RenderNodeShadowMapEffectAdapter : public EffectParamsAdapter {
   DISALLOW_COPY_AND_ASSIGN(RenderNodeShadowMapEffectAdapter);
 };
 
-class RenderEnvNodeShadowMapEffectAdapter : public EffectParamsAdapter {
+class LordEnvNodeDelegateShadowMapEffectAdapter : public EffectParamsAdapter {
  public:
-  RenderEnvNodeShadowMapEffectAdapter();
+  LordEnvNodeDelegateShadowMapEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(RenderEnvNodeShadowMapEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(LordEnvNodeDelegateShadowMapEffectAdapter);
 };

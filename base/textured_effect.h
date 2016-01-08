@@ -78,12 +78,12 @@ class RenderNodeTexEffectAdapter : public EffectParamsAdapter {
   DISALLOW_COPY_AND_ASSIGN(RenderNodeTexEffectAdapter);
 };
 
-class RenderEnvNodeTexEffectAdapter : public EffectParamsAdapter {
+class LordEnvNodeDelegateTexEffectAdapter : public EffectParamsAdapter {
  public:
-  RenderEnvNodeTexEffectAdapter();
+  LordEnvNodeDelegateTexEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(RenderEnvNodeTexEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(LordEnvNodeDelegateTexEffectAdapter);
 };

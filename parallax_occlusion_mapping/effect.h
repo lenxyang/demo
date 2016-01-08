@@ -120,14 +120,14 @@ class RenderNodeEffectAdapter : public EffectParamsAdapter {
   DISALLOW_COPY_AND_ASSIGN(RenderNodeEffectAdapter);
 };
 
-class RenderEnvNodeEffectAdapter : public EffectParamsAdapter {
+class LordEnvNodeDelegateEffectAdapter : public EffectParamsAdapter {
  public:
-  RenderEnvNodeEffectAdapter();
+  LordEnvNodeDelegateEffectAdapter();
 
   EffectAdapterKey key() const override;
   void Apply(Effect* e, const EffectParamsProvider* params) const override;
  private:
-  DISALLOW_COPY_AND_ASSIGN(RenderEnvNodeEffectAdapter);
+  DISALLOW_COPY_AND_ASSIGN(LordEnvNodeDelegateEffectAdapter);
 };
 }  // namespace sandbox
 }  // namespace lord

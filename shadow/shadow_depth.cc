@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeDepthEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
-  adapterctx->RegisteAdapter(new RenderEnvNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new LordEnvNodeDelegateTexEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));

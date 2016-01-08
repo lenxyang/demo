@@ -8,6 +8,7 @@
 #include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/render_env_node.h"
 #include "lordaeron/scene/scene_node.h"
+#include "lordaeron/scene/ui_scene_render.h"
 #include "demo/base/resource_util.h"
 
 using namespace lord;
@@ -141,19 +142,19 @@ void RenderNodeTexEffectAdapter::Apply(
   effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
 }
 
-RenderEnvNodeTexEffectAdapter::RenderEnvNodeTexEffectAdapter() {
+LordEnvNodeDelegateTexEffectAdapter::LordEnvNodeDelegateTexEffectAdapter() {
 }
 
-EffectAdapterKey RenderEnvNodeTexEffectAdapter::key() const {
+EffectAdapterKey LordEnvNodeDelegateTexEffectAdapter::key() const {
   return std::make_pair(typeid(TexturedEffect).name(),
-                        typeid(RenderEnvNode).name());
+                        typeid(LordEnvNodeDelegate).name());
 }
 
-void RenderEnvNodeTexEffectAdapter::Apply(
+void LordEnvNodeDelegateTexEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(TexturedEffect));
-  CHECK(typeid(*params) == typeid(RenderEnvNode));
-  const RenderEnvNode* provider = (const RenderEnvNode*)params;
+  CHECK(typeid(*params) == typeid(LordEnvNodeDelegate));
+  const LordEnvNodeDelegate* provider = (const LordEnvNodeDelegate*)params;
   TexturedEffect* effect = dynamic_cast<TexturedEffect*>(e);
   for (auto iter = provider->lights().begin(); 
        iter != provider->lights().end();

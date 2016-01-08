@@ -3,7 +3,10 @@
 #include "base/strings/utf_string_conversions.h"
 #include "azer/render/util/shader_util.h"
 #include "lordaeron/resource/resource_util.h"
+#include "lordaeron/scene/render_env_node.h"
+#include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/scene_renderer.h"
+#include "lordaeron/scene/ui_scene_render.h"
 #include "demo/base/depth_effect.h"
 
 using namespace lord;
@@ -70,8 +73,15 @@ namespace {
 class NodeDelegateFactory : public RenderNodeDelegateFactory {
  public:
   NodeDelegateFactory(ShadowDepthRenderer* renderer);
-  scoped_ptr<lord::RenderNodeDelegate> CreateDelegate(
-      lord::RenderNode* node) override;
+  scoped_ptr<lord::RenderNodeDelegate> CreateRenderDelegate(
+  lord::RenderNode* node) override {
+    scoped_ptr<lord::RenderNodeDelegate> p(
+        new ShadowDepthRenderDelegate(node, tree_renderer_));
+    return p.Pass();
+  }
+  RenderEnvNodeDelegatePtr CreateEnvDelegate(RenderEnvNode* n) override {
+    return RenderEnvNodeDelegatePtr(new LordEnvNodeDelegate(n));
+  }
  private:
   ShadowDepthRenderer* tree_renderer_;
   DISALLOW_COPY_AND_ASSIGN(NodeDelegateFactory);
@@ -79,13 +89,6 @@ class NodeDelegateFactory : public RenderNodeDelegateFactory {
 NodeDelegateFactory::NodeDelegateFactory(
     ShadowDepthRenderer* renderer)
     : tree_renderer_(renderer) {
-}
-
-scoped_ptr<lord::RenderNodeDelegate> NodeDelegateFactory::
-CreateDelegate(lord::RenderNode* node) {
-  scoped_ptr<lord::RenderNodeDelegate> p(
-      new ShadowDepthRenderDelegate(node, tree_renderer_));
-  return p.Pass();
 }
 }  // namespace
 

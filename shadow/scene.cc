@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
-  adapterctx->RegisteAdapter(new RenderEnvNodeTexEffectAdapter);
+  adapterctx->RegisteAdapter(new LordEnvNodeDelegateTexEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));

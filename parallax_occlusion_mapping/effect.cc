@@ -14,6 +14,7 @@
 #include "lordaeron/scene/render_env_node.h"
 #include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/scene_node.h"
+#include "lordaeron/scene/ui_scene_render.h"
 
 using namespace azer;
 using base::UTF8ToUTF16;
@@ -194,18 +195,18 @@ void RenderNodeEffectAdapter::Apply(
   effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
 }
 
-RenderEnvNodeEffectAdapter::RenderEnvNodeEffectAdapter() {}
+LordEnvNodeDelegateEffectAdapter::LordEnvNodeDelegateEffectAdapter() {}
 
-EffectAdapterKey RenderEnvNodeEffectAdapter::key() const {
+EffectAdapterKey LordEnvNodeDelegateEffectAdapter::key() const {
   return std::make_pair(typeid(MyEffect).name(),
-                        typeid(RenderEnvNode).name());
+                        typeid(LordEnvNodeDelegate).name());
 }
 
-void RenderEnvNodeEffectAdapter::Apply(
+void LordEnvNodeDelegateEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(MyEffect));
-  CHECK(typeid(*params) == typeid(RenderEnvNode));
-  const RenderEnvNode* provider = (const RenderEnvNode*)params;
+  CHECK(typeid(*params) == typeid(LordEnvNodeDelegate));
+  const LordEnvNodeDelegate* provider = (const LordEnvNodeDelegate*)params;
   MyEffect* effect = dynamic_cast<MyEffect*>(e);
   for (auto iter = provider->lights().begin(); 
        iter != provider->lights().end();
