@@ -38,14 +38,9 @@ void ShadowDepthRenderDelegate::Init() {
 const Matrix4& ShadowDepthRenderDelegate::GetPV() const {
   return tree_renderer_->camera().GetProjViewMatrix();
 }
-
-void ShadowDepthRenderDelegate::UpdateParams(const FrameArgs& args) {
-  world_ = node_->GetWorld();
-}
   
 void ShadowDepthRenderDelegate::Update(const FrameArgs& args) {
-  if (shadow_.get())
-    shadow_->UpdateProviderParams(args);
+  world_ = node_->GetWorld();
 }
 
 void ShadowDepthRenderDelegate::Render(Renderer* renderer) {

@@ -38,9 +38,6 @@ bool ObjectNodeRenderDelegate::Init() {
 }
 
 void ObjectNodeRenderDelegate::Update(const FrameArgs& args) {
-  if (mesh_.get()) {
-    mesh_->UpdateProviderParams(args);
-  }
 }
 
 void ObjectNodeRenderDelegate::Render(Renderer* renderer) {
@@ -182,8 +179,6 @@ const EffectedEnvNodeDelegate::LightData* EffectedEnvNodeDelegate::light_data_at
     return NULL;
   }
 }
-
-void EffectedEnvNodeDelegate::UpdateParams(const FrameArgs& args) {}
 
 namespace {
 class TreeBuildDelegate : public RenderTreeBuilderDelegate {

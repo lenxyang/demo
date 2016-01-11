@@ -24,7 +24,6 @@ class ShadowDepthRenderDelegate : public lord::RenderNodeDelegate,
   const azer::Matrix4& GetWorld() const { return world_;}
   const azer::Matrix4& GetPV() const;
   const char* GetProviderName() const override { return kEffectProviderName;}
-  void UpdateParams(const azer::FrameArgs& args) override;
  private:
   void Init();
   ShadowDepthRenderer* tree_renderer_;

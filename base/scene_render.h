@@ -65,7 +65,6 @@ class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate {
 
   void Init(lord::SceneNode* render_node, lord::RenderNode* node) override;
   void OnUpdateNode(const azer::FrameArgs& args) override;
-  void UpdateParams(const azer::FrameArgs& args) override;
  private:
   void RenderDepthMap(LightData* data);
   void InitLightData(LightData* data);
