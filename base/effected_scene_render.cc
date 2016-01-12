@@ -101,7 +101,7 @@ void EffectedEnvNodeDelegate::InitLightData(LightData* data) {
   if (data->light->type() == kSpotLight) {
     LordEnv* env = LordEnv::instance();
     ResourceLoader* loader = env->resource_loader();
-    data->renderer = InitShadowmapRenderer(gfx::Size(512, 512));
+    data->renderer = InitShadowmapRenderer(gfx::Size(1024, 1024));
     InitShadowMapCamera(data->light, &data->camera);
     data->scene_renderer = new ShadowDepthRenderer(loader, data->light);
     data->scene_renderer->Init(data->scene_node->root(), &data->camera);

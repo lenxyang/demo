@@ -76,7 +76,6 @@ class MaterialProvider : public Material {
   MaterialProvider();
   const char* GetProviderName() const override;
   bool Init(const azer::ConfigNode* node, ResourceLoadContext* ctx) override;
-  void UpdateParams(const azer::FrameArgs& args) override {}
   float ambient_scalar() const { return ambient_scalar_;}
   float specular_scalar() const { return specular_scalar_;}
   const azer::Vector4& emission() const { return emission_;}

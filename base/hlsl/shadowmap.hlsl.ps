@@ -30,15 +30,27 @@ SamplerState smsampler {
 };
 
 float4 ps_main(VsOutput o):SV_TARGET {
-  o.projtex = o.projtex / o.projtex.w;;
+  o.projtex.xyz = o.projtex.xyz / o.projtex.w;;
   o.projtex.x = ( o.projtex.x * 0.5f + 0.5f);
   o.projtex.y = (-o.projtex.y * 0.5f + 0.5f);
-  float depth = shadowmap.Sample(smsampler, o.projtex.xy).x;
+  float depth = shadowmap.Sample(smsampler, o.projtex.xy).r;
 
-  if (saturate(o.projtex.x) == o.projtex.x && 
+  if (saturate(o.projtex.x) == o.projtex.x && 	
+      saturate(o.projtex.y) == o.projtex.y) {
+    float light_depth = o.projtex.z - 0.0001f;
+    if (light_depth <= depth) {
+      return float4(0.0, 1.0f, 0.0, 1.0);
+    } else {
+      return float4(1.0, 0.0, 0.0, 1.0);
+    }
+  } else {
+    return float4(0.0, 0.0, 0.0, 0.0);
+  }
+
+  if (clamp(o.projtex.x, 0.0f, 1.0f) == o.projtex.x && 
       saturate(o.projtex.y) == o.projtex.y) {
       float light_depth = o.projtex.z + 0.0001f;
-      if (light_depth <= depth) {
+      if (light_depth < depth) {
         return float4(1.0, 0.0, 0.0, 1.0);
       } else {
         return float4(0.0, 1.0, 0.0, 1.0);

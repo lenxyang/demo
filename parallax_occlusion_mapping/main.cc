@@ -22,7 +22,7 @@ class MyRenderWindow : public lord::FrameWindow {
  private:
   RenderNodePtr render_root_;
   RenderNodePtr bvolumn_root_;
-  scoped_ptr<UISceneRenderer> tree_render_;
+  scoped_ptr<UISceneRender> tree_render_;
   scoped_ptr<FileSystem> fsystem_;
   EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
@@ -62,7 +62,7 @@ SceneNodePtr MyRenderWindow::InitScene() {
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
 
-  tree_render_.reset(new UISceneRenderer);
+  tree_render_.reset(new UISceneRender);
   tree_render_->Init(root, &camera());
   
   return root;
