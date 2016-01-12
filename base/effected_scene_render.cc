@@ -1,4 +1,4 @@
-#include "demo/base/scene_render.h"
+#include "demo/base/effected_scene_render.h"
 
 #include "azer/render/render.h"
 #include "lordaeron/env.h"
@@ -8,7 +8,7 @@
 #include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/render_env_node.h"
 #include "lordaeron/scene/scene_node.h"
-#include "lordaeron/scene/scene_renderer.h"
+#include "lordaeron/scene/scene_render.h"
 #include "lordaeron/scene/ui_scene_render.h"
 #include "demo/base/shadow_render_tree.h"
 
@@ -16,7 +16,7 @@ using namespace lord;
 using namespace azer;
 // class ObjectNodeRenderDelegate
 ObjectNodeRenderDelegate::ObjectNodeRenderDelegate(
-    RenderNode* node, EffectedSceneRenderer* renderer)
+    RenderNode* node, EffectedSceneRender* renderer)
     : RenderNodeDelegate(node),
       tree_renderer_(renderer) {
   Init();
@@ -47,7 +47,7 @@ void ObjectNodeRenderDelegate::Render(Renderer* renderer) {
 
 // class LampNodeRenderDelegate
 LampNodeRenderDelegate::LampNodeRenderDelegate(RenderNode* node, 
-                                               EffectedSceneRenderer* tree_render)
+                                               EffectedSceneRender* tree_render)
     : RenderNodeDelegate(node),
       tree_render_(tree_render) {
   SceneNode* scene_node = GetSceneNode();
@@ -58,7 +58,8 @@ LampNodeRenderDelegate::LampNodeRenderDelegate(RenderNode* node,
 
 bool LampNodeRenderDelegate::Init() {return true;}
 void LampNodeRenderDelegate::Update(const FrameArgs& args) {}
-void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {}
+void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {
+}
 
 // class EffectedEnvNodeDelegate
 EffectedEnvNodeDelegate::EffectedEnvNodeDelegate(RenderEnvNode* envnode)
@@ -183,7 +184,7 @@ const EffectedEnvNodeDelegate::LightData* EffectedEnvNodeDelegate::light_data_at
 namespace {
 class TreeBuildDelegate : public RenderTreeBuilderDelegate {
  public:
-  TreeBuildDelegate(EffectedSceneRenderer* renderer)
+  TreeBuildDelegate(EffectedSceneRender* renderer)
       : tree_renderer_(renderer) {
   }
 
@@ -200,7 +201,7 @@ class TreeBuildDelegate : public RenderTreeBuilderDelegate {
     return RenderEnvNodeDelegatePtr(new EffectedEnvNodeDelegate(n));
   }
  private:
-  EffectedSceneRenderer* tree_renderer_;
+  EffectedSceneRender* tree_renderer_;
   DISALLOW_COPY_AND_ASSIGN(TreeBuildDelegate);
 };
 
@@ -223,8 +224,8 @@ TreeBuildDelegate::CreateRenderDelegate(RenderNode* node) {
 }
 }
 
-// class EffectedSceneRenderer
-EffectedSceneRenderer::EffectedSceneRenderer() {
+// class EffectedSceneRender
+EffectedSceneRender::EffectedSceneRender() {
   scoped_ptr<TreeBuildDelegate> delegate(new TreeBuildDelegate(this));
   SetTreeBuildDelegate(delegate.Pass());
 }

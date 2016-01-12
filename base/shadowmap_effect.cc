@@ -9,7 +9,7 @@
 #include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/ui_scene_render.h"
 #include "demo/base/resource_util.h"
-#include "demo/base/scene_render.h"
+#include "demo/base/effected_scene_render.h"
 
 using namespace lord;
 using namespace azer;

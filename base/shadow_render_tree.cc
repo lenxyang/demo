@@ -5,7 +5,7 @@
 #include "lordaeron/resource/resource_util.h"
 #include "lordaeron/scene/render_env_node.h"
 #include "lordaeron/scene/render_node.h"
-#include "lordaeron/scene/scene_renderer.h"
+#include "lordaeron/scene/scene_render.h"
 #include "lordaeron/scene/ui_scene_render.h"
 #include "demo/base/depth_effect.h"
 

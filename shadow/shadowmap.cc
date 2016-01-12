@@ -27,8 +27,8 @@ class MyRenderWindow : public lord::FrameWindow {
   }
  private:
   RenderNodePtr bvolumn_root_;
-  scoped_ptr<EffectedSceneRenderer> effected_render_;
-  scoped_ptr<UISceneRenderer> scene_render_;
+  scoped_ptr<EffectedSceneRender> effected_render_;
+  scoped_ptr<UISceneRender> scene_render_;
   scoped_ptr<ShadowDepthRenderer> depth_render_;
   EffectDict dict_;
   bool default_renderer_;
@@ -113,11 +113,11 @@ SceneNodePtr MyRenderWindow::InitScene() {
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
 
-  effected_render_.reset(new EffectedSceneRenderer);
+  effected_render_.reset(new EffectedSceneRender);
   effected_render_->Init(root, &camera());
   LOG(ERROR) << effected_render_->root()->DumpTree();
 
-  scene_render_.reset(new UISceneRenderer);
+  scene_render_.reset(new UISceneRender);
   scene_render_->Init(root, &camera());
   LOG(ERROR) << scene_render_->root()->DumpTree();
 
