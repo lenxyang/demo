@@ -9,7 +9,7 @@ struct VsOutput {
   float3 normal:NORMAL;
   float3 viewin: VIEWIN;
   float2 texcoord: TEXCOORD0;
-  float4 projtex: PROJTEX;
+  float4 projtex: TEXCOORD1;
 };
 
 cbuffer c_buffer {
@@ -20,8 +20,8 @@ cbuffer c_buffer {
    float      specular_scalar;
 };
 
-Texture2D texmap;
-Texture2D shadowmap;
+Texture2D texmap : register(t0);
+Texture2D shadowmap : register(t1);
 SamplerState texsampler;
 SamplerState smsampler {
   Filter = MIN_MAG_MIP_LINEAR;
@@ -31,12 +31,24 @@ SamplerState smsampler {
 
 float4 ps_main(VsOutput o):SV_TARGET {
   o.projtex = o.projtex / o.projtex.w;;
-  o.projtex.x = clamp((o.projtex.x + 1.0f) * 0.5f, 0.0f, 1.0);
-  o.projtex.y = clamp((1.0f - o.projtex.y) * 0.5f, 0.0f, 1.0);
-  float depth = shadowmap.Sample(smsampler, o.projtex.xy);
-  float4 color = texmap.Sample(texsampler, o.texcoord);
-  return float4(depth, depth, depth, 1.0);
+  o.projtex.x = ( o.projtex.x * 0.5f + 0.5f);
+  o.projtex.y = (-o.projtex.y * 0.5f + 0.5f);
+  float depth = shadowmap.Sample(smsampler, o.projtex.xy).x;
+
+  if (saturate(o.projtex.x) == o.projtex.x && 
+      saturate(o.projtex.y) == o.projtex.y) {
+      float light_depth = o.projtex.z + 0.0001f;
+      if (light_depth <= depth) {
+        return float4(1.0, 0.0, 0.0, 1.0);
+      } else {
+        return float4(0.0, 1.0, 0.0, 1.0);
+      }
+  } else {
+      return float4(0.0f, 0.0f, 1.0f, 1.0f);
+  }
   
+  
+  float4 color = texmap.Sample(texsampler, o.texcoord);
 
   float3 normal = o.normal;
   Matrial mtrl;
@@ -52,6 +64,7 @@ float4 ps_main(VsOutput o):SV_TARGET {
                                            normal, o.viewin, mtrl);
   float3 spot_color = CalcSpotLightColor(spotlight, o.worldpos,
                                          normal, o.viewin, mtrl);
-  float spot_factor = (depth < o.position.z) ? 1.0 : 0.0f; 
+  float spot_factor = (depth < o.projtex.z) ? 1.0 : 0.0f; 
+  return float4(spot_factor, spot_factor, spot_factor, 1.0);
   return float4(spot_color * spot_factor + dir_color + point_color, mtrl.alpha);
 }

@@ -67,7 +67,7 @@ class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate,
   void OnUpdateNode(const azer::FrameArgs& args) override;
   void OnFrameRenderBegin(lord::SceneRender* sr, azer::Renderer* renderer) override;
  private:
-  void RenderDepthMap(LightData* data);
+  void RenderDepthMap(LightData* data, azer::Renderer* renderer);
   void InitLightData(LightData* data);
   void RebuildLightData(lord::SceneNode* node);
 
@@ -78,6 +78,7 @@ class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate,
   lord::SceneNode* scene_node_;
   const azer::FrameArgs* args_;
   azer::RenderStatePtr render_state_;
+  azer::OverlayPtr overlay_;
   DISALLOW_COPY_AND_ASSIGN(EffectedEnvNodeDelegate);
 };
  

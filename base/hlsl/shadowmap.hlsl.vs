@@ -6,7 +6,7 @@ struct VsOutput {
   float3 normal:NORMAL;
   float3 viewin: VIEWIN;
   float2 texcoord: TEXCOORD0;
-  float4 projtex: PROJTEX;
+  float4 projtex: TEXCOORD1;
 };
 
 struct VSInput {

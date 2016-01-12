@@ -138,14 +138,13 @@ void ShadowDepthRenderer::Update(const FrameArgs& args) {
 }
 
 void ShadowDepthRenderer::OnRenderNode(RenderNode* node, Renderer* renderer) {
-  if (!node->GetSceneNode()->visible()) {
+  if (!node->GetSceneNode()->visible()
+      || node->GetSceneNode()->type() == kLampSceneNode
+      || !node->GetSceneNode()->shadow_caster()) {
     return;
   }
 
-  if (node->GetSceneNode()->type() != kLampSceneNode) {
-    node->Render(renderer);
-  }
-
+  node->Render(renderer);
   for (auto iter = node->children().begin(); 
        iter != node->children().end(); ++iter) {
     OnRenderNode(iter->get(), renderer);

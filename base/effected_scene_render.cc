@@ -70,6 +70,8 @@ EffectedEnvNodeDelegate::EffectedEnvNodeDelegate(RenderEnvNode* envnode,
   render->AddObserver(this);
   render_state_ = RenderSystem::Current()->CreateRenderState();
   render_state_->EnableDepthTest(true);
+  overlay_ = RenderSystem::Current()->CreateOverlay();
+  overlay_->SetBounds(gfx::RectF(0.5f, 0.5, 0.5f, 0.5f));
 }
 
 EffectedEnvNodeDelegate::~EffectedEnvNodeDelegate() {
@@ -136,7 +138,7 @@ void EffectedEnvNodeDelegate::Init(SceneNode* scene_node, RenderNode* node) {
   RebuildLightData(scene_node);
 }
 
-void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data) {
+void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data, Renderer* r) {
   if (data && data->renderer.get()) {
     Renderer* renderer = data->renderer;
     RenderState* prev = renderer->GetRenderState();
@@ -147,6 +149,9 @@ void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data) {
     renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     data->scene_renderer->Render(renderer);
     renderer->SetRenderState(prev);
+    r->Use();
+    overlay_->SetTexture(renderer->GetRenderTarget(0)->GetTexture());
+    overlay_->Render(r);
   }
 }
 
@@ -161,7 +166,7 @@ void EffectedEnvNodeDelegate::OnFrameRenderBegin(
     if (data.light->enable() && data.scene_renderer) {
       data.scene_renderer->Update(*args_);
       InitShadowMapCamera(data.light, &data.camera);
-      RenderDepthMap(&data);
+      RenderDepthMap(&data, renderer);
     }
   }
 

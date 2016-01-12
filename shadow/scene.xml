@@ -27,7 +27,7 @@
 	<refer type="mesh" path=":sphere"/>
       </node>
 
-      <node name="plane">
+      <node name="plane" cast_shadow="true">
 	<location><position>0.0f, 0.0f, 0.0f</position></location>
 	<refer type="mesh" path=":plane"/>
       </node>
