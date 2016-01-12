@@ -77,6 +77,7 @@ class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate,
   std::vector<LightData> parent_light_data_;
   lord::SceneNode* scene_node_;
   const azer::FrameArgs* args_;
+  azer::RenderStatePtr render_state_;
   DISALLOW_COPY_AND_ASSIGN(EffectedEnvNodeDelegate);
 };
  

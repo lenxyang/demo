@@ -68,6 +68,8 @@ EffectedEnvNodeDelegate::EffectedEnvNodeDelegate(RenderEnvNode* envnode,
       scene_render_(render),
       args_(NULL) {
   render->AddObserver(this);
+  render_state_ = RenderSystem::Current()->CreateRenderState();
+  render_state_->EnableDepthTest(true);
 }
 
 EffectedEnvNodeDelegate::~EffectedEnvNodeDelegate() {
@@ -137,11 +139,14 @@ void EffectedEnvNodeDelegate::Init(SceneNode* scene_node, RenderNode* node) {
 void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data) {
   if (data && data->renderer.get()) {
     Renderer* renderer = data->renderer;
+    RenderState* prev = renderer->GetRenderState();
     renderer->Reset();
+    renderer->SetRenderState(render_state_);
     renderer->Use();
     renderer->ClearDepthAndStencil();
     renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     data->scene_renderer->Render(renderer);
+    renderer->SetRenderState(prev);
   }
 }
 
