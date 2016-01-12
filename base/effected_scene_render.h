@@ -16,8 +16,7 @@ class ShadowDepthRenderer;
 class EffectedSceneRender;
 class ObjectNodeRenderDelegate : public lord::RenderNodeDelegate {
  public:
-  ObjectNodeRenderDelegate(lord::RenderNode* node, 
-                           EffectedSceneRender* renderer);
+  ObjectNodeRenderDelegate(lord::RenderNode* node, EffectedSceneRender* renderer);
   void Update(const azer::FrameArgs& args) override;
   void Render(azer::Renderer* renderer) override;
  private:
@@ -43,7 +42,8 @@ class LampNodeRenderDelegate : public lord::RenderNodeDelegate {
   DISALLOW_COPY_AND_ASSIGN(LampNodeRenderDelegate);
 };
 
-class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate {
+class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate,
+                                public lord::SceneRenderObserver {
  public:
   struct LightData {
     lord::SceneNode* scene_node;
@@ -53,7 +53,7 @@ class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate {
     azer::Camera camera;
   };
 
-  explicit EffectedEnvNodeDelegate(lord::RenderEnvNode* envnode);
+  EffectedEnvNodeDelegate(lord::RenderEnvNode* envnode, EffectedSceneRender* render);
   ~EffectedEnvNodeDelegate();
   
   int32 light_count() const;
@@ -65,15 +65,18 @@ class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate {
 
   void Init(lord::SceneNode* render_node, lord::RenderNode* node) override;
   void OnUpdateNode(const azer::FrameArgs& args) override;
+  void OnFrameRenderBegin(lord::SceneRender* sr, azer::Renderer* renderer) override;
  private:
   void RenderDepthMap(LightData* data);
   void InitLightData(LightData* data);
   void RebuildLightData(lord::SceneNode* node);
 
+  EffectedSceneRender* scene_render_;
   lord::SceneNodes light_nodes_;
   std::vector<LightData> light_data_;
   std::vector<LightData> parent_light_data_;
   lord::SceneNode* scene_node_;
+  const azer::FrameArgs* args_;
   DISALLOW_COPY_AND_ASSIGN(EffectedEnvNodeDelegate);
 };
  

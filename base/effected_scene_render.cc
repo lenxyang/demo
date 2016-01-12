@@ -62,11 +62,16 @@ void LampNodeRenderDelegate::Render(Renderer* orgrenderer) {
 }
 
 // class EffectedEnvNodeDelegate
-EffectedEnvNodeDelegate::EffectedEnvNodeDelegate(RenderEnvNode* envnode)
-    : RenderEnvNodeDelegate(envnode) {
+EffectedEnvNodeDelegate::EffectedEnvNodeDelegate(RenderEnvNode* envnode,
+                                                 EffectedSceneRender* render)
+    : RenderEnvNodeDelegate(envnode),
+      scene_render_(render),
+      args_(NULL) {
+  render->AddObserver(this);
 }
 
 EffectedEnvNodeDelegate::~EffectedEnvNodeDelegate() {
+  scene_render_->RemoveObserver(this);
   for (auto iter = light_data_.begin(); iter != light_data_.end(); ++iter) {
     delete iter->scene_renderer;
   }
@@ -132,6 +137,7 @@ void EffectedEnvNodeDelegate::Init(SceneNode* scene_node, RenderNode* node) {
 void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data) {
   if (data && data->renderer.get()) {
     Renderer* renderer = data->renderer;
+    renderer->Reset();
     renderer->Use();
     renderer->ClearDepthAndStencil();
     renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -139,15 +145,22 @@ void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data) {
   }
 }
 
-void EffectedEnvNodeDelegate::OnUpdateNode(const azer::FrameArgs& args) {
+void EffectedEnvNodeDelegate::OnUpdateNode(const FrameArgs& args) {
+  args_ = &args;
+}
+
+void EffectedEnvNodeDelegate::OnFrameRenderBegin(
+    SceneRender* sr, Renderer* renderer) {
   for (uint32 i = 0; i < light_data_.size(); ++i) {
     LightData& data = light_data_[i];
     if (data.light->enable() && data.scene_renderer) {
-      data.scene_renderer->Update(args);
+      data.scene_renderer->Update(*args_);
       InitShadowMapCamera(data.light, &data.camera);
       RenderDepthMap(&data);
     }
   }
+
+  renderer->Use();
 }
 
 int32 EffectedEnvNodeDelegate::light_count() const {
@@ -198,7 +211,7 @@ class TreeBuildDelegate : public RenderTreeBuilderDelegate {
   scoped_ptr<lord::RenderNodeDelegate> CreateRenderDelegate(
       lord::RenderNode* node) override;
   RenderEnvNodeDelegatePtr CreateEnvDelegate(RenderEnvNode* n) override {
-    return RenderEnvNodeDelegatePtr(new EffectedEnvNodeDelegate(n));
+    return RenderEnvNodeDelegatePtr(new EffectedEnvNodeDelegate(n, tree_renderer_));
   }
  private:
   EffectedSceneRender* tree_renderer_;
