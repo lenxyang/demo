@@ -1,0 +1,16 @@
+
+
+group("geometry") {
+  deps = [
+    ":triangle",
+  ]
+}
+
+executable("triangle") {
+  sources = [ "triangle.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
