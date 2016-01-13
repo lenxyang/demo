@@ -2,6 +2,7 @@
 
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
+#include "demo/base/effect_dict.h"
 #include "demo/base/material.h"
 #include "demo/base/textured_effect.h"
 
@@ -13,16 +14,13 @@ using lord::SceneNode;
 using namespace azer;
 using namespace lord;
 
-class MyRenderWindow : public lord::FrameWindow {
+class MyRenderWindow : public lord::RenderWindow {
  public:
-  MyRenderWindow(const gfx::Rect& rect) : lord::FrameWindow(rect) {}
-  SceneNodePtr InitScene() override;
+  MyRenderWindow(const gfx::Rect& rect) : lord::RenderWindow(rect) {}
+  void OnInit() override;
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  RenderNodePtr render_root_;
-  RenderNodePtr bvolumn_root_;
-  scoped_ptr<UISceneRender> tree_render_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -42,13 +40,11 @@ int main(int argc, char* argv[]) {
   window->Init();
   window->Show();
 
-  lord::ObjectControlToolbar* toolbar =
-      new lord::ObjectControlToolbar(window, window->GetInteractive());
   window->GetRenderLoop()->Run();
   return 0;
 }
 
-SceneNodePtr MyRenderWindow::InitScene() {
+void MyRenderWindow::OnInit() {
   LordEnv* env = LordEnv::instance();
   scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
       FilePath(UTF8ToUTF16("demo/"))));
@@ -56,21 +52,10 @@ SceneNodePtr MyRenderWindow::InitScene() {
 
   ResourceLoader* resloader = env->resource_loader();
   InitDefaultLoader(resloader);
-  ResPath respath(UTF8ToUTF16("//multislot/scene.xml"));
-  VariantResource res = resloader->Load(respath);
-  SceneNodePtr root = res.scene;
-  CHECK(root.get()) << "Failed to init scene";
-
-  tree_render_.reset(new UISceneRender);
-  tree_render_->Init(root, &camera());
-  
-  return root;
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
-  tree_render_->Update(args);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  tree_render_->Render(renderer);
 }

@@ -4,6 +4,7 @@ group("demo") {
     "multislot",
     "compute_shader",
     "parallax_occlusion_mapping",
+    "tessellation",
     "shadow",
     "depth",
     "base",
