@@ -76,6 +76,7 @@ class EffectedEnvNodeDelegate : public lord::RenderEnvNodeDelegate,
   std::vector<LightData> light_data_;
   std::vector<LightData> parent_light_data_;
   lord::SceneNode* scene_node_;
+  azer::DepthStencilStatePtr depth_state_;
   const azer::FrameArgs* args_;
   azer::OverlayPtr overlay_;
   DISALLOW_COPY_AND_ASSIGN(EffectedEnvNodeDelegate);
