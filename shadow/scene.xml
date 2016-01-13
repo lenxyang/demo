@@ -13,7 +13,7 @@
 	</node>
       </node>
       <node name="sphere1">
-	<location><position>-5.0f, 3.0f, 0.0f</position></location>
+	<location><position>-7.0f, 3.0f, 0.0f</position></location>
 	<refer type="mesh" path=":sphere"/>
       </node>
 
@@ -23,7 +23,7 @@
       </node>
 
       <node name="sphere3">
-	<location><position>5.0f, 3.0f, 0.0f</position></location>
+	<location><position>7.0f, 3.0f, 0.0f</position></location>
 	<refer type="mesh" path=":sphere"/>
       </node>
 

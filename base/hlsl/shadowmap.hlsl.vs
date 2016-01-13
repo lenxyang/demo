@@ -18,7 +18,7 @@ struct VSInput {
 cbuffer c_buffer {
    float4x4 pvw;
    float4x4 world;
-   float4x4 lightpvw;
+   float4x4 lightpv;
    float4   camerapos;
 };
 
@@ -26,7 +26,7 @@ VsOutput vs_main(VSInput input) {
   VsOutput o;
   o.position = mul(pvw, input.position);
   o.worldpos = mul(world, input.position).xyz;
-  o.projtex  = mul(lightpvw, input.position);
+  o.projtex  = mul(lightpv, float4(o.worldpos, 1.0));
   o.normal = normalize(mul(world, input.normal)).xyz;
   o.viewin = normalize(camerapos - o.worldpos);
   o.texcoord = input.texcoord;

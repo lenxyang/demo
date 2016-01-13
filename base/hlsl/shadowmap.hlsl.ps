@@ -30,38 +30,21 @@ SamplerState smsampler {
 };
 
 float4 ps_main(VsOutput o):SV_TARGET {
-  o.projtex.xyz = o.projtex.xyz / o.projtex.w;;
+  o.projtex = o.projtex / o.projtex.w;
   o.projtex.x = ( o.projtex.x * 0.5f + 0.5f);
   o.projtex.y = (-o.projtex.y * 0.5f + 0.5f);
   float depth = shadowmap.Sample(smsampler, o.projtex.xy).r;
-
-  if (saturate(o.projtex.x) == o.projtex.x && 	
+  float spot_factor = 1.0f;
+  if (saturate(o.projtex.x) == o.projtex.x && 
       saturate(o.projtex.y) == o.projtex.y) {
-    float light_depth = o.projtex.z - 0.0001f;
-    if (light_depth <= depth) {
-      return float4(0.0, 1.0f, 0.0, 1.0);
-    } else {
-      return float4(1.0, 0.0, 0.0, 1.0);
-    }
-  } else {
-    return float4(0.0, 0.0, 0.0, 0.0);
-  }
-
-  if (clamp(o.projtex.x, 0.0f, 1.0f) == o.projtex.x && 
-      saturate(o.projtex.y) == o.projtex.y) {
-      float light_depth = o.projtex.z + 0.0001f;
-      if (light_depth < depth) {
-        return float4(1.0, 0.0, 0.0, 1.0);
-      } else {
-        return float4(0.0, 1.0, 0.0, 1.0);
+      float light_depth = o.projtex.z - 0.001;
+      if (depth < light_depth) {
+          spot_factor = 0.0f;
       }
-  } else {
-      return float4(0.0f, 0.0f, 1.0f, 1.0f);
   }
   
   
   float4 color = texmap.Sample(texsampler, o.texcoord);
-
   float3 normal = o.normal;
   Matrial mtrl;
   mtrl.ambient  = (ambient_scalar) * color;
@@ -76,7 +59,5 @@ float4 ps_main(VsOutput o):SV_TARGET {
                                            normal, o.viewin, mtrl);
   float3 spot_color = CalcSpotLightColor(spotlight, o.worldpos,
                                          normal, o.viewin, mtrl);
-  float spot_factor = (depth < o.projtex.z) ? 1.0 : 0.0f; 
-  return float4(spot_factor, spot_factor, spot_factor, 1.0);
   return float4(spot_color * spot_factor + dir_color + point_color, mtrl.alpha);
 }

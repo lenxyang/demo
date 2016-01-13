@@ -48,7 +48,7 @@ void ShadowMapEffect::InitGpuConstantTable() {
     GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
                             offsetof(vs_cbuffer, world), 1),
     GpuConstantsTable::Desc("spotlight_pvw", GpuConstantsType::kMatrix4,
-                            offsetof(vs_cbuffer, spotlight_pvw), 1),
+                            offsetof(vs_cbuffer, spotlight_pv), 1),
     GpuConstantsTable::Desc("camerapos", GpuConstantsType::kVector4,
                             offsetof(vs_cbuffer, camerapos), 1),
   };
@@ -170,7 +170,7 @@ void EffectedEnvNodeDelegateShadowMapEffectAdapter::Apply(
     } else if (light->type() == kSpotLight) {
       effect->SetSpotLight(light->spot_light());
       effect->SetSpotLightShadowMap(provider->GetLightShadowmap(index));
-      effect->SetSpotLightPVW(data->camera.GetProjViewMatrix());
+      effect->SetSpotLightPV(data->camera.GetProjViewMatrix());
     }
   }
 }
