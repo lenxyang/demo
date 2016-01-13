@@ -68,8 +68,6 @@ EffectedEnvNodeDelegate::EffectedEnvNodeDelegate(RenderEnvNode* envnode,
       scene_render_(render),
       args_(NULL) {
   render->AddObserver(this);
-  render_state_ = RenderSystem::Current()->CreateRenderState();
-  render_state_->EnableDepthTest(true);
   overlay_ = RenderSystem::Current()->CreateOverlay();
   overlay_->SetBounds(gfx::RectF(0.5f, 0.5, 0.5f, 0.5f));
 }
@@ -141,14 +139,15 @@ void EffectedEnvNodeDelegate::Init(SceneNode* scene_node, RenderNode* node) {
 void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data, Renderer* r) {
   if (data && data->renderer.get()) {
     Renderer* renderer = data->renderer;
-    RenderState* prev = renderer->GetRenderState();
+    RasterizerState* prev_rasterizer_state = renderer->GetRasterizerState();
+    DepthStencilState* prev_depth_state = renderer->GetDepthStencilState();
     renderer->Reset();
-    renderer->SetRenderState(render_state_);
     renderer->Use();
     renderer->ClearDepthAndStencil();
     renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     data->scene_renderer->Render(renderer);
-    renderer->SetRenderState(prev);
+    renderer->SetRasterizerState(prev_rasterizer_state);
+    renderer->SetDepthStencilState(prev_depth_state);
     r->Use();
     overlay_->SetTexture(renderer->GetRenderTarget(0)->GetTexture());
     overlay_->Render(r);
