@@ -3,11 +3,20 @@
 group("geometry") {
   deps = [
     ":triangle",
+    ":objects",
   ]
 }
 
 executable("triangle") {
   sources = [ "triangle.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("objects") {
+  sources = [ "objects.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",

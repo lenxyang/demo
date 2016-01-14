@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xml>
+  <node name="scene">
+    <node name="node">
+      <node name="env" type="environment">
+	<node name="dir">
+	  <location><position>8.0f, 8.0f, 0.0f</position></location>
+	  <refer type="light" path=":dir" />
+	</node>
+        <node name="spot">
+	  <location><position>0.0f, 8.0f, 0.0f</position></location>
+	  <refer type="light" path=":spot" />
+	</node>
+      </node>
+      <node name="sphere1">
+	<location><position>-7.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="sphere2">
+	<location><position>0.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="sphere3">
+	<location><position>7.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="plane" cast_shadow="true">
+	<location><position>0.0f, 0.0f, 0.0f</position></location>
+	<refer type="mesh" path=":plane"/>
+      </node>
+    </node>
+  </node>
+
+  <light name="spot" type="spot_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>0.0, -1.0, -0.2</directional>
+    <inner_angle>30</inner_angle>
+    <outer_angle>40</outer_angle>
+    <falloff>0.5</falloff>
+    <range>30</range>
+  </light>
+
+  <light name="dir" type="directional_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.5, 0.5, 0.4, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>0.0, -1.0, 0.0</directional>
+  </light>
+
+  <geometry name="sphere">
+    <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:shadowmap_effect"/>
+    <refer type="material" path=":mtrl"/>
+  </geometry>
+
+  <material name="mtrl" provider_name="TexMaterial">
+    <ambient>0.01</ambient>
+    <specular>0.8</specular>
+    <emission>0.0, 0.0, 0.0, 0.0</emission>
+    <diffusemap>//data/media/earth.dds</diffusemap>
+    <alpha>1.0</alpha>
+  </material>
+
+</xml>
