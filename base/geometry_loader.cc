@@ -42,11 +42,13 @@ VariantResource GeometryLoader::Load(const ConfigNode* node,
   std::string geometry_type  = node->GetAttr("geotype");
   if (geometry_type == "sphere") {
     part = CreateSphere(node, vertex_desc.get(), ctx);
-    part->SetEffect(effect);
+  } else if (geometry_type == "box") {
+    part = CreateBox(node, vertex_desc.get(), ctx);
   } else {
     CHECK(false);
   }
-
+  CHECK(part.get());
+  part->SetEffect(effect);
   VariantResource resource;
   resource.type = kResTypeMesh;
   resource.mesh = new Mesh;
@@ -59,24 +61,68 @@ VariantResource GeometryLoader::Load(const ConfigNode* node,
 
 MeshPartPtr GeometryLoader::CreateSphere(const ConfigNode* node, VertexDesc* desc,
                                          ResourceLoadContext* ctx) {
-  float radius = 1.0f;
-  int32 stack = 24, slice = 24;
+  GeoSphereParams params;
+  params.radius = 1.0f;
+  params.stack = 24;
+  params.slice = 24;
   if (node->HasAttr("radius")) {
-    CHECK(node->GetAttrAsFloat("radius", &radius));
+    CHECK(node->GetAttrAsFloat("radius", &params.radius));
   }
   if (node->HasAttr("stack")) {
-    CHECK(node->GetAttrAsInt("stack", &stack));
+    CHECK(node->GetAttrAsInt("stack", &params.stack));
   }
   if (node->HasAttr("slice")) {
-    CHECK(node->GetAttrAsInt("slice", &slice));
+    CHECK(node->GetAttrAsInt("slice", &params.slice));
   }
-  MeshPartPtr ptr = CreateSphereMeshPart(desc, radius, stack, slice);
+  MeshPartPtr ptr = CreateSphereMeshPart(desc, params);
   return ptr;
+}
+
+MeshPartPtr GeometryLoader::CreateBox(const ConfigNode* node,
+                                      VertexDesc* desc, ResourceLoadContext* ctx) {
+  MeshPartPtr ptr = CreateBoxMeshPart(desc);
+  return ptr;
+}
+
+MeshPartPtr GeometryLoader::CreateCone(const ConfigNode* node,
+                                       VertexDesc* desc, ResourceLoadContext* ctx) {
+  return MeshPartPtr();
+}
+
+MeshPartPtr GeometryLoader::CreateCircle(const ConfigNode* node,
+                                         VertexDesc* desc, 
+                                         ResourceLoadContext* ctx) {
+  return MeshPartPtr();
+}
+
+MeshPartPtr GeometryLoader::CreateRound(const ConfigNode* node,
+                                        VertexDesc* desc, 
+                                        ResourceLoadContext* ctx) {
+  return MeshPartPtr();
+}
+
+MeshPartPtr GeometryLoader::CreateCylinder(const ConfigNode* node,
+                                           VertexDesc* desc, 
+                                           ResourceLoadContext* ctx) {
+  return MeshPartPtr();
+}
+
+MeshPartPtr GeometryLoader::CreateBarrel(const ConfigNode* node,
+                                         VertexDesc* desc, 
+                                         ResourceLoadContext* ctx) {
+  return MeshPartPtr();
+}
+
+MeshPartPtr GeometryLoader::CreateTour(const ConfigNode* node,
+                                       VertexDesc* desc, 
+                                       ResourceLoadContext* ctx) {
+  return MeshPartPtr();
 }
 
 bool GeometryLoader::CouldLoad(ConfigNode* node) const {
   return node->tagname() == "geometry";
 }
+
 
 }  // namespace lord
 

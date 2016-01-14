@@ -62,36 +62,6 @@ bool GenerateStripIndex(int32 line1, int32 line2, int32 vertex_num, bool closed,
   return true;
 }
 
-void GenerateConeHat(bool up, float top, float bottom, float radius, int32 slice, 
-                     VertexPack* vpack, IndexPack* ipack) {
-  const int begin = vpack->index();
-  float slice_degree = 360.0f / slice;
-  vpack->WriteVector4(Vector4(0.0f, top, 0.0f, 1.0f), VertexPos(0, 0));
-  vpack->next(1);
-  for (int32 i = 0; i < slice; ++i) {
-    float degree = 360.0f - slice_degree *  i;
-    float x = azer::cos(Degree(degree)) * radius;
-    float z = azer::sin(Degree(degree)) * radius;
-
-    vpack->WriteVector4(Vector4(x, bottom, z, 1.0f), VertexPos(0, 0));
-    vpack->next(1);
-  }
-  
-  const int end = vpack->index();
-  for (int i = 0; i < slice; ++i) {
-    int index1 = i + begin + 1;
-    int index2 = (i + 1) % slice + begin + 1;
-    CHECK(ipack->WriteAndAdvance(begin));
-    if (up) {
-      CHECK(ipack->WriteAndAdvance(index1));
-      CHECK(ipack->WriteAndAdvance(index2));
-    } else {
-      CHECK(ipack->WriteAndAdvance(index2));
-      CHECK(ipack->WriteAndAdvance(index1));
-    }
-  }
-}
-
 void GenerateBarrel(float top_radius, float bottom_radius, float height, 
                     int32 stack, int32 slice, VertexPack* vpack, IndexPack* ipack) {
   VertexPos tpos;
@@ -337,16 +307,15 @@ void CalcTriangleListNormal(SlotVertexData* vbd, int* indices) {
 
 
 // class Sphere objects
-MeshPartPtr CreateSphereMeshPart(VertexDesc* desc, float radius, int32 stack,
-                                 int32 slice) {
-  return CreateSphereMeshPart(desc, Matrix4::kIdentity, radius, stack, slice);
+MeshPartPtr CreateSphereMeshPart(VertexDesc* desc, const GeoSphereParams& params) {
+  return CreateSphereMeshPart(desc, Matrix4::kIdentity, params);
 }
 
-MeshPartPtr CreateSphereMeshPart(VertexDesc* desc, const Matrix4& vertex_transform, 
-                             float radius, int32 stack, int32 slice) {
-  SlotVertexDataPtr vdata(InitSphereVertexData(desc, vertex_transform, radius,
-                                               stack, slice));
-  IndicesDataPtr idata = InitSphereIndicesData(stack, slice);
+MeshPartPtr CreateSphereMeshPart(VertexDesc* desc, const Matrix4& transform, 
+                                 const GeoSphereParams& params) {
+  SlotVertexDataPtr vdata(InitSphereVertexData(desc, transform, params.radius,
+                                               params.stack, params.slice));
+  IndicesDataPtr idata = InitSphereIndicesData(params.stack, params.slice);
 
   VertexPos npos;
   if (GetSemanticIndex("normal", 0, desc, &npos)) {
@@ -357,27 +326,28 @@ MeshPartPtr CreateSphereMeshPart(VertexDesc* desc, const Matrix4& vertex_transfo
   VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
   IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
   EntityPtr entity(new Entity(desc, vb, ib));
-  Vector4 vmin = vertex_transform * Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
-  Vector4 vmax = vertex_transform * Vector4( 0.5f,  0.5f,  0.5f, 1.0f);
+  Vector4 vmin = transform * Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
+  Vector4 vmax = transform * Vector4( 0.5f,  0.5f,  0.5f, 1.0f);
   entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
   entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kTriangleList);
   MeshPartPtr part(new MeshPart(NULL));
   part->AddEntity(entity);
   return part;
 }
 
-MeshPartPtr CreateSphereFrameMeshPart(VertexDesc* desc, float radius, 
-                                  int32 stack, int32 slice) {
-  return CreateSphereFrameMeshPart(desc, Matrix4::kIdentity, radius, stack, slice);
+MeshPartPtr CreateSphereFrameMeshPart(VertexDesc* desc, 
+                                      const GeoSphereParams& params) {
+  return CreateSphereFrameMeshPart(desc, Matrix4::kIdentity, params);
 }
 
-MeshPartPtr CreateSphereFrameMeshPart(VertexDesc* desc, 
-                                  const Matrix4& vertex_transform, 
-                                  float radius, int32 stack, int32 slice) {
-  SlotVertexDataPtr vdata(InitSphereVertexData(desc, vertex_transform, radius,
-                                               stack, slice));
-  IndicesDataPtr idata = InitSphereIndicesData(stack, slice);
-  IndicesDataPtr edge_idata = InitSphereWireFrameIndicesData(stack, slice);
+MeshPartPtr CreateSphereFrameMeshPart(VertexDesc* desc, const Matrix4& transform, 
+                                      const GeoSphereParams& params) {
+  SlotVertexDataPtr vdata(InitSphereVertexData(desc, transform, params.radius,
+                                               params.stack, params.slice));
+  IndicesDataPtr idata = InitSphereIndicesData(params.stack, params.slice);
+  IndicesDataPtr edge_idata = InitSphereWireFrameIndicesData(
+      params.stack, params.slice);
   VertexPos npos;
   if (GetSemanticIndex("normal", 0, desc, &npos)) {
     CalcIndexedTriangleNormal(vdata.get(), idata.get());
@@ -387,12 +357,428 @@ MeshPartPtr CreateSphereFrameMeshPart(VertexDesc* desc,
   VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
   IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), edge_idata);
   EntityPtr entity(new Entity(desc, vb, ib));
-  Vector4 vmin = vertex_transform * Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
-  Vector4 vmax = vertex_transform * Vector4( 0.5f,  0.5f,  0.5f, 1.0f);
+  Vector4 vmin = transform * Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
+  Vector4 vmax = transform * Vector4( 0.5f,  0.5f,  0.5f, 1.0f);
+  entity->set_topology(kLineList);
   entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
   entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
   MeshPartPtr part(new MeshPart(NULL));
   part->AddEntity(entity);
+  return part;
+}
+
+// Generate Box Geometry 
+namespace {
+SlotVertexDataPtr CreateBoxVertexData(VertexDesc* desc) {
+  const Vector4 position[] = {
+    Vector4(-0.5f,  0.5f,  0.5f, 1.0f),
+    Vector4( 0.5f,  0.5f,  0.5f, 1.0f),
+    Vector4( 0.5f, -0.5f,  0.5f, 1.0f),
+    Vector4(-0.5f, -0.5f,  0.5f, 1.0f),
+    Vector4(-0.5f,  0.5f, -0.5f, 1.0f),
+    Vector4( 0.5f,  0.5f, -0.5f, 1.0f),
+    Vector4( 0.5f, -0.5f, -0.5f, 1.0f),
+    Vector4(-0.5f, -0.5f, -0.5f, 1.0f),
+  };
+
+  const Vector2 texcoord0[] = {
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+    Vector2(0.0f, 1.0f),
+    Vector2(0.0f, 0.0f),
+    Vector2(1.0f, 0.0f),
+    Vector2(1.0f, 1.0f),
+  };
+
+  Vector4 normal[] = {
+    Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+    Vector4(1.0f, 0.0f, 0.0f, 0.0f),
+    Vector4(0.0f, 0.0f, -1.0f, 0.0f),
+    Vector4(-1.0f, 0.0f, 0.0f, 0.0f),
+    Vector4(0.0f,  1.0f, 0.0f, 0.0f),
+    Vector4(0.0f,  -1.0f, 0.0f, 0.0f),
+  };
+
+  int indices[] = {0, 2, 1, 0, 3, 2,  // front
+                   1, 6, 5, 1, 2, 6,  // right
+                   5, 7, 4, 5, 6, 7,  // back
+                   4, 3, 0, 4, 7, 3,  // left
+                   4, 1, 5, 4, 0, 1,  // top
+                   3, 6, 2, 3, 7, 6}; // bottom
+  VertexPos normal_pos, tex0_pos;
+  bool kHasNormal0Idx = GetSemanticIndex("normal", 0, desc, &normal_pos);
+  bool kHasTexcoord0Idx = GetSemanticIndex("texcoord", 0, desc, &tex0_pos);
+  SlotVertexDataPtr vdata(new SlotVertexData(desc, arraysize(indices)));
+  VertexPack vpack(vdata.get());
+  vpack.first();
+  for (int i = 0; i < static_cast<int>(arraysize(indices)); ++i) {
+    int index = indices[i];
+    DCHECK(!vpack.end());
+    vpack.WriteVector4(position[index], VertexPos(0, 0));
+    vpack.WriteVector2(texcoord0[index], tex0_pos);
+    vpack.next(1);
+  }
+  DCHECK(vpack.end());
+
+  if (kHasNormal0Idx) {
+    vpack.first(); 
+    for (int i = 0; i < static_cast<int>(arraysize(indices)); i += 6) {
+      int index = i / arraysize(normal);
+      for (int j = 0; j < 6; ++j) { 
+        vpack.WriteVector4(normal[index], normal_pos);
+        vpack.next(1);
+      }
+    }
+  }
+
+  return vdata;
+}
+
+IndicesDataPtr CreateBoxFrameIndicesData() {
+  int32 edge_indices[] = {0, 2, 2, 1, 1, 4, 4, 0,
+                          0, 14, 2, 8, 1, 7, 4, 13,
+                          14, 8, 8, 7, 7, 13, 13, 14};
+  IndicesDataPtr idata(new IndicesData(arraysize(edge_indices)));
+  IndexPack ipack(idata.get());
+  for (uint32 i = 0; i < arraysize(edge_indices); ++i) {
+    CHECK(ipack.WriteAndAdvance(edge_indices[i]));
+  }
+  return idata;
+}
+}
+
+MeshPartPtr CreateBoxMeshPart(VertexDesc* desc) {
+  return CreateBoxMeshPart(desc, Matrix4::kIdentity);
+}
+
+MeshPartPtr CreateBoxMeshPart(VertexDesc* desc, const Matrix4& transform) {
+  RenderSystem* rs = RenderSystem::Current();
+  SlotVertexDataPtr vdata = CreateBoxVertexData(desc);;
+  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
+  EntityPtr entity(new Entity(desc, vb));
+  Vector4 vmin = transform * Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
+  Vector4 vmax = transform * Vector4( 0.5f,  0.5f,  0.5f, 1.0f);
+  entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
+  entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kTriangleList);
+  MeshPartPtr part(new MeshPart(NULL));
+  part->AddEntity(entity);
+  return part;  
+}
+
+MeshPartPtr CreateBoxFrameMeshPart(VertexDesc* desc) {
+  return CreateBoxFrameMeshPart(desc, Matrix4::kIdentity);
+}
+
+MeshPartPtr CreateBoxFrameMeshPart(VertexDesc* desc, const Matrix4& transform) {
+  RenderSystem* rs = RenderSystem::Current();
+  SlotVertexDataPtr vdata = CreateBoxVertexData(desc);;
+  IndicesDataPtr idata = CreateBoxFrameIndicesData();
+  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
+  IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
+  EntityPtr entity(new Entity(desc, vb, ib));
+  Vector4 vmin = transform * Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
+  Vector4 vmax = transform * Vector4( 0.5f,  0.5f,  0.5f, 1.0f);
+  entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
+  entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kLineList);
+  MeshPartPtr part(new MeshPart(NULL));
+  part->AddEntity(entity);
+  return part;  
+}
+
+// Plane 
+namespace {
+SlotVertexDataPtr CreatePlaneVertexData(VertexDesc* desc, const Matrix4& matrix,
+                                        const GeoPlaneParams& params) {
+  VertexPos npos, tpos;
+  const bool kHasNormalIndex = GetSemanticIndex("normal", 0, desc, &npos);
+  const bool kHasTexcoordIndex = GetSemanticIndex("texcoord", 0, desc, &tpos);
+
+  float row_width = 2.0f / (params.row - 1);
+  float column_width = 2.0f / (params.column - 1);
+  SlotVertexDataPtr vdata(new SlotVertexData(desc, params.row * params.column));
+  VertexPack vpack(vdata.get());
+  vpack.first();
+  for (int i = 0; i < params.row; ++i) {
+    for (int j = 0; j < params.column; ++j) {
+      float x = -1.0 + j * params.column_width;
+      float y = 1.0 - i * params.row_width;
+      vpack.WriteVector4(matrix * Vector4(x, y, 0.0f, 1.0f), VertexPos(0, 0));
+      vpack.WriteVector4(matrix * Vector4(0.0f, 0.0f, 1.0f, 0.0f), npos);
+
+      float tu = (x + 1.0) * 0.5;
+      float tv = (1.0 - y) * 0.5;
+      vpack.WriteVector2(Vector2(tu, tv), tpos);
+      vpack.next(1);
+    }
+  }
+  return vdata;
+}
+
+IndicesDataPtr CreatePlaneIndicesData(const GeoPlaneParams& params) {
+  const int32 kIndexNum = (params.row - 1) * (params.column - 1) * 2 * 3;
+  IndicesDataPtr idata(new IndicesData(kIndexNum));
+  IndexPack ipack(idata.get());
+  for (int i = 0; i < params.row - 1; ++i) {
+    for (int j = 0; j < params.column - 1; ++j) {
+      int cur_line = i * params.column;
+      int next_line = (i + 1) * params.column;
+      CHECK(ipack.WriteAndAdvance(cur_line  + j));
+      CHECK(ipack.WriteAndAdvance(next_line + j));
+      CHECK(ipack.WriteAndAdvance(next_line + j + 1));
+      CHECK(ipack.WriteAndAdvance(cur_line  + j));
+      CHECK(ipack.WriteAndAdvance(next_line + j + 1));
+      CHECK(ipack.WriteAndAdvance(cur_line  + j + 1));
+    }
+  }
+  return idata;
+}
+
+IndicesDataPtr CreatePlaneFrameIndicesData(const GeoPlaneParams& params) {
+  int32 count = params.row * 2 + params.column * 2;
+  IndicesDataPtr idata(new IndicesData(count));
+  IndexPack ipack(idata.get());
+  for (uint32 i = 0; i < params.row; ++i) {
+    int32 index1 = i * params.column;
+    int32 index2 = (i  + 1) * params.column - 1;
+    CHECK(ipack.WriteAndAdvance(index1));
+    CHECK(ipack.WriteAndAdvance(index2));
+  }
+
+  for (uint32 i = 0; i < params.column; ++i) {
+    int32 index1 = i;
+    int32 index2 = (params.row  - 1) * params.column + i;
+    CHECK(ipack.WriteAndAdvance(index1));
+    CHECK(ipack.WriteAndAdvance(index2));
+  }
+  return idata;
+}
+}
+MeshPartPtr CreatePlaneMeshPart(VertexDesc* desc, const GeoPlaneParams& params) {
+  return CreatePlaneMeshPart(desc, Matrix4::kIdentity, params);
+}
+
+MeshPartPtr CreatePlaneMeshPart(VertexDesc* desc, const Matrix4& transform, 
+                                const GeoPlaneParams& params) {
+  RenderSystem* rs = RenderSystem::Current();
+  SlotVertexDataPtr vdata = CreatePlaneVertexData(desc, transform, params);;
+  IndicesDataPtr idata = CreatePlaneIndicesData(params);
+  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
+  IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
+  EntityPtr entity(new Entity(desc, vb, ib));
+  Vector4 vmin = transform * Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
+  Vector4 vmax = transform * Vector4( 0.5f,  0.5f,  0.5f, 1.0f);
+  entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
+  entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kTriangleList);
+  MeshPartPtr part(new MeshPart(NULL));
+  part->AddEntity(entity);
+  return part;  
+}
+
+MeshPartPtr CreatePlaneFrameMeshPart(VertexDesc* desc, const GeoPlaneParams& params) {
+  return CreatePlaneFrameMeshPart(desc, Matrix4::kIdentity, params);
+}
+
+MeshPartPtr CreatePlaneFrameMeshPart(VertexDesc* desc, const Matrix4& transform, 
+                                     const GeoPlaneParams& params) {
+  RenderSystem* rs = RenderSystem::Current();
+  SlotVertexDataPtr vdata = CreatePlaneVertexData(desc, transform, params);;
+  IndicesDataPtr idata = CreatePlaneFrameIndicesData(params);
+  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
+  IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
+  EntityPtr entity(new Entity(desc, vb, ib));
+  Vector4 vmin = transform * Vector4(-0.5f, -0.5f, -0.5f, 1.0f);
+  Vector4 vmax = transform * Vector4( 0.5f,  0.5f,  0.5f, 1.0f);
+  entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
+  entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kLineList);
+  MeshPartPtr part(new MeshPart(NULL));
+  part->AddEntity(entity);
+  return part;  
+}
+
+// class round
+namespace {
+SlotVertexDataPtr CreateRoundVertexData(VertexDesc* desc, const Matrix4& transform,
+                                        float radius, float slice) {
+  VertexPos npos;
+  GetSemanticIndex("normal", 0, desc, &npos);
+  const int32 kVertexNum = 1 + slice + 1;
+  float degree = 360.0f / (float)slice;
+  SlotVertexDataPtr vdata(new SlotVertexData(desc, kVertexNum));
+  VertexPack vpack(vdata);
+  vpack.first();
+  vpack.WriteVector4(transform * Vector4(0, 0, 0, 1.0f), VertexPos(0, 0));
+  vpack.next(1);
+  for (int i = 1; i < kVertexNum; ++i) {
+    float x = cos(Degree(i * degree)) * radius;
+    float z = sin(Degree(i * degree)) * radius;
+    vpack.WriteVector4(transform * Vector4(x, 0, z, 1.0f), VertexPos(0, 0));
+    vpack.WriteVector4(transform * Vector4(0.0f, 1.0f, 0.0f, 0.0f), npos);
+    vpack.next(1);
+  }
+  CHECK(vpack.end());
+  return vdata;
+}
+
+IndicesDataPtr CreateRoundInidcesData(int32 slice) {
+  IndicesDataPtr idata(new IndicesData(slice * 3));  
+  IndexPack ipack(idata.get());
+  for (int i = 0; i < slice; ++i) {
+    int index1 = i + 1;
+    int index2 = 1 + (i + 1) % slice + 1;
+    CHECK(ipack.WriteAndAdvance(0));
+    CHECK(ipack.WriteAndAdvance(index1));
+    CHECK(ipack.WriteAndAdvance(index2));
+  }
+  return idata;
+}
+
+IndicesDataPtr CreateRoundFrameInidcesData(int32 slice) {
+  const int kIndexNum = slice * 2;
+  IndicesDataPtr idata(new IndicesData(kIndexNum));  
+  IndexPack ipack(idata.get());
+  for (int i = 0; i < slice; ++i) {
+    CHECK(ipack.WriteAndAdvance(i + 1));
+    CHECK(ipack.WriteAndAdvance((i + 1) % slice + 1));
+  }
+  return idata;
+}
+} // namespace
+
+MeshPartPtr CreateRoundMeshPart(VertexDesc* desc, float radius, int slice) {
+  return CreateRoundMeshPart(desc, Matrix4::kIdentity, radius, slice);
+}
+
+MeshPartPtr CreateRoundMeshPart(VertexDesc* desc, const Matrix4& transform, 
+                                float radius, int slice) {
+  SlotVertexDataPtr vdata = CreateRoundVertexData(desc, transform, radius, slice);
+  IndicesDataPtr idata = CreateRoundInidcesData(slice);
+  RenderSystem* rs = RenderSystem::Current();
+  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
+  IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
+  EntityPtr entity(new Entity(desc, vb, ib));
+  Vector4 vmin = transform * Vector4(-radius, -0.01f, -radius, 1.0f);
+  Vector4 vmax = transform * Vector4( radius,  0.01f,  radius, 1.0f);
+  entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
+  entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kTriangleList);
+  MeshPartPtr part(new MeshPart(NULL));
+  part->AddEntity(entity);
+  return part;  
+}
+
+MeshPartPtr CreateRoundFrameMeshPart(VertexDesc* desc, float radius, int slice) {
+  return CreateRoundFrameMeshPart(desc, Matrix4::kIdentity, radius, slice);
+}
+
+MeshPartPtr CreateRoundFrameMeshPart(VertexDesc* desc, const Matrix4& transform, 
+                                     float radius, int slice) {
+  SlotVertexDataPtr vdata = CreateRoundVertexData(desc, transform, radius, slice);
+  IndicesDataPtr idata = CreateRoundFrameInidcesData(slice);
+  RenderSystem* rs = RenderSystem::Current();
+  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
+  IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
+  EntityPtr entity(new Entity(desc, vb, ib));
+  Vector4 vmin = transform * Vector4(-radius, -0.01f, -radius, 1.0f);
+  Vector4 vmax = transform * Vector4( radius,  0.01f,  radius, 1.0f);
+  entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
+  entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kLineList);
+  MeshPartPtr part(new MeshPart(NULL));
+  part->AddEntity(entity);
+  return part;  
+}
+
+// cone
+MeshPartPtr CreateTaperMeshPart(VertexDesc* desc, const GeoConeParams& params) {
+  return CreateTaperMeshPart(desc, Matrix4::kIdentity, params);
+}
+
+MeshPartPtr CreateTaperMeshPart(VertexDesc* desc, const Matrix4& transform,
+                                const GeoConeParams& params) {
+  const int32 kVertexNum = 1 + params.slice + 1;
+  float degree = 360.0f / (float)params.slice;
+  SlotVertexDataPtr vdata(new SlotVertexData(desc, kVertexNum));
+  VertexPack vpack(vdata);
+  vpack.first();
+  vpack.WriteVector4(transform * Vector4(0, params.height, 0, 1.0f), 
+                     VertexPos(0, 0));
+  vpack.next(1);
+  for (int i = 1; i < kVertexNum; ++i) {
+    float x = cos(Degree(i * degree)) * params.radius;
+    float z = sin(Degree(i * degree)) * params.radius;
+    vpack.WriteVector4(transform * Vector4(x, 0, z, 1.0f), VertexPos(0, 0));
+    vpack.next(1);
+  }
+  CHECK(vpack.end());
+
+  IndicesDataPtr idata = CreateRoundInidcesData(params.slice);
+  CalcIndexedTriangleNormal(vdata, idata);
+  RenderSystem* rs = RenderSystem::Current();
+  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
+  IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
+  EntityPtr entity(new Entity(desc, vb, ib));
+  Vector4 vmin = transform * Vector4(-params.radius, -0.01f, -params.radius, 1.0f);
+  Vector4 vmax = transform * Vector4( params.radius,  0.01f,  params.radius, 1.0f);
+  entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
+  entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kLineList);
+  MeshPartPtr part(new MeshPart(NULL));
+  part->AddEntity(entity);
+  return part;  
+}
+
+MeshPartPtr CreateConeMeshPart(VertexDesc* desc, const GeoConeParams& params) {
+  return CreateConeMeshPart(desc, Matrix4::kIdentity, params);
+}
+
+MeshPartPtr CreateConeMeshPart(VertexDesc* desc, const Matrix4& transform,
+                               const GeoConeParams& params) {
+  MeshPartPtr part = CreateTaperMeshPart(desc, transform, params);
+
+  Matrix4 round_transform = std::move(transform * RotateX(Degree(180.0)));
+  MeshPartPtr part2 = CreateRoundMeshPart(desc, round_transform, 
+                                          params.radius, params.slice);
+  CHECK(part2->entity_count() == 1);
+  part->AddEntity(part2->entity_at(0));
   return part;
 }
 }  // namespace azer

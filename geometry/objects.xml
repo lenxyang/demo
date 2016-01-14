@@ -15,7 +15,7 @@
 
       <node name="sphere2">
 	<location><position>0.0f, 3.0f, 0.0f</position></location>
-	<refer type="mesh" path=":sphere"/>
+	<refer type="mesh" path=":box"/>
       </node>
 
       <node name="sphere3">
@@ -33,6 +33,16 @@
   </light>
 
   <geometry name="sphere" geotype="sphere" radius="1.0" stack="24" slice="24">
+    <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:basic_effect"/>
+    <refer type="material" path=":mtrl"/>
+  </geometry>
+  <geometry name="box" geotype="box" radius="1.0" stack="24" slice="24">
+    <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:basic_effect"/>
+    <refer type="material" path=":mtrl"/>
+  </geometry>
+  <geometry name="box" geotype="box" radius="1.0" stack="24" slice="24">
     <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
     <refer type="effect" path="//data/effects.xml:basic_effect"/>
     <refer type="material" path=":mtrl"/>
