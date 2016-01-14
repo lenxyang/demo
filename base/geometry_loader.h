@@ -20,10 +20,10 @@ class GeometryLoader : public ResourceSpecialLoader {
                                  azer::VertexDesc* desc, ResourceLoadContext* ctx);
   azer::MeshPartPtr CreateBox(const azer::ConfigNode* node,
                               azer::VertexDesc* desc, ResourceLoadContext* ctx);
+  azer::MeshPartPtr CreatePlane(const azer::ConfigNode* node,
+                               azer::VertexDesc* desc, ResourceLoadContext* ctx);
   azer::MeshPartPtr CreateCone(const azer::ConfigNode* node,
                                azer::VertexDesc* desc, ResourceLoadContext* ctx);
-  azer::MeshPartPtr CreateCircle(const azer::ConfigNode* node,
-                                 azer::VertexDesc* desc, ResourceLoadContext* ctx);
   azer::MeshPartPtr CreateRound(const azer::ConfigNode* node,
                                 azer::VertexDesc* desc, ResourceLoadContext* ctx);
   azer::MeshPartPtr CreateCylinder(const azer::ConfigNode* node,

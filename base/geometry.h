@@ -68,6 +68,22 @@ MeshPartPtr CreateTaperMeshPart(VertexDesc* desc, const GeoConeParams& params);
 MeshPartPtr CreateTaperMeshPart(VertexDesc* desc, const Matrix4& transform,
                                 const GeoConeParams& params);
 
+struct GeoBarrelParams {
+  float top_radius;
+  float bottom_radius;
+  float height;
+  int32 slice;
+  int32 stack;
+};
+
+MeshPartPtr CreateBarrelMeshPart(VertexDesc* desc, const Matrix4& transform,
+                                 const GeoBarrelParams& params);
+MeshPartPtr CreateBarrelMeshPart(VertexDesc* desc, const GeoBarrelParams& params);
+
+MeshPartPtr CreateCylinderMeshPart(VertexDesc* desc, const Matrix4& transform,
+                                   const GeoBarrelParams& params);
+MeshPartPtr CreateCylinderMeshPart(VertexDesc* desc, const GeoBarrelParams& params);
+
 // util
 void CalcIndexedTriangleNormal(SlotVertexData* vbd, IndicesData* idata);
 void CalcTriangleNormal(SlotVertexData* vbd, int* indices);

@@ -62,50 +62,6 @@ bool GenerateStripIndex(int32 line1, int32 line2, int32 vertex_num, bool closed,
   return true;
 }
 
-void GenerateBarrel(float top_radius, float bottom_radius, float height, 
-                    int32 stack, int32 slice, VertexPack* vpack, IndexPack* ipack) {
-  VertexPos tpos;
-  GetSemanticIndex("texcoord", 0, vpack->desc(), &tpos);
-  float height_unit = height / ((float)stack - 1.0f);
-  float radius_unit = (bottom_radius - top_radius) / (float)stack;
-  float slice_radius = top_radius;
-  float y = height;
-  float tex_u_unit = 1.0f / slice;
-  float tex_v_unit = 1.0f / (stack + 2.0f);
-  const int32 begin = vpack->index();
-  for (int i = 0; i < stack; ++i) {
-    slice_radius += radius_unit;
-    for (int j = 0; j < slice; ++j) {
-      float degree = 360.0f - j * 360.0f / slice;
-      float x = slice_radius * cos(Degree(degree));
-      float z = slice_radius * sin(Degree(degree));
-
-      vpack->WriteVector4(Vector4(x, y, z, 1.0f), VertexPos(0, 0));
-      float u = j * tex_u_unit;
-      float v = (i + 1) * tex_v_unit;
-      vpack->WriteVector2(Vector2(0.0f, 0.0f), tpos); 
-      vpack->next(1);
-    }
-    y -= height_unit;
-  }
-  
-  for (int i = 0; i < stack - 1; ++i) {
-    int32 line1 = begin + i * slice; 
-    int32 line2 = begin + (i + 1) * slice; 
-    for (int j = 0; j < slice; ++j) {
-      int index1 = j % slice;
-      int index2 = (j + 1) % slice;
-      CHECK(ipack->WriteAndAdvance(line1 + index2));
-      CHECK(ipack->WriteAndAdvance(line1 + index1));
-      CHECK(ipack->WriteAndAdvance(line2 + index1));
-      
-      CHECK(ipack->WriteAndAdvance(line1 + index2));
-      CHECK(ipack->WriteAndAdvance(line2 + index1));
-      CHECK(ipack->WriteAndAdvance(line2 + index2));
-    }
-  }
-}
-
 inline int32 CalcSphereIndexNum(int32 stack_num, int32 slice_num) {
   return (stack_num - 2 - 1) * slice_num * 3 * 2 + slice_num * 2 * 3;
 }
@@ -538,12 +494,12 @@ SlotVertexDataPtr CreatePlaneVertexData(VertexDesc* desc, const Matrix4& matrix,
   for (int i = 0; i < params.row; ++i) {
     for (int j = 0; j < params.column; ++j) {
       float x = -1.0 + j * params.column_width;
-      float y = 1.0 - i * params.row_width;
-      vpack.WriteVector4(matrix * Vector4(x, y, 0.0f, 1.0f), VertexPos(0, 0));
-      vpack.WriteVector4(matrix * Vector4(0.0f, 0.0f, 1.0f, 0.0f), npos);
+      float z = -1.0 + i * params.row_width;
+      vpack.WriteVector4(matrix * Vector4(x,    0.0f, z, 1.0f), VertexPos(0, 0));
+      vpack.WriteVector4(matrix * Vector4(0.0f, 1.0f, 0.0f, 0.0f), npos);
 
       float tu = (x + 1.0) * 0.5;
-      float tv = (1.0 - y) * 0.5;
+      float tv = (z + 1.0) * 0.5;
       vpack.WriteVector2(Vector2(tu, tv), tpos);
       vpack.next(1);
     }
@@ -646,6 +602,7 @@ SlotVertexDataPtr CreateRoundVertexData(VertexDesc* desc, const Matrix4& transfo
   VertexPack vpack(vdata);
   vpack.first();
   vpack.WriteVector4(transform * Vector4(0, 0, 0, 1.0f), VertexPos(0, 0));
+  vpack.WriteVector4(transform * Vector4(0.0f, 1.0f, 0.0f, 0.0f), npos);
   vpack.next(1);
   for (int i = 1; i < kVertexNum; ++i) {
     float x = cos(Degree(i * degree)) * radius;
@@ -662,8 +619,8 @@ IndicesDataPtr CreateRoundInidcesData(int32 slice) {
   IndicesDataPtr idata(new IndicesData(slice * 3));  
   IndexPack ipack(idata.get());
   for (int i = 0; i < slice; ++i) {
-    int index1 = i + 1;
-    int index2 = 1 + (i + 1) % slice + 1;
+    int index1 = 1 + (i + 1) % slice;
+    int index2 = 1 + i;
     CHECK(ipack.WriteAndAdvance(0));
     CHECK(ipack.WriteAndAdvance(index1));
     CHECK(ipack.WriteAndAdvance(index2));
@@ -760,7 +717,7 @@ MeshPartPtr CreateTaperMeshPart(VertexDesc* desc, const Matrix4& transform,
   Vector4 vmax = transform * Vector4( params.radius,  0.01f,  params.radius, 1.0f);
   entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
   entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
-  entity->set_topology(kLineList);
+  entity->set_topology(kTriangleList);
   MeshPartPtr part(new MeshPart(NULL));
   part->AddEntity(entity);
   return part;  
@@ -779,6 +736,112 @@ MeshPartPtr CreateConeMeshPart(VertexDesc* desc, const Matrix4& transform,
                                           params.radius, params.slice);
   CHECK(part2->entity_count() == 1);
   part->AddEntity(part2->entity_at(0));
+  return part;
+}
+
+namespace {
+int32 CalcCylinderIndexNum(int32 stack_num, int32 slice_num) {
+  return (stack_num - 1) * slice_num * 3 * 2;
+}
+
+int32 CalcCylinderVertexNum(int32 stack_num, int32 slice_num) {
+  return stack_num * slice_num;
+}
+}
+
+MeshPartPtr CreateBarrelMeshPart(VertexDesc* desc, const GeoBarrelParams& params) {
+  return CreateBarrelMeshPart(desc, Matrix4::kIdentity, params);
+}
+
+MeshPartPtr CreateBarrelMeshPart(VertexDesc* desc, const Matrix4& matrix, 
+                                 const GeoBarrelParams& params) {
+  const int kVertexNum = CalcCylinderVertexNum(params.stack, params.slice);
+  const int kIndexNum = CalcCylinderIndexNum(params.stack, params.slice);
+  SlotVertexDataPtr vdata(new SlotVertexData(desc, kVertexNum));
+  IndicesDataPtr idata(new IndicesData(kIndexNum));  
+  VertexPack vpack(vdata.get());
+  VertexPos tpos;
+  GetSemanticIndex("texcoord", 0, desc, &tpos);
+  float height_unit = params.height / ((float)params.stack - 1.0f);
+  float radius_unit = (params.bottom_radius - params.top_radius)
+      / (float)params.stack;
+  float slice_radius = params.top_radius;
+  float y = params.height;
+  float tex_u_unit = 1.0f / params.slice;
+  float tex_v_unit = 1.0f / (params.stack + 2.0f);
+  vpack.first();
+  for (int i = 0; i < params.stack; ++i) {
+    for (int j = 0; j < params.slice; ++j) {
+      float degree = 360.0f - j * 360.0f / params.slice;
+      float x = slice_radius * cos(Degree(degree));
+      float z = slice_radius * sin(Degree(degree));
+
+      vpack.WriteVector4(matrix * Vector4(x, y, z, 1.0f), VertexPos(0, 0));
+      float u = j * tex_u_unit;
+      float v = (i + 1) * tex_v_unit;
+      vpack.WriteVector2(Vector2(0.0f, 0.0f), tpos); 
+      vpack.next(1);
+    }
+    slice_radius += radius_unit;
+    y -= height_unit;
+  }
+
+  IndexPack ipack(idata.get());
+  for (int i = 0; i < params.stack - 1; ++i) {
+    int32 line1 = i * params.slice; 
+    int32 line2 = (i + 1) * params.slice; 
+    for (int j = 0; j < params.slice; ++j) {
+      int index1 = j % params.slice;
+      int index2 = (j + 1) % params.slice;
+      CHECK(ipack.WriteAndAdvance(line1 + index2));
+      CHECK(ipack.WriteAndAdvance(line1 + index1));
+      CHECK(ipack.WriteAndAdvance(line2 + index1));
+      
+      CHECK(ipack.WriteAndAdvance(line1 + index2));
+      CHECK(ipack.WriteAndAdvance(line2 + index1));
+      CHECK(ipack.WriteAndAdvance(line2 + index2));
+    }
+  }
+
+  CalcIndexedTriangleNormal(vdata, idata);
+
+  RenderSystem* rs = RenderSystem::Current();
+  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
+  IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
+  EntityPtr entity(new Entity(desc, vb, ib));
+  float rad = std::max(params.top_radius, params.bottom_radius);
+  Vector4 vmin = matrix * Vector4(-rad,  0.5f,          -rad, 1.0f);
+  Vector4 vmax = matrix * Vector4( rad,  params.height,  rad, 1.0f);
+  entity->set_vmin(Vector3(vmin.x, vmin.y, vmin.z));
+  entity->set_vmax(Vector3(vmax.x, vmax.y, vmax.z));
+  entity->set_topology(kTriangleList);
+  MeshPartPtr part(new MeshPart(NULL));
+  part->AddEntity(entity);
+  return part;  
+}
+
+MeshPartPtr CreateCylinderMeshPart(VertexDesc* desc, const GeoBarrelParams& params) {
+  return CreateCylinderMeshPart(desc, Matrix4::kIdentity, params);
+}
+
+MeshPartPtr CreateCylinderMeshPart(VertexDesc* desc, const Matrix4& matrix,
+                                   const GeoBarrelParams& params) {
+  MeshPartPtr part = CreateBarrelMeshPart(desc, matrix, params);
+  {
+    Matrix4 round_matrix = std::move(matrix * RotateX(Degree(180.0)));
+    MeshPartPtr bot = CreateRoundMeshPart(desc, round_matrix, 
+                                          params.bottom_radius, params.slice);
+    CHECK(bot->entity_count() == 1);
+    part->AddEntity(bot->entity_at(0));
+  }
+
+  {
+    Matrix4 round_matrix = matrix * Translate(Vector3(0.0f, params.height, 0.0f));
+    MeshPartPtr top = CreateRoundMeshPart(desc, round_matrix, 
+                                          params.top_radius, params.slice);
+    CHECK(top->entity_count() == 1);
+    part->AddEntity(top->entity_at(0));
+  }
   return part;
 }
 }  // namespace azer

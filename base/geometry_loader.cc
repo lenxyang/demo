@@ -44,6 +44,16 @@ VariantResource GeometryLoader::Load(const ConfigNode* node,
     part = CreateSphere(node, vertex_desc.get(), ctx);
   } else if (geometry_type == "box") {
     part = CreateBox(node, vertex_desc.get(), ctx);
+  } else if (geometry_type == "plane") {
+    part = CreatePlane(node, vertex_desc.get(), ctx);
+  } else if (geometry_type == "round") {
+    part = CreateRound(node, vertex_desc.get(), ctx);
+  } else if (geometry_type == "cone") {
+    part = CreateCone(node, vertex_desc.get(), ctx);
+  } else if (geometry_type == "barrel") {
+    part = CreateBarrel(node, vertex_desc.get(), ctx);
+  } else if (geometry_type == "cylinder") {
+    part = CreateCylinder(node, vertex_desc.get(), ctx);
   } else {
     CHECK(false);
   }
@@ -84,33 +94,116 @@ MeshPartPtr GeometryLoader::CreateBox(const ConfigNode* node,
   return ptr;
 }
 
-MeshPartPtr GeometryLoader::CreateCone(const ConfigNode* node,
-                                       VertexDesc* desc, ResourceLoadContext* ctx) {
-  return MeshPartPtr();
+MeshPartPtr GeometryLoader::CreatePlane(const ConfigNode* node,
+                                        VertexDesc* desc, ResourceLoadContext* ctx) {
+  GeoPlaneParams params;
+  params.row = 10;
+  params.row_width = 1.0f;
+  params.column = 10;
+  params.column_width = 1.0f;
+  if (node->HasAttr("row_width")) {
+    CHECK(node->GetAttrAsFloat("row_width", &params.row_width));
+  }
+  if (node->HasAttr("row")) {
+    CHECK(node->GetAttrAsInt("row", &params.row));
+  }
+  if (node->HasAttr("column_width")) {
+    CHECK(node->GetAttrAsFloat("column_width", &params.column_width));
+  }
+  if (node->HasAttr("column")) {
+    CHECK(node->GetAttrAsInt("column", &params.column));
+  }
+  return CreatePlaneMeshPart(desc, params);
 }
 
-MeshPartPtr GeometryLoader::CreateCircle(const ConfigNode* node,
-                                         VertexDesc* desc, 
-                                         ResourceLoadContext* ctx) {
-  return MeshPartPtr();
+MeshPartPtr GeometryLoader::CreateCone(const ConfigNode* node,
+                                       VertexDesc* desc, ResourceLoadContext* ctx) {
+  GeoConeParams params;
+  params.slice = 24;
+  params.height = 1.0f;
+  params.radius = 1.0f;
+  if (node->HasAttr("radius")) {
+    CHECK(node->GetAttrAsFloat("radius", &params.radius));
+  }
+  if (node->HasAttr("slice")) {
+    CHECK(node->GetAttrAsInt("slice", &params.slice));
+  }
+  if (node->HasAttr("height")) {
+    CHECK(node->GetAttrAsFloat("height", &params.height));
+  }
+  return CreateConeMeshPart(desc, params);
 }
 
 MeshPartPtr GeometryLoader::CreateRound(const ConfigNode* node,
                                         VertexDesc* desc, 
                                         ResourceLoadContext* ctx) {
-  return MeshPartPtr();
+  int32 slice = 24;;
+  float radius = 1.0f;
+  if (node->HasAttr("radius")) {
+    CHECK(node->GetAttrAsFloat("radius", &radius));
+  }
+  if (node->HasAttr("slice")) {
+    CHECK(node->GetAttrAsInt("slice", &slice));
+  }
+  if (node->GetAttr("wireframe") == "true") {
+    return CreateRoundMeshPart(desc, radius, slice);
+  } else {
+    return CreateRoundFrameMeshPart(desc, radius, slice);
+  }
 }
 
 MeshPartPtr GeometryLoader::CreateCylinder(const ConfigNode* node,
                                            VertexDesc* desc, 
                                            ResourceLoadContext* ctx) {
-  return MeshPartPtr();
+  GeoBarrelParams params;
+  params.slice = 24;
+  params.stack = 24;
+  params.height = 1.0f;
+  params.top_radius = 1.0f;
+  params.bottom_radius = 1.0f;
+  if (node->HasAttr("bottom_radius")) {
+    CHECK(node->GetAttrAsFloat("bottom_radius", &params.bottom_radius));
+  }
+  if (node->HasAttr("top_radius")) {
+    CHECK(node->GetAttrAsFloat("top_radius", &params.top_radius));
+  }
+  if (node->HasAttr("slice")) {
+    CHECK(node->GetAttrAsInt("slice", &params.slice));
+  }
+  if (node->HasAttr("stack")) {
+    CHECK(node->GetAttrAsInt("stack", &params.stack));
+  }
+  if (node->HasAttr("height")) {
+    CHECK(node->GetAttrAsFloat("height", &params.height));
+  }
+  return CreateCylinderMeshPart(desc, params);
 }
 
 MeshPartPtr GeometryLoader::CreateBarrel(const ConfigNode* node,
                                          VertexDesc* desc, 
                                          ResourceLoadContext* ctx) {
-  return MeshPartPtr();
+  GeoBarrelParams params;
+  params.slice = 24;
+  params.stack = 24;
+  params.height = 1.0f;
+  params.top_radius = 1.0f;
+  params.bottom_radius = 1.0f;
+  if (node->HasAttr("bottom_radius")) {
+    CHECK(node->GetAttrAsFloat("bottom_radius", &params.bottom_radius));
+  }
+  if (node->HasAttr("top_radius")) {
+    CHECK(node->GetAttrAsFloat("top_radius", &params.top_radius));
+  }
+  if (node->HasAttr("slice")) {
+    CHECK(node->GetAttrAsInt("slice", &params.slice));
+  }
+  if (node->HasAttr("stack")) {
+    CHECK(node->GetAttrAsInt("stack", &params.stack));
+  }
+  if (node->HasAttr("height")) {
+    CHECK(node->GetAttrAsFloat("height", &params.height));
+  }
+  return CreateBarrelMeshPart(desc, params);
 }
 
 MeshPartPtr GeometryLoader::CreateTour(const ConfigNode* node,

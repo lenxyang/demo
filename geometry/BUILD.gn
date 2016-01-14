@@ -4,6 +4,7 @@ group("geometry") {
   deps = [
     ":triangle",
     ":objects",
+    ":scene_objects",
   ]
 }
 

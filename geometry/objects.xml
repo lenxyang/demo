@@ -18,9 +18,29 @@
 	<refer type="mesh" path=":box"/>
       </node>
 
-      <node name="sphere3">
-	<location><position>7.0f, 3.0f, 0.0f</position></location>
-	<refer type="mesh" path=":sphere"/>
+      <node name="plane">
+	<location><position>0.0f, 0.0f, 0.0f</position></location>
+	<refer type="mesh" path=":plane"/>
+      </node>
+      <node name="circle">
+	<location><position>0.0f, 6.0f, 3.0f</position></location>
+	<refer type="mesh" path=":circle"/>
+      </node>
+      <node name="round">
+	<location><position>0.0f, 3.0f, -3.0f</position></location>
+	<refer type="mesh" path=":round"/>
+      </node>
+      <node name="cone">
+	<location><position>0.0f, 3.0f, 5.0f</position></location>
+	<refer type="mesh" path=":cone"/>
+      </node>
+      <node name="barrel">
+	<location><position>3.0f, 3.0f, 0.0f</position></location>
+	<refer type="mesh" path=":barrel"/>
+      </node>
+      <node name="cylinder">
+	<location><position>3.0f, 3.0f, 5.0f</position></location>
+	<refer type="mesh" path=":cylinder"/>
       </node>
     </node>
   </node>
@@ -37,12 +57,43 @@
     <refer type="effect" path="//data/effects.xml:basic_effect"/>
     <refer type="material" path=":mtrl"/>
   </geometry>
-  <geometry name="box" geotype="box" radius="1.0" stack="24" slice="24">
+  <geometry name="box" geotype="box">
     <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
     <refer type="effect" path="//data/effects.xml:basic_effect"/>
     <refer type="material" path=":mtrl"/>
   </geometry>
-  <geometry name="box" geotype="box" radius="1.0" stack="24" slice="24">
+  <geometry name="plane" geotype="plane" row="10" column="10" column_width="0.5" row_width="0.5">
+    <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:basic_effect"/>
+    <refer type="material" path=":mtrl"/>
+  </geometry>
+
+  <geometry name="circle" geotype="round" radius="3" slice="24" wireframe="true">
+    <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:basic_effect"/>
+    <refer type="material" path=":mtrl"/>
+  </geometry>
+  <geometry name="round" geotype="round" radius="3" slice="24" wireframe="false">
+    <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:basic_effect"/>
+    <refer type="material" path=":mtrl"/>
+  </geometry>
+
+  <geometry name="cone" geotype="cone" radius="1" height="1.0" slice="24">
+    <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:basic_effect"/>
+    <refer type="material" path=":mtrl"/>
+  </geometry>
+
+  <geometry name="barrel" geotype="barrel" top_radius="1" bottom_radius="2"
+	    height="1.0" slice="24" stack="24">
+    <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:basic_effect"/>
+    <refer type="material" path=":mtrl"/>
+  </geometry>
+
+  <geometry name="cylinder" geotype="cylinder" top_radius="1" bottom_radius="2"
+	    height="1.0" slice="128" stack="24">
     <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
     <refer type="effect" path="//data/effects.xml:basic_effect"/>
     <refer type="material" path=":mtrl"/>
