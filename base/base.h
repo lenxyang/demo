@@ -11,7 +11,7 @@
 #include "demo/base/shadow_render_tree.h"
 #include "demo/base/effected_scene_render.h"
 #include "demo/base/textured_effect.h"
-#include "demo/base/geometry_loader.h"
+#include "lordaeron/resource/geometry_loader.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;

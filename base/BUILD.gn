@@ -17,10 +17,6 @@ static_library("base") {
     "shadowmap_effect.h",
     "textured_effect.cc",
     "textured_effect.h",
-    "geometry.cc",
-    "geometry.h",
-    "geometry_loader.cc",
-    "geometry_loader.h",
   ]
 
   deps = [
