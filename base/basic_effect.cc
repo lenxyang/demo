@@ -46,6 +46,8 @@ void BasicEffect::InitGpuConstantTable() {
                             offsetof(vs_cbuffer, pvw), 1),
     GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
                             offsetof(vs_cbuffer, world), 1),
+    GpuConstantsTable::Desc("camerapos", GpuConstantsType::kVector4,
+                            offsetof(vs_cbuffer, camerapos), 1),
   };
   gpu_table_[kVertexStage] = rs->CreateGpuConstantsTable(
       arraysize(vs_table_desc), vs_table_desc);
@@ -82,6 +84,10 @@ void BasicEffect::SetDirLight(const lord::DirLight& value) {
   light_ = value;
 }
 
+void BasicEffect::SetCameraPos(const Vector4& value) {
+  camerapos_ = value;
+}
+
 void BasicEffect::ApplyGpuConstantTable(Renderer* renderer) {
   {
     Matrix4 pvw = std::move(pv_ * world_);
@@ -89,6 +95,7 @@ void BasicEffect::ApplyGpuConstantTable(Renderer* renderer) {
     DCHECK(tb != NULL);
     tb->SetValue(0, &pvw, sizeof(Matrix4));
     tb->SetValue(1, &world_, sizeof(Matrix4));
+    tb->SetValue(2, &camerapos_, sizeof(Vector4));
   }
   {
     GpuConstantsTable* tb = gpu_table_[(int)kPixelStage].get();
@@ -103,7 +110,7 @@ void BasicEffect::ApplyGpuConstantTable(Renderer* renderer) {
 IMPLEMENT_EFFECT_PROVIDER_DYNCREATE(BasicColorProvider);
 const char BasicColorProvider::kEffectProviderName[] = "BasicColorProvider";
 BasicColorProvider::BasicColorProvider() {
-  color_ = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+  color_ = Vector4(0.6f, 0.6f, 0.6f, 1.0f);
 }
 BasicColorProvider::~BasicColorProvider() {}
 const char* BasicColorProvider::GetProviderName() const { return kEffectProviderName;}
@@ -145,6 +152,7 @@ void RenderNodeBasicEffectAdapter::Apply(
   BasicEffect* effect = dynamic_cast<BasicEffect*>(e);
   effect->SetWorld(provider->GetWorld());
   effect->SetPV(provider->camera()->GetProjViewMatrix());
+  effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
 }
 
 LordEnvNodeBasicEffectAdapter::LordEnvNodeBasicEffectAdapter() {

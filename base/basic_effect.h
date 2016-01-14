@@ -20,6 +20,7 @@ class BasicEffect : public azer::Effect {
   struct vs_cbuffer {
     azer::Matrix4 pvw;
     azer::Matrix4 world;
+    azer::Vector4 camerapos;
   };
 
   struct ps_cbuffer {
@@ -34,6 +35,7 @@ class BasicEffect : public azer::Effect {
   void SetColor(const azer::Vector4& value);
   void SetEmission(const azer::Vector4& value);
   void SetDirLight(const lord::DirLight& value);
+  void SetCameraPos(const azer::Vector4& CameraPos);
   static azer::Effect* CreateObject() { return new BasicEffect;}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
@@ -42,6 +44,7 @@ class BasicEffect : public azer::Effect {
 
   azer::Matrix4 pv_;
   azer::Matrix4 world_;
+  azer::Vector4 camerapos_;
   azer::Vector4 color_;
   azer::Vector4 emission_;
   lord::DirLight light_;
