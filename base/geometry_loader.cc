@@ -38,26 +38,27 @@ VariantResource GeometryLoader::Load(const ConfigNode* node,
     return VariantResource();
   }
 
-  EntityPtr entity;
-  std::string geometry_type  = node->GetAttr("geometry_type");
+  MeshPartPtr part;
+  std::string geometry_type  = node->GetAttr("geotype");
   if (geometry_type == "sphere") {
-    eneity = CreateSphere(node, vertex_desc.get(), ctx);
+    part = CreateSphere(node, vertex_desc.get(), ctx);
+    part->SetEffect(effect);
+  } else {
+    CHECK(false);
   }
 
-
-  MeshPartPtr part(new MeshPart(effect));
-  part->AddEntity(entity);
   VariantResource resource;
   resource.type = kResTypeMesh;
   resource.mesh = new Mesh;
-  resource.mesh->AddMeshPart(part);
+  resource.mesh->AddMeshPart(part); 
+  resource.retcode = 0;
   if (material.get())
-    mesh->AddProvider(material);
+    resource.mesh->AddProvider(material);
   return resource;
 }
 
-EntityPtr GeometryLoader::CreateSphere(const ConfigNode* node, VertexDesc* desc,
-                                       ResourceLoadContext* ctx) {
+MeshPartPtr GeometryLoader::CreateSphere(const ConfigNode* node, VertexDesc* desc,
+                                         ResourceLoadContext* ctx) {
   float radius = 1.0f;
   int32 stack = 24, slice = 24;
   if (node->HasAttr("radius")) {
@@ -69,12 +70,12 @@ EntityPtr GeometryLoader::CreateSphere(const ConfigNode* node, VertexDesc* desc,
   if (node->HasAttr("slice")) {
     CHECK(node->GetAttrAsInt("slice", &slice));
   }
-  EntityPtr entity = CreateSphereEntity(desc, radius, stack, slice);
-  return entity;
+  MeshPartPtr ptr = CreateSphereMeshPart(desc, radius, stack, slice);
+  return ptr;
 }
 
 bool GeometryLoader::CouldLoad(ConfigNode* node) const {
-  return node->tagname() == "mesh";
+  return node->tagname() == "geometry";
 }
 
 }  // namespace lord

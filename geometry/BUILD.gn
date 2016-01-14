@@ -23,3 +23,11 @@ executable("objects") {
   ]
 }
 
+executable("scene_objects") {
+  sources = [ "scene_objects.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+

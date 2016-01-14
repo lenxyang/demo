@@ -1,8 +1,8 @@
 
 static_library("base") {
   sources = [
-    "effect_dict.cc",
-    "effect_dict.h",
+    "basic_effect.cc",
+    "basic_effect.h",
     "resource_util.cc",
     "resource_util.h",
     "depth_effect.cc",
@@ -19,6 +19,8 @@ static_library("base") {
     "textured_effect.h",
     "geometry.cc",
     "geometry.h",
+    "geometry_loader.cc",
+    "geometry_loader.h",
   ]
 
   deps = [

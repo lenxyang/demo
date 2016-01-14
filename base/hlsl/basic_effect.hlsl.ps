@@ -1,0 +1,28 @@
+// using row_major
+#pragma pack_matrix(row_major)
+
+struct VsOutput {
+  float4 position:SV_POSITION;
+  float4 normal:NORMAL;
+};
+
+struct DirLight {
+  float4 diffuse;
+  float4 ambient;
+  float4 specular;
+  float3 dir;
+  float  pad;
+};
+
+cbuffer c_buffer {
+   float4 color;
+   float4 emission;
+   DirLight light;
+};
+
+float4 ps_main(VsOutput o):SV_TARGET {
+  float diffuse_factor = clamp(dot(normalize(o.normal.xyz),	
+                               -light.dir), 0.0f, 1.0f);	
+  float3 light_factor = light.ambient.xyz + (light.diffuse.xyz * diffuse_factor);
+  return float4(light_factor * color.xyz + emission.xyz, color.a);
+}

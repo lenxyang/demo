@@ -13,15 +13,14 @@ using lord::SceneNode;
 using namespace azer;
 using namespace lord;
 
-class MyRenderWindow : public lord::RenderWindow {
+class MyRenderWindow : public lord::FrameWindow {
  public:
-  MyRenderWindow(const gfx::Rect& rect) : lord::RenderWindow(rect) {}
-  void OnInit() override;
+  MyRenderWindow(const gfx::Rect& rect) : lord::FrameWindow(rect) {}
+  SceneNodePtr InitScene() override;
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
   scoped_ptr<UISceneRender> scene_render_;
-  SceneNodePtr root_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -48,7 +47,7 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-void MyRenderWindow::OnInit() {
+SceneNodePtr MyRenderWindow::InitScene() {
   LordEnv* env = LordEnv::instance();
   scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
       FilePath(UTF8ToUTF16("demo/"))));
@@ -60,12 +59,13 @@ void MyRenderWindow::OnInit() {
 
   ResPath respath(UTF8ToUTF16("//geometry/objects.xml:scene"));
   VariantResource res = resloader->Load(respath);
-  root_ = res.scene;
-  CHECK(root_.get()) << "Failed to init scene";
+  SceneNodePtr root = res.scene;
+  CHECK(root.get()) << "Failed to init scene";
 
   scene_render_.reset(new UISceneRender);
-  scene_render_->Init(root_, &camera());
+  scene_render_->Init(root, &camera());
   LOG(ERROR) << scene_render_->root()->DumpTree();
+  return root;
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {

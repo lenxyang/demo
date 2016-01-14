@@ -16,9 +16,9 @@ class GeometryLoader : public ResourceSpecialLoader {
                        ResourceLoadContext* ctx) override;
   bool CouldLoad(azer::ConfigNode* node) const override;
  private:
-  azer::EntityPtr CreateSphereMesh(const azer::ConfigNode* node,
-                                   azer::VertexDesc* desc,
-                                   ResourceLoadContext* ctx);
+  azer::MeshPartPtr CreateSphere(const azer::ConfigNode* node,
+                                 azer::VertexDesc* desc,
+                                 ResourceLoadContext* ctx);
   DISALLOW_COPY_AND_ASSIGN(GeometryLoader);
 };
 }  // namespace lord

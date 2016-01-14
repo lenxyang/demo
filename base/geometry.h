@@ -1,21 +1,29 @@
 #pragma once
 
+#include "base/basictypes.h"
 #include "base/memory/ref_counted.h"
 #include "azer/base/export.h"
-#include "azer/math/math.h"
 
 namespace azer {
-class Entity;
-typedef scoped_refptr<Entity> EntityPtr;
+class Matrix4;
+class MeshPart;
+class IndicesData;
+class SlotVertexData;
+class VertexDesc;
 
-EntityPtr CreateSphereEntity(VertexDesc* desc, float radius, 
-                             int32 stack, int32 slice);
-EntityPtr CreateSphereEntity(VertexDesc* desc, const Matrix4& vertex_transform, 
-                             float radius, int32 stack, int32 slice);
+typedef scoped_refptr<MeshPart> MeshPartPtr;
 
-EntityPtr CreateSphereFrameEntity(VertexDesc* desc, float radius, 
-                             int32 stack, int32 slice);
-EntityPtr CreateSphereFrameEntity(VertexDesc* desc, 
-                                  const Matrix4& vertex_transform, 
-                                  float radius, int32 stack, int32 slice);
+MeshPartPtr CreateSphereMeshPart(VertexDesc* desc, float radius, 
+                                 int32 stack, int32 slice);
+MeshPartPtr CreateSphereMeshPart(VertexDesc* desc, const Matrix4& vertex_transform, 
+                                 float radius, int32 stack, int32 slice);
+
+MeshPartPtr CreateSphereFrameMeshPart(VertexDesc* desc, float radius, 
+                                      int32 stack, int32 slice);
+MeshPartPtr CreateSphereFrameMeshPart(VertexDesc* desc, 
+                                      const Matrix4& vertex_transform, 
+                                      float radius, int32 stack, int32 slice);
+
+void CalcIndexedTriangleNormal(SlotVertexData* vbd, IndicesData* idata);
+void CalcTriangleNormal(SlotVertexData* vbd, int* indices);
 }  // namespace azer
