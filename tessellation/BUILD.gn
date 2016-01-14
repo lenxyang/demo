@@ -2,11 +2,11 @@
 
 group("tessellation") {
   deps = [
-    ":triangle",
+    ":tessellation_triangle",
   ]
 }
 
-executable("triangle") {
+executable("tessellation_triangle") {
   sources = [ "triangle.cc",]
   deps = [
     "//lordaeron",

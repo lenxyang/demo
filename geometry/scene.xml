@@ -52,7 +52,7 @@
     <directional>0.0, -1.0, 0.0</directional>
   </light>
 
-  <geometry name="sphere">
+  <geometry name="sphere" type="sphere" radius="1.0" stack="24" slice="24">
     <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
     <refer type="effect" path="//data/effects.xml:shadowmap_effect"/>
     <refer type="material" path=":mtrl"/>
