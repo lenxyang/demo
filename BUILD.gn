@@ -3,6 +3,7 @@ group("demo") {
   deps = [
     "geometry",
     "multislot",
+    "stencil",
     "compute_shader",
     "parallax_occlusion_mapping",
     "tessellation",
