@@ -55,8 +55,8 @@
     <refer type="effect" path="//data/effects.xml:basic_effect"/>
     <refer type="material" path=":mtrl"/>
   </geometry>
-  <geometry name="plane" geotype="plane" row="100" 
-	    column="100" column_width="1.0" row_width="1.0">
+  <geometry name="plane" geotype="plane" row="10" 
+	    column="10" column_width="1.0" row_width="1.0">
     <refer type="vertex_desc" path="//data/effects.xml:tex_vertex_desc" />
     <refer type="effect" path="//data/effects.xml:tex_effect"/>
     <refer type="material" path=":plane_mtrl"/>
