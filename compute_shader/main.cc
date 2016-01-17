@@ -21,7 +21,6 @@ class MyRenderWindow : public lord::FrameWindow {
   RenderNodePtr bvolumn_root_;
   scoped_ptr<UISceneRender> tree_render_;
   scoped_ptr<FileSystem> fsystem_;
-  EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 

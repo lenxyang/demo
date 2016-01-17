@@ -3,7 +3,6 @@
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/depth_effect.h"
-#include "demo/base/effect_dict.h"
 #include "demo/base/material.h"
 #include "demo/base/shadowmap_effect.h"
 
@@ -24,7 +23,6 @@ class MyRenderWindow : public lord::FrameWindow {
  private:
   RenderNodePtr bvolumn_root_;
   scoped_ptr<UISceneRender> tree_render_;
-  EffectDict dict_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 

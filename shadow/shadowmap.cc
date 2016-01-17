@@ -30,7 +30,6 @@ class MyRenderWindow : public lord::FrameWindow {
   scoped_ptr<EffectedSceneRender> effected_render_;
   scoped_ptr<UISceneRender> scene_render_;
   scoped_ptr<ShadowDepthRenderer> depth_render_;
-  EffectDict dict_;
   bool default_renderer_;
   bool switching_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);

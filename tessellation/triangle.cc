@@ -2,7 +2,6 @@
 
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
-#include "demo/base/effect_dict.h"
 #include "demo/base/material.h"
 #include "demo/base/textured_effect.h"
 
