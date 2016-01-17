@@ -57,7 +57,7 @@ SceneNodePtr MyRenderWindow::InitScene() {
   InitDefaultLoader(resloader);
   resloader->RegisterSpecialLoader(new GeometryLoader);
 
-  ResPath respath(UTF8ToUTF16("//stencil/objects.xml:scene"));
+  ResPath respath(UTF8ToUTF16("//stencil/mirror.xml:scene"));
   VariantResource res = resloader->Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
@@ -65,6 +65,11 @@ SceneNodePtr MyRenderWindow::InitScene() {
   scene_render_.reset(new UISceneRender);
   scene_render_->Init(root, &camera());
   LOG(ERROR) << scene_render_->root()->DumpTree();
+
+  Vector3 camera_pos(0.0f, 10.0f, 5.0f);
+  Vector3 lookat(0.0f, 1.0f, 0.0f);
+  Vector3 up(0.0f, 1.0f, 0.0f);
+  mutable_camera()->reset(camera_pos, lookat, up);
   return root;
 }
 
