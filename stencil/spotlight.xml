@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xml>
+  <node name="scene">
+    <node name="node">
+      <node name="env" type="environment">
+	<node name="spot">
+	  <location><position>0.0f, 8.0f, 0.0f</position></location>
+	  <refer type="light" path=":spot" />
+	</node>
+      </node>
+      <node name="plane">
+	<location><position>0.0f, 0.0f, 0.0f</position></location>
+	<refer type="mesh" path=":plane"/>
+      </node>
+    </node>
+  </node>
+
+  <light name="spot" type="spot_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>0.0, -1.0, -0.2</directional>
+    <inner_angle>30</inner_angle>
+    <outer_angle>40</outer_angle>
+    <falloff>0.5</falloff>
+    <range>30</range>
+  </light>
+
+  <geometry name="plane" geotype="plane" row="1" 
+	    column="1" column_width="10.0" row_width="10.0">
+    <refer type="vertex_desc" path="//data/effects.xml:tex_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:tex_effect"/>
+    <refer type="material" path=":plane_mtrl"/>
+  </geometry>
+
+  <material name="plane_mtrl" provider_name="TexMaterial">
+    <ambient>0.01</ambient>
+    <specular>0.8</specular>
+    <emission>0.0, 0.0, 0.0, 0.0</emission>
+    <diffusemap>//data/media/brickwall_broken.dds</diffusemap>
+    <alpha>1.0</alpha>
+  </material>
+</xml>

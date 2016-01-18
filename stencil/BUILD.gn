@@ -3,11 +3,20 @@
 group("stencil") {
   deps = [
     ":stencil_mirror",
+    ":stencil_spotlight",
   ]
 }
 
 executable("stencil_mirror") {
   sources = [ "mirror.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("stencil_spotlight") {
+  sources = [ "spotlight.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",

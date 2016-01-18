@@ -8,25 +8,28 @@
 	  <refer type="light" path=":dir" />
 	</node>
       </node>
-      <node name="sphere">
-	<location><position>0.0f, 3.0f, 0.0f</position></location>
-	<refer type="mesh" path=":sphere"/>
-      </node>
       <node name="plane">
 	<location><position>0.0f, 0.0f, 0.0f</position></location>
 	<refer type="mesh" path=":plane"/>
       </node>
-      <node name="cone">
-	<location><position>4.0f, 3.0f, 0.0f</position></location>
-	<refer type="mesh" path=":cone"/>
-      </node>
-      <node name="box">
-	<location><position>-4.0f, 3.0f, 0.0f</position></location>
-	<refer type="mesh" path=":box"/>
-      </node>
-      <node name="cylinder">
-	<location><position>0.0f, 3.0f, 4.0f</position></location>
-	<refer type="mesh" path=":cylinder"/>
+      <node name="sub">
+	<location><position>1.0f, 1.0f, 0.0f</position></location>
+	<node name="sphere">
+	  <location><position>0.0f, 3.0f, 0.0f</position></location>
+	  <refer type="mesh" path=":sphere"/>
+	</node>
+	<node name="cone">
+	  <location><position>4.0f, 3.0f, 0.0f</position></location>
+	  <refer type="mesh" path=":cone"/>
+	</node>
+	<node name="box">
+	  <location><position>-4.0f, 3.0f, 0.0f</position></location>
+	  <refer type="mesh" path=":box"/>
+	</node>
+	<node name="cylinder">
+	  <location><position>0.0f, 3.0f, 4.0f</position></location>
+	  <refer type="mesh" path=":cylinder"/>
+	</node>
       </node>
 
       <node name="wall">
