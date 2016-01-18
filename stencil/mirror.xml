@@ -31,9 +31,18 @@
 
       <node name="wall">
 	<location>
-	  <position>0.0f, 0.0f, 0.0f</position>
+	  <position>5.0f, 3.0f, 0.0f</position>
+          <orientation>0.707f, 0.0f, 0.0f, 0.707f</orientation>
 	</location>
 	<refer type="mesh" path=":wall"/>
+      </node>
+
+      <node name="mirror">
+	<location>
+	  <position>4.999f, 3.0f, 0.0f</position>
+          <orientation>0.707f, 0.0f, 0.0f, 0.707f</orientation>
+	</location>
+	<refer type="mesh" path=":mirror"/>
       </node>
     </node>
   </node>
@@ -42,7 +51,7 @@
     <ambient>1.0, 1.0, 1.0, 1.0</ambient>
     <diffuse>0.5, 0.5, 0.4, 1.0</diffuse>
     <specular>0.1, 0.1, 0.1, 1.0</specular>
-    <directional>0.0, -1.0, 0.0</directional>
+    <directional>1.0, -1.0, -1.0</directional>
   </light>
 
   <geometry name="sphere" geotype="sphere" radius="1.0" stack="24" slice="24">
@@ -75,11 +84,18 @@
     <refer type="material" path=":mtrl"/>
   </geometry>
 
-  <geometry name="wall" geotype="plane" row="10" 
-	    column="10" column_width="0.5" row_width="0.5">
+  <geometry name="wall" geotype="plane" row="6" 
+	    column="6" column_width="1.0" row_width="1.0">
     <refer type="vertex_desc" path="//data/effects.xml:basic_vertex_desc" />
     <refer type="effect" path="//data/effects.xml:basic_effect"/>
     <refer type="material" path=":mtrl"/>
+  </geometry>
+
+  <geometry name="mirror" geotype="plane" row="1" 
+	    column="1" column_width="4.0" row_width="4.0">
+    <refer type="vertex_desc" path="//data/effects.xml:tex_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:tex_effect"/>
+    <refer type="material" path=":mirror_mtrl"/>
   </geometry>
 
   <material name="mtrl" provider_name="BasicColorProvider">
@@ -90,6 +106,14 @@
     <specular>0.8</specular>
     <emission>0.0, 0.0, 0.0, 0.0</emission>
     <diffusemap>//data/media/checkboard.dds</diffusemap>
+    <alpha>1.0</alpha>
+  </material>
+
+  <material name="mirror_mtrl" provider_name="TexMaterial">
+    <ambient>0.01</ambient>
+    <specular>0.8</specular>
+    <emission>0.0, 0.0, 0.0, 0.0</emission>
+    <diffusemap>//data/media/ice.dds</diffusemap>
     <alpha>1.0</alpha>
   </material>
 </xml>

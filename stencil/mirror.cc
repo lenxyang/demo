@@ -43,6 +43,8 @@ int main(int argc, char* argv[]) {
   window->Init();
   window->Show();
 
+  Matrix4 mat = RotateZ(Degree(-90.0f));
+  Quaternion quaternion(mat);
   window->GetRenderLoop()->Run();
   return 0;
 }
