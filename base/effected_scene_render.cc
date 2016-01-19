@@ -45,6 +45,18 @@ void ObjectNodeRenderDelegate::Render(Renderer* renderer) {
     mesh_->Render(renderer);
 }
 
+// class MirrorObjectNodeRenderDelegate
+MirrorObjectNodeRenderDelegate::MirrorObjectNodeRenderDelegate(
+    lord::RenderNode* node, EffectedSceneRender* renderer) 
+    : ObjectNodeRenderDelegate(node, renderer) {
+}
+
+void MirrorObjectNodeRenderDelegate::Update(const azer::FrameArgs& args) {
+}
+
+void MirrorObjectNodeRenderDelegate::Render(azer::Renderer* renderer) {
+}
+
 // class LampNodeRenderDelegate
 LampNodeRenderDelegate::LampNodeRenderDelegate(RenderNode* node, 
                                                EffectedSceneRender* tree_render)
@@ -226,13 +238,19 @@ class TreeBuildDelegate : public RenderTreeBuilderDelegate {
 
 scoped_ptr<lord::RenderNodeDelegate>
 TreeBuildDelegate::CreateRenderDelegate(RenderNode* node) {
+  SceneNode* scene_node = node->GetSceneNode();
   switch (node->GetSceneNode()->type()) {
     case kEnvSceneNode:
       return NULL;
     case kSceneNode:
     case kObjectSceneNode:
-      return scoped_ptr<RenderNodeDelegate>(
-          new ObjectNodeRenderDelegate(node, tree_renderer_)).Pass();
+      if (scene_node->GetAttr("mirror") == "true") {
+        return scoped_ptr<RenderNodeDelegate>(
+            new MirrorObjectNodeRenderDelegate(node, tree_renderer_)).Pass();
+      } else {
+        return scoped_ptr<RenderNodeDelegate>(
+            new ObjectNodeRenderDelegate(node, tree_renderer_)).Pass();
+      }
     case kLampSceneNode:
       return scoped_ptr<RenderNodeDelegate>(
           new LampNodeRenderDelegate(node, tree_renderer_)).Pass();

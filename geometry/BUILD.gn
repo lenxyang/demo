@@ -2,13 +2,12 @@
 
 group("geometry") {
   deps = [
-    ":triangle",
-    ":objects",
-    ":scene_objects",
+    ":geometry_triangle",
+    ":geometry_scene_objects",
   ]
 }
 
-executable("triangle") {
+executable("geometry_triangle") {
   sources = [ "triangle.cc",]
   deps = [
     "//lordaeron",
@@ -16,15 +15,7 @@ executable("triangle") {
   ]
 }
 
-executable("objects") {
-  sources = [ "objects.cc",]
-  deps = [
-    "//lordaeron",
-    "//demo/base",
-  ]
-}
-
-executable("scene_objects") {
+executable("geometry_scene_objects") {
   sources = [ "scene_objects.cc",]
   deps = [
     "//lordaeron",

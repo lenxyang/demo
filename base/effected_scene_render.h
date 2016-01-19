@@ -19,13 +19,23 @@ class ObjectNodeRenderDelegate : public lord::RenderNodeDelegate {
   ObjectNodeRenderDelegate(lord::RenderNode* node, EffectedSceneRender* renderer);
   void Update(const azer::FrameArgs& args) override;
   void Render(azer::Renderer* renderer) override;
- private:
+ protected:
   bool Init();
   azer::MeshPtr mesh_;
   azer::MeshPtr bounding_mesh_;
   azer::MeshPtr normal_mesh_;
   EffectedSceneRender* tree_renderer_;
   DISALLOW_COPY_AND_ASSIGN(ObjectNodeRenderDelegate);
+};
+
+class MirrorObjectNodeRenderDelegate : public ObjectNodeRenderDelegate {
+ public:
+  MirrorObjectNodeRenderDelegate(lord::RenderNode* node, 
+                                 EffectedSceneRender* renderer);
+  void Update(const azer::FrameArgs& args) override;
+  void Render(azer::Renderer* renderer) override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MirrorObjectNodeRenderDelegate);
 };
 
 class LampNodeRenderDelegate : public lord::RenderNodeDelegate {
