@@ -36,13 +36,14 @@ class TessEffect : public azer::Effect {
   }
 
 #pragma pack(push, 4)
-  struct vs_cbuffer {
+  struct ds_cbuffer {
     azer::Matrix4 pvw;
     azer::Matrix4 world;
   };
 
   struct hs_cbuffer {
     Vector4 edge;
+    Vector4 inside;
   };
 
   struct ps_cbuffer {
@@ -54,11 +55,12 @@ class TessEffect : public azer::Effect {
   void SetWorld(const azer::Matrix4& value) { world_ = value;}
   void SetColor(const azer::Vector4& value) {color_ = value;}
   void SetEdge(const azer::Vector4& value) {edge_ = value;}
+  void SetInside(const azer::Vector4& value) {inside_ = value;}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override {
     Matrix4 pvw = std::move(pv_ * world_);
     {
-      GpuConstantsTable* tb = gpu_table_[(int)kVertexStage].get();
+      GpuConstantsTable* tb = gpu_table_[(int)kDomainStage].get();
       DCHECK(tb != NULL);
       tb->SetValue(0, &pvw, sizeof(Matrix4));
       tb->SetValue(1, &world_, sizeof(Matrix4));
@@ -67,6 +69,7 @@ class TessEffect : public azer::Effect {
       GpuConstantsTable* tb = gpu_table_[(int)kHullStage].get();
       DCHECK(tb != NULL);
       tb->SetValue(0, &edge_, sizeof(Vector4));
+      tb->SetValue(1, &inside_, sizeof(Vector4));
     }
 
     {
@@ -78,19 +81,21 @@ class TessEffect : public azer::Effect {
   void InitGpuConstantTable() {
     RenderSystem* rs = RenderSystem::Current();
     // generate GpuTable init for stage kVertexStage
-    GpuConstantsTable::Desc vs_table_desc[] = {
+    GpuConstantsTable::Desc ds_table_desc[] = {
       GpuConstantsTable::Desc("pvw", GpuConstantsType::kMatrix4,
-                              offsetof(vs_cbuffer, pvw), 1),
+                              offsetof(ds_cbuffer, pvw), 1),
       GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
-                              offsetof(vs_cbuffer, world), 1),
+                              offsetof(ds_cbuffer, world), 1),
     };
-    gpu_table_[kVertexStage] = rs->CreateGpuConstantsTable(
-        arraysize(vs_table_desc), vs_table_desc);
+    gpu_table_[kDomainStage] = rs->CreateGpuConstantsTable(
+        arraysize(ds_table_desc), ds_table_desc);
 
     // generate GpuTable init for stage kPixelStage
     GpuConstantsTable::Desc hs_table_desc[] = {
       GpuConstantsTable::Desc("edge", GpuConstantsType::kVector4,
                               offsetof(hs_cbuffer, edge), 1),
+      GpuConstantsTable::Desc("inside", GpuConstantsType::kVector4,
+                              offsetof(hs_cbuffer, inside), 1),
     };
     gpu_table_[kHullStage] = rs->CreateGpuConstantsTable(
         arraysize(hs_table_desc), hs_table_desc);
@@ -108,6 +113,7 @@ class TessEffect : public azer::Effect {
   azer::Matrix4 world_;
   Vector4 color_;
   Vector4 edge_;
+  Vector4 inside_;
   DISALLOW_COPY_AND_ASSIGN(TessEffect);
 };
 const char TessEffect::kEffectName[] = "TessEffect";
@@ -129,17 +135,14 @@ TessEffectPtr CreateTessEffect() {
       "struct VSInput {\n"
       "  float4 position:POSITION;\n"
       "};\n"
-      "cbuffer c_buffer {\n"
-      "  float4x4 pvw;"
-      "  float4x4 world;"
-      "};"
       "VsOutput vs_main(VSInput input) {\n"
       "  VsOutput o;"
-      "  o.position = mul(pvw, input.position);"
+      "  o.position = input.position;"
       "  return o;"
       "}";
   shaders[kHullStage].path = "effect.hs";
   shaders[kHullStage].code = ""
+      "#pragma pack_matrix(row_major)\n"
       "cbuffer c_buffer {"
       "  float4 edge;"
       "  float4 inside;"
@@ -154,50 +157,66 @@ TessEffectPtr CreateTessEffect() {
       "struct HsOutput {"
       "  float4 position: POSITION;"
       "};\n"
-      "HSCOutput PatchConstantFunc(InputPatch<VsOutput, 3> input, "
-      "  uint patchid : SV_PrimitiveID) {"
+      "HSCOutput PatchConstantFunc(InputPatch<VsOutput, 4> input, "
+      "  uint patchid : SV_PrimitiveID) {\n"
       "  HSCOutput output;"
-      "  output.edge[0] = edge.x;"
+      "  /*output.edge[0] = edge.x;"
       "  output.edge[1] = edge.y;"
       "  output.edge[2] = edge.z;"
-      "  output.inside = edge.w;"
-      "  return output;"
-      "}"
-      "[domain(\"tri\")]\n"
+      "  output.edge[3] = edge.w;"
+      "  output.inside[0] = inside.x;"
+      "  output.inside[1] = inside.y;*/"
+      "  output.edge[0] = 4;"
+      "  output.edge[1] = 4;"
+      "  output.edge[2] = 4;"
+      "  output.edge[3] = 4;"
+      "  output.inside[0] = 4;"
+      "  output.inside[1] = 4;"
+      "  return output;\n"
+      "}\n"
+      "[domain(\"quad\")]\n"
       "[partitioning(\"integer\")]\n"
       "[outputtopology(\"triangle_cw\")]\n"
-      "[outputcontrolpoints(3)]\n"
+      "[outputcontrolpoints(4)]\n"
       "[patchconstantfunc(\"PatchConstantFunc\")]\n"
-      "HsOutput hs_main(InputPatch<VsOutput, 3> patch, "
+      "[maxtessfactor(64.0f)]\n"
+      "HsOutput hs_main(InputPatch<VsOutput, 4> patch, "
       "  uint pointid: SV_OutputControlPointID, "
-      "  uint patchid: SV_PrimitiveID) {"
-      "  HsOutput output;"
-      "  output.position = patch[pointid].position;"
-      "  return output;"
-      "}";
+      "  uint patchid: SV_PrimitiveID) {\n"
+      "  HsOutput output\n;"
+      "  output.position = patch[pointid].position;\n"
+      "  return output;\n"
+      "}\n";
   shaders[kDomainStage].path = "effect.ds";
-  shaders[kDomainStage].code = "#pragma pack_matrix(row_major)\n"
+  shaders[kDomainStage].code = ""
+      "#pragma pack_matrix(row_major)\n"
+      "cbuffer c_buffer {"
+      "  float4x4 pvw;"
+      "  float4x4 world;"
+      "};\n"
       "struct HSCOutput {"
-      "  float edge[3]: SV_TessFactor;"
-      "  float inside:  SV_InsideTessFactor;"
+      "  float edge[4]: SV_TessFactor;"
+      "  float inside[2]:  SV_InsideTessFactor;"
       "};\n"
       "struct HsOutput {"
       "  float4 position: POSITION;"
       "};\n"
-      "struct DomainOutput {"
+      "struct DsOutput {"
       "  float4 position: SV_POSITION;"
       "};\n"
-      "[domain(\"tri\")]\n"
-      "DomainOutput ds_main(HSCOutput input, float3 uvw : SV_DomainLocation,"
-      "  const OutputPatch<HsOutput, 3> patch) {"
-      "  DomainOutput output;"
-      "  output.position = uvw.x * patch[0].position"
-      "                  + uvw.y * patch[1].position"
-      "                  + uvw.z * patch[2].position;"
-      "  return output;"
-      "}";
+      "[domain(\"quad\")]\n"
+      "DsOutput ds_main(HSCOutput input, "
+      "                 const OutputPatch<HsOutput, 4> quad, "
+      "                 float2 uv : SV_DomainLocation) {\n"
+      "  DsOutput output;\n"
+      "  float3 v1 = lerp(quad[0].position.xyz, quad[1].position.xyz, uv.x);\n"
+      "  float3 v2 = lerp(quad[3].position.xyz, quad[2].position.xyz, uv.x);\n"
+      "  output.position = mul(pvw, float4(lerp(v1, v2, uv.y), 1.0f));\n"
+      "  return output;\n"
+      "}\n";
   shaders[kPixelStage].path = "effect.ps";
-  shaders[kPixelStage].code = "#pragma pack_matrix(row_major)\n"
+  shaders[kPixelStage].code = ""
+      "#pragma pack_matrix(row_major)\n"
       "struct DsOutput {\n"
       "  float4 position:SV_POSITION;\n"
       "};\n"
@@ -261,15 +280,17 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  Vector3 points[] = {Vector3( 0.0f,  0.51f, 0.0f),
-                      Vector3(-0.5f, -0.21f, 0.0f),
-                      Vector3( 0.5f, -0.21f, 0.0f)};
+  Vector3 points[] = {Vector3(-0.5f,  0.5f, 0.0f),
+                      Vector3(-0.5f, -0.5f, 0.0f),
+                      Vector3( 0.5f, -0.5f, 0.0f),
+                      Vector3( 0.5f,  0.5f, 0.0f),};
   entity_ = CreateGeoPointsList(points, (int)arraysize(points), 
                                 effect_->vertex_desc(), Matrix4::kIdentity);
-  entity_->set_topology(kControlPoint3);
+  entity_->set_topology(kControlPoint4);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
   state_->SetFillMode(kWireFrame);
+  state_->SetCullingMode(kCullNone);
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -279,23 +300,31 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   Vector3 position[] = {
     Vector3(-1.0f, -1.0f, 0.0f),
     Vector3(-1.0f,  1.0f, 0.0f),
-    Vector3( 1.0f, -1.0f, 0.0f),
     Vector3( 1.0f,  1.0f, 0.0f),
+    Vector3( 1.0f, -1.0f, 0.0f),
   };
 
   Vector4 edge[] = {
-    Vector4(3.0f, 3.0f, 3.0f, 1.0f),
+    Vector4(4.0f, 4.0f, 4.0f, 1.0f),
     Vector4(3.0f, 3.0f, 3.0f, 3.0f),
     Vector4(3.0f, 3.0f, 3.0f, 4.0f),
     Vector4(3.0f, 5.0f, 6.0f, 6.0f),
   };
 
+  Vector4 inside[] = {
+    Vector4(4.0f, 4.0f, 4.0f, 1.0f),
+    Vector4(3.0f, 3.0f, 3.0f, 1.0f),
+    Vector4(3.0f, 3.0f, 3.0f, 1.0f),
+    Vector4(3.0f, 5.0f, 6.0f, 1.0f),
+  };
+
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   for (uint32 i = 0; i < arraysize(position); ++i) {
-    
-    effect_->SetWorld(Translate(position[i]));
+    Matrix4 world = Translate(position[i]) * RotateY(Degree(args.time() * 180.0f));
+    effect_->SetWorld(world);
     effect_->SetEdge(edge[i]);
+    effect_->SetInside(inside[i]);
     renderer->UseEffect(effect_);
     renderer->SetRasterizerState(state_);
     entity_->Draw(renderer);
