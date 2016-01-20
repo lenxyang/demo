@@ -142,6 +142,7 @@ TessEffectPtr CreateTessEffect() {
       "}";
   shaders[kHullStage].path = "effect.hs";
   shaders[kHullStage].code = ""
+      "#pragma pack_matrix(row_major)\n"
       "cbuffer c_buffer {"
       "  float4 edge;"
       "  float4 inside;"
@@ -159,18 +160,18 @@ TessEffectPtr CreateTessEffect() {
       "HSCOutput PatchConstantFunc(InputPatch<VsOutput, 4> input, "
       "  uint patchid : SV_PrimitiveID) {\n"
       "  HSCOutput output;"
-      "  output.edge[0] = edge.x;"
+      "  /*output.edge[0] = edge.x;"
       "  output.edge[1] = edge.y;"
       "  output.edge[2] = edge.z;"
       "  output.edge[3] = edge.w;"
       "  output.inside[0] = inside.x;"
-      "  output.inside[1] = inside.y;"
-      "  output.edge[0] = 1; // edge.x;\n"
-      "  output.edge[1] = 1; // edge.y;\n"
-      "  output.edge[2] = 1; // edge.z;\n"
-      "  output.edge[3] = 1; // edge.w;\n"
-      "  output.inside[0] = 1; // inside.x;\n"
-      "  output.inside[1] = 2; // inside.y;\n"
+      "  output.inside[1] = inside.y;*/"
+      "  output.edge[0] = 4;"
+      "  output.edge[1] = 4;"
+      "  output.edge[2] = 4;"
+      "  output.edge[3] = 4;"
+      "  output.inside[0] = 4;"
+      "  output.inside[1] = 4;"
       "  return output;\n"
       "}\n"
       "[domain(\"quad\")]\n"
@@ -187,7 +188,8 @@ TessEffectPtr CreateTessEffect() {
       "  return output;\n"
       "}\n";
   shaders[kDomainStage].path = "effect.ds";
-  shaders[kDomainStage].code = "#pragma pack_matrix(row_major)\n"
+  shaders[kDomainStage].code = ""
+      "#pragma pack_matrix(row_major)\n"
       "cbuffer c_buffer {"
       "  float4x4 pvw;"
       "  float4x4 world;"
@@ -199,20 +201,22 @@ TessEffectPtr CreateTessEffect() {
       "struct HsOutput {"
       "  float4 position: POSITION;"
       "};\n"
-      "struct DomainOutput {"
+      "struct DsOutput {"
       "  float4 position: SV_POSITION;"
       "};\n"
       "[domain(\"quad\")]\n"
-      "DomainOutput ds_main(HSCOutput input, float2 uv : SV_DomainLocation,"
-      "  const OutputPatch<HsOutput, 4> quad) {\n"
-      "  DomainOutput output;\n"
-      "  float3 v1 = lerp(quad[0].position.xyz, quad[1].position.xyz, uv.y);\n"
-      "  float3 v2 = lerp(quad[2].position.xyz, quad[3].position.xyz, uv.y);\n"
-      "  output.position = mul(pvw, float4(lerp(v1, v2, uv.x), 1.0f));\n"
+      "DsOutput ds_main(HSCOutput input, "
+      "                 const OutputPatch<HsOutput, 4> quad, "
+      "                 float2 uv : SV_DomainLocation) {\n"
+      "  DsOutput output;\n"
+      "  float3 v1 = lerp(quad[0].position.xyz, quad[1].position.xyz, uv.x);\n"
+      "  float3 v2 = lerp(quad[3].position.xyz, quad[2].position.xyz, uv.x);\n"
+      "  output.position = mul(pvw, float4(lerp(v1, v2, uv.y), 1.0f));\n"
       "  return output;\n"
       "}\n";
   shaders[kPixelStage].path = "effect.ps";
-  shaders[kPixelStage].code = "#pragma pack_matrix(row_major)\n"
+  shaders[kPixelStage].code = ""
+      "#pragma pack_matrix(row_major)\n"
       "struct DsOutput {\n"
       "  float4 position:SV_POSITION;\n"
       "};\n"
@@ -276,17 +280,10 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  /*
   Vector3 points[] = {Vector3(-0.5f,  0.5f, 0.0f),
                       Vector3(-0.5f, -0.5f, 0.0f),
                       Vector3( 0.5f, -0.5f, 0.0f),
                       Vector3( 0.5f,  0.5f, 0.0f),};
-  */
-  Vector3 points[] = {Vector3(-0.5f,  0.5f, 0.0f),
-                      Vector3( 0.5f,  0.5f, 0.0f),
-                      Vector3( 0.5f, -0.5f, 0.0f),
-                      Vector3(-0.5f, -0.5f, 0.0f),
-                      };
   entity_ = CreateGeoPointsList(points, (int)arraysize(points), 
                                 effect_->vertex_desc(), Matrix4::kIdentity);
   entity_->set_topology(kControlPoint4);
@@ -303,7 +300,6 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   Vector3 position[] = {
     Vector3(-1.0f, -1.0f, 0.0f),
     Vector3(-1.0f,  1.0f, 0.0f),
-    
     Vector3( 1.0f,  1.0f, 0.0f),
     Vector3( 1.0f, -1.0f, 0.0f),
   };
@@ -325,7 +321,8 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   for (uint32 i = 0; i < arraysize(position); ++i) {
-    effect_->SetWorld(Translate(position[i]));
+    Matrix4 world = Translate(position[i]) * RotateY(Degree(args.time() * 180.0f));
+    effect_->SetWorld(world);
     effect_->SetEdge(edge[i]);
     effect_->SetInside(inside[i]);
     renderer->UseEffect(effect_);
