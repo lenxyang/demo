@@ -3,11 +3,29 @@
 group("tessellation") {
   deps = [
     ":tessellation_triangle",
+    ":tessellation_rect",
+    ":tessellation_tile",
   ]
 }
 
 executable("tessellation_triangle") {
   sources = [ "triangle.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("tessellation_rect") {
+  sources = [ "rect.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("tessellation_tile") {
+  sources = [ "tile.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",
