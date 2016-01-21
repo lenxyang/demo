@@ -1,0 +1,23 @@
+
+group("terrain") {
+  deps = [
+    ":terrain_grid",
+  ]
+}
+
+static_library("tile") {
+  sources = ["tile.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("terrain_grid") {
+  sources = [ "terrain_grid.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":tile",
+  ]
+}

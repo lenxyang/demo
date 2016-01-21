@@ -1,4 +1,4 @@
-#include "demo/tessellation/tile.h"
+#include "demo/terrain/tile.h"
 
 #include "azer/render/render.h"
 #include "azer/render/index_pack.h"
