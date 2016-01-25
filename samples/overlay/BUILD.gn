@@ -1,6 +1,6 @@
 
 executable("overlay") {
-  output_name = "samples_overlay";
+  output_name = "samples_overlay"
   sources = [ "main.cc", ]
   deps = [
     "//lordaeron",

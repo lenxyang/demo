@@ -2,7 +2,7 @@
 
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
-#include "demo/base/material.h"
+#include "demo/base/base.h"
 #include "demo/base/textured_effect.h"
 
 using base::FilePath;
@@ -20,9 +20,7 @@ class MyRenderWindow : public lord::FrameWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  RenderNodePtr render_root_;
-  RenderNodePtr bvolumn_root_;
-  scoped_ptr<UISceneRender> tree_render_;
+  scoped_ptr<UISceneRender> scene_render_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -33,6 +31,9 @@ int main(int argc, char* argv[]) {
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
   adapterctx->RegisteAdapter(new LordEnvNodeDelegateTexEffectAdapter);
+  adapterctx->RegisteAdapter(new BasicColorEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeBasicEffectAdapter);
+  adapterctx->RegisteAdapter(new LordEnvNodeBasicEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -42,8 +43,6 @@ int main(int argc, char* argv[]) {
   window->Init();
   window->Show();
 
-  lord::ObjectControlToolbar* toolbar =
-      new lord::ObjectControlToolbar(window, window->GetInteractive());
   window->GetRenderLoop()->Run();
   return 0;
 }
@@ -56,21 +55,23 @@ SceneNodePtr MyRenderWindow::InitScene() {
 
   ResourceLoader* resloader = env->resource_loader();
   InitDefaultLoader(resloader);
-  ResPath respath(UTF8ToUTF16("//multislot/scene.xml"));
+  resloader->RegisterSpecialLoader(new GeometryLoader);
+
+  ResPath respath(UTF8ToUTF16("//samples/objects/objects.xml:scene"));
   VariantResource res = resloader->Load(respath);
   SceneNodePtr root = res.scene;
   CHECK(root.get()) << "Failed to init scene";
 
-  tree_render_.reset(new UISceneRender);
-  tree_render_->Init(root, &camera());
-  
+  scene_render_.reset(new UISceneRender);
+  scene_render_->Init(root, &camera());
+  LOG(ERROR) << scene_render_->root()->DumpTree();
   return root;
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
-  tree_render_->Update(args);
+  scene_render_->Update(args);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  tree_render_->Render(renderer);
+  scene_render_->Render(renderer);
 }

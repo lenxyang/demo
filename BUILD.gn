@@ -1,8 +1,7 @@
 
 group("demo") {
   deps = [
-    "geometry",
-    "multislot",
+    "samples",
     "stencil",
     "compute_shader",
     "parallax_occlusion_mapping",

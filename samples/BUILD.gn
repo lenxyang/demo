@@ -2,5 +2,6 @@
 group("samples") {
   deps = [
     "overlay",
+    "objects",
   ]
 }
