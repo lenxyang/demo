@@ -1,0 +1,9 @@
+
+executable("triangle") {
+  output_name = "samples_triangle";
+  sources = [ "main.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}

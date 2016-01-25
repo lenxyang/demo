@@ -160,18 +160,12 @@ TessEffectPtr CreateTessEffect() {
       "HSCOutput PatchConstantFunc(InputPatch<VsOutput, 4> input, "
       "  uint patchid : SV_PrimitiveID) {\n"
       "  HSCOutput output;"
-      "  /*output.edge[0] = edge.x;"
+      "  output.edge[0] = edge.x;"
       "  output.edge[1] = edge.y;"
       "  output.edge[2] = edge.z;"
       "  output.edge[3] = edge.w;"
       "  output.inside[0] = inside.x;"
-      "  output.inside[1] = inside.y;*/"
-      "  output.edge[0] = 4;"
-      "  output.edge[1] = 4;"
-      "  output.edge[2] = 4;"
-      "  output.edge[3] = 4;"
-      "  output.inside[0] = 4;"
-      "  output.inside[1] = 4;"
+      "  output.inside[1] = inside.y;"
       "  return output;\n"
       "}\n"
       "[domain(\"quad\")]\n"
@@ -321,7 +315,7 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   for (uint32 i = 0; i < arraysize(position); ++i) {
-    Matrix4 world = Translate(position[i]) * RotateY(Degree(args.time() * 180.0f));
+    Matrix4 world = Translate(position[i]);
     effect_->SetWorld(world);
     effect_->SetEdge(edge[i]);
     effect_->SetInside(inside[i]);
