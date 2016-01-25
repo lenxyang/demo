@@ -17,7 +17,7 @@ TexturePtr Load2DTexture(const ResPath& path, FileSystem* fs) {
   ImagePtr img(new Image(imgdata, Image::k2D));
   RenderSystem* rs = RenderSystem::Current();
   Texture::Options opt;
-  opt.target = Texture::kShaderResource;
+  opt.target = kBindTargetShaderResource;
   opt.size = gfx::Size(img->width(), img->height());
   TexturePtr tex = rs->CreateTexture(opt, img.get());
   return tex;

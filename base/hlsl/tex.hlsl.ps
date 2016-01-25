@@ -19,7 +19,7 @@ cbuffer c_buffer {
    float      specular_scalar;
 };
 
-Texture2D diffuse_map;
+Texture2D diffuse_map: register(t0);
 SamplerState texsampler;
 
 float4 ps_main(VsOutput o):SV_TARGET {

@@ -1,0 +1,34 @@
+
+group("objects") {
+  deps = [ ":earth", 
+           ":mslot_earth",  
+           ":scene_objects",
+         ]
+}
+
+executable("earth") {
+  output_name = "samples_objects_earth"
+  sources = [ "earth.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("mslot_earth") {
+  output_name = "samples_objects_mslot_earth"
+  sources = [ "earth.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("scene_objects") {
+  output_name = "samples_objects_scene"
+  sources = [ "scene_objects.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}

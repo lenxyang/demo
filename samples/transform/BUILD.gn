@@ -1,0 +1,14 @@
+
+group("transform") {
+  deps = [ ":rotate", 
+         ]
+}
+
+executable("rotate") {
+  output_name = "samples_transform_rotate"
+  sources = [ "rotate.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}

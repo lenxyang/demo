@@ -1,8 +1,21 @@
 
-executable("compute_shader") {
-  sources = [
-    "main.cc",
+group("compute_shader") {
+  deps = [
+    ":cs_vertadd",
+    ":cs_blur",
   ]
+}
+
+executable("cs_vertadd") {
+  sources = [ "vertadd.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("cs_blur") {
+  sources = [ "blur.cc", ]
   deps = [
     "//lordaeron",
     "//demo/base",

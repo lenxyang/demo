@@ -95,8 +95,7 @@ namespace {
 RendererPtr InitShadowmapRenderer(const gfx::Size& size) {
   RenderSystem* rs = RenderSystem::Current();
   Texture::Options opt;
-  opt.target = (Texture::BindTarget)
-      (Texture::kShaderResource | Texture::kRenderTarget);
+  opt.target = kBindTargetShaderResource | kBindTargetRenderTarget;
   opt.format = kRGBAf;
   opt.size = size;
   Viewport viewport(0, 0, opt.size.width(), opt.size.height());
