@@ -263,7 +263,7 @@ void MyRenderWindow::OnInit() {
                       Vector3( 0.5f, -0.21f, 0.0f)};
   entity_ = CreateGeoPointsList(points, (int)arraysize(points), 
                                 effect_->vertex_desc(), Matrix4::kIdentity);
-  entity_->set_topology(kControlPoint3);
+  entity_->set_primitive(kControlPoint3);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
   state_->SetFillMode(kWireFrame);

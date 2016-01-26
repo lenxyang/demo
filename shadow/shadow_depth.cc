@@ -58,8 +58,7 @@ SceneNodePtr MyRenderWindow::InitScene() {
 
   RenderSystem* rs = RenderSystem::Current();
   Texture::Options opt;
-  opt.target = (Texture::BindTarget)
-      (Texture::kShaderResource | Texture::kRenderTarget);
+  opt.target = (kBindTargetShaderResource | kBindTargetRenderTarget);
   opt.format = kRGBAf;
   opt.size = gfx::Size(800, 800);
   depth_renderer_ = rs->CreateRenderer(opt);

@@ -3,6 +3,7 @@ group("objects") {
   deps = [ ":earth", 
            ":mslot_earth",  
            ":scene_objects",
+           ":sdkmesh",
          ]
 }
 
@@ -27,6 +28,15 @@ executable("mslot_earth") {
 executable("scene_objects") {
   output_name = "samples_objects_scene"
   sources = [ "scene_objects.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("sdkmesh") {
+  output_name = "samples_objects_sdkmesh"
+  sources = [ "sdkmesh.cc", ]
   deps = [
     "//lordaeron",
     "//demo/base",

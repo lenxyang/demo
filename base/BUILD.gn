@@ -17,6 +17,7 @@ static_library("base") {
     "shadowmap_effect.h",
     "textured_effect.cc",
     "textured_effect.h",
+    "sdkmesh_loader.cc",
   ]
 
   deps = [

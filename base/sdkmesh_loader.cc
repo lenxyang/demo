@@ -4,8 +4,10 @@
 #include <vector>
 
 #include "base/basictypes.h"
+#include "base/files/file_util.h"
+#include "azer/render/render.h"
 
-
+using namespace azer;
 enum D3DDECLUSAGE
 {
   D3DDECLUSAGE_POSITION = 0,
@@ -38,14 +40,13 @@ enum D3DDECLTYPE
 
 #pragma pack(push,4)
 
-struct D3DVERTEXELEMENT9
-{
-  WORD    Stream;     // Stream index
-  WORD    Offset;     // Offset in the stream in bytes
-  BYTE    Type;       // Data type
-  BYTE    Method;     // Processing method
-  BYTE    Usage;      // Semantics
-  BYTE    UsageIndex; // Semantic index
+struct D3DVERTEXELEMENT9 {
+  uint16    Stream;     // Stream index
+  uint16    Offset;     // Offset in the stream in bytes
+  uint8    Type;       // Data type
+  uint8    Method;     // Processing method
+  uint8    Usage;      // Semantics
+  uint8    UsageIndex; // Semantic index
 };
 
 #pragma pack(pop)
@@ -141,10 +142,13 @@ struct SDKMESH_VERTEX_BUFFER_HEADER
   uint64 SizeBytes;
   uint64 StrideBytes;
   D3DVERTEXELEMENT9 Decl[MAX_VERTEX_ELEMENTS];
+  uint64 DataOffset;
+  /*
   union {
     uint64 DataOffset;
     ID3D11Buffer* pVB11;
   };
+  */
 };
 
 struct SDKMESH_INDEX_BUFFER_HEADER
@@ -152,27 +156,30 @@ struct SDKMESH_INDEX_BUFFER_HEADER
   uint64 NumIndices;
   uint64 SizeBytes;
   uint32 IndexType;
+  uint64 DataOffset;
+  /*
   union {
     uint64 DataOffset;
     ID3D11Buffer* pIB11;
   };
+  */
 };
 
 struct SDKMESH_MESH
 {
   char Name[MAX_MESH_NAME];
-  BYTE NumVertexBuffers;
+  uint8 NumVertexBuffers;
   uint32 VertexBuffers[MAX_VERTEX_STREAMS];
   uint32 IndexBuffer;
   uint32 NumSubsets;
   uint32 NumFrameInfluences; //aka bones
 
-  DirectX::XMFLOAT3 BoundingBoxCenter;
-  DirectX::XMFLOAT3 BoundingBoxExtents;
+  Vector3 BoundingBoxCenter;
+  Vector3 BoundingBoxExtents;
 
   union {
     uint64 SubsetOffset;
-    INT* pSubsets;
+    uint32* pSubsets;
   };
   union {
     uint64 FrameInfluenceOffset;
@@ -220,6 +227,7 @@ struct SDKMESH_MATERIAL
   Vector4 Emissive;
   FLOAT Power;
 
+  /*
   union {
     uint64 Force64_1;//Force the union to 64bits
     ID3D11Texture2D* pDiffuseTexture11;
@@ -245,11 +253,12 @@ struct SDKMESH_MATERIAL
     uint64 Force64_6;//Force the union to 64bits
     ID3D11ShaderResourceView* pSpecularRV11;
   };
+  */
 };
 
 struct SDKANIMATION_FILE_HEADER {
   uint32 Version;
-  BYTE IsBigEndian;
+  uint8 IsBigEndian;
   uint32 FrameTransformType;
   uint32 NumFrames;
   uint32 NumAnimationKeys;
@@ -279,35 +288,16 @@ struct SDKANIMATION_FRAME_DATA {
 //---------------------------------------------------------------------------------
 // Direct3D 9 Vertex Declaration to DirectInput 11 Input Layout mapping
 
-static void GetInputLayoutDesc( _In_reads_(32) const DXUT::D3DVERTEXELEMENT9 decl[],
-                                std::vector<D3D11_INPUT_ELEMENT_DESC>& inputDesc,
+static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
+                                std::vector<VertexDesc::Desc>& descs,
                                 bool &perVertexColor, bool& enableSkinning, 
                                 bool& dualTexture) {
-  static const D3D11_INPUT_ELEMENT_DESC elements[] = {
-    { "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 
-      D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "NORMAL",      0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 
-      D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "COLOR",       0, DXGI_FORMAT_B8G8R8A8_UNORM,     0, 
-      D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TANGENT",     0, DXGI_FORMAT_R32G32B32_FLOAT,    0,
-      D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "BINORMAL",    0, DXGI_FORMAT_R32G32B32_FLOAT,    0,
-      D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TEXCOORD",    0, DXGI_FORMAT_R32G32_FLOAT,       0,
-      D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "BLENDINDICES",0, DXGI_FORMAT_R8G8B8A8_UINT,      0,
-      D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "BLENDWEIGHT", 0, DXGI_FORMAT_R8G8B8A8_UNORM,     0,
-      D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-  };
-
   uint32_t offset = 0;
   uint32_t texcoords = 0;
 
   bool posfound = false;
-
-  for(uint32_t index = 0; index < DXUT::MAX_VERTEX_ELEMENTS; ++index) {
+  VertexDesc::Desc desc;
+  for(uint32_t index = 0; index < MAX_VERTEX_ELEMENTS; ++index) {
     if (decl[index].Usage == 0xFF)
       break;
 
@@ -318,120 +308,120 @@ static void GetInputLayoutDesc( _In_reads_(32) const DXUT::D3DVERTEXELEMENT9 dec
       break;
 
     if (decl[index].Usage == D3DDECLUSAGE_POSITION
-         && decl[index].Type == D3DDECLTYPE_FLOAT3) {
-      inputDesc.push_back(elements[0]);
-      offset += 12;
+        && decl[index].Type == D3DDECLTYPE_FLOAT3) {
+      strcpy(desc.name, "POSITION");
+      desc.semantic_index = 0;
+      desc.type = kVec3;
+      desc.instance_data_step = 0;
+      desc.aligned = false;
+      descs.push_back(desc);
       posfound = true;
     } else if (decl[index].Usage == D3DDECLUSAGE_NORMAL) {
+      strcpy(desc.name, "NORMAL");
+      desc.semantic_index = 0;
+      desc.type = kVec3;
+      desc.instance_data_step = 0;
+      desc.aligned = false;
       if (decl[index].Type == D3DDECLTYPE_FLOAT3) {
-        inputDesc.push_back(elements[1]);
-        offset += 12;
+        desc.type = kVec3;
       } else if (decl[index].Type == D3DDECLTYPE_FLOAT16_4) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[1];
-        desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-        inputDesc.push_back(desc);
-        offset += 8;
+        CHECK(false);
       } else if (decl[index].Type == D3DDECLTYPE_SHORT4N) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[1];
-        desc.Format = DXGI_FORMAT_R16G16B16A16_SNORM;
-        inputDesc.push_back(desc);
-        offset += 8;
+        CHECK(false);
       } else if (decl[index].Type == D3DDECLTYPE_UBYTE4N) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[1];
-        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        inputDesc.push_back(desc);
-        offset += 4;
+        CHECK(false);
       } else {
         break;
       }
+      descs.push_back(desc);
     } else if (decl[index].Usage == D3DDECLUSAGE_COLOR
                && decl[index].Type == D3DDECLTYPE_D3DCOLOR) {
-      inputDesc.push_back(elements[2]);
-      offset += 4;
-      perVertexColor = true;
+      strcpy(desc.name, "COLOR");
+      desc.semantic_index = 0;
+      desc.type = kUint;
+      desc.instance_data_step = 0;
+      desc.aligned = false;
+      descs.push_back(desc);
     } else if (decl[index].Usage == D3DDECLUSAGE_TANGENT) {
+      strcpy(desc.name, "TANGENT");
+      desc.semantic_index = 0;
+      desc.type = kVec3;
+      desc.instance_data_step = 0;
+      desc.aligned = false;
+      descs.push_back(desc);
       if (decl[index].Type == D3DDECLTYPE_FLOAT3) {
-        inputDesc.push_back(elements[3]);
-        offset += 12;
       } else if (decl[index].Type == D3DDECLTYPE_FLOAT16_4) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[3];
-        desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-        inputDesc.push_back(desc);
-        offset += 8;
+        CHECK(false);
       } else if (decl[index].Type == D3DDECLTYPE_SHORT4N) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[3];
-        desc.Format = DXGI_FORMAT_R16G16B16A16_SNORM;
-        inputDesc.push_back(desc);
-        offset += 8;
+        CHECK(false);
       } else if (decl[index].Type == D3DDECLTYPE_UBYTE4N) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[3];
-        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        inputDesc.push_back(desc);
-        offset += 4;
+        CHECK(false);
       } else {
         break;
       }
     } else if (decl[index].Usage == D3DDECLUSAGE_BINORMAL) {
+      strcpy(desc.name, "BINORMAL");
+      desc.semantic_index = 0;
+      desc.type = kVec3;
+      desc.instance_data_step = 0;
+      desc.aligned = false;
+      descs.push_back(desc);
       if (decl[index].Type == D3DDECLTYPE_FLOAT3) {
-        inputDesc.push_back(elements[4]);
-        offset += 12;
       } else if (decl[index].Type == D3DDECLTYPE_FLOAT16_4) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[4];
-        desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-        inputDesc.push_back(desc);
-        offset += 8;
+        CHECK(false);
       } else if (decl[index].Type == D3DDECLTYPE_SHORT4N) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[4];
-        desc.Format = DXGI_FORMAT_R16G16B16A16_SNORM;
-        inputDesc.push_back(desc);
-        offset += 8;
+        CHECK(false);
       } else if (decl[index].Type == D3DDECLTYPE_UBYTE4N) {
-        D3D11_INPUT_ELEMENT_DESC desc = elements[4];
-        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        inputDesc.push_back(desc);
-        offset += 4;
+        CHECK(false);
       } else {
         break;
       }
     } else if (decl[index].Usage == D3DDECLUSAGE_TEXCOORD) {
-      D3D11_INPUT_ELEMENT_DESC desc = elements[5];
-      desc.SemanticIndex = decl[index].UsageIndex;
-
+      strcpy(desc.name, "BINORMAL");
+      desc.semantic_index = decl[index].UsageIndex;;
+      desc.type = kVec2;
+      desc.instance_data_step = 0;
+      desc.aligned = false;
       bool unk = false;
       switch(decl[index].Type) {
         case D3DDECLTYPE_FLOAT2:    
-          offset += 8; break;
-        case D3DDECLTYPE_FLOAT1:    
-          desc.Format = DXGI_FORMAT_R32_FLOAT; offset += 4; break;
+          desc.type = kVec2; break;
+        case D3DDECLTYPE_FLOAT1:
+          desc.type = kFloat; break;
         case D3DDECLTYPE_FLOAT3:
-          desc.Format = DXGI_FORMAT_R32G32B32_FLOAT; offset += 12; break;
+          desc.type = kVec3; break;
         case D3DDECLTYPE_FLOAT4:
-          desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; offset += 16; break;
+          desc.type = kVec4; break;
         case D3DDECLTYPE_FLOAT16_2:
-          desc.Format = DXGI_FORMAT_R16G16_FLOAT; offset += 4; break;
+          CHECK(false); break;
         case D3DDECLTYPE_FLOAT16_4:
-          desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT; offset += 8; break;
+          CHECK(false); break;
         default:
           unk = true;
           break;
       }
-
       if (unk)
         break;
 
       ++texcoords;
-
-      inputDesc.push_back(desc);
+      descs.push_back(desc);
     } else if (decl[index].Usage == D3DDECLUSAGE_BLENDINDICES
                && decl[index].Type == D3DDECLTYPE_UBYTE4) {
       enableSkinning = true;
-      inputDesc.push_back(elements[6]);
-      offset += 4;
+      strcpy(desc.name, "BLENDINDICES");
+      desc.semantic_index = decl[index].UsageIndex;;
+      desc.type = kFloat;
+      desc.instance_data_step = 0;
+      desc.aligned = false;
+      descs.push_back(desc);
     } else if (decl[index].Usage == D3DDECLUSAGE_BLENDWEIGHT
                && decl[index].Type == D3DDECLTYPE_UBYTE4N) {
-      enableSkinning = true;
-      inputDesc.push_back(elements[7]);
-      offset += 4;
+      strcpy(desc.name, "BLENDWEIGHT");
+      desc.semantic_index = decl[index].UsageIndex;;
+      desc.type = kFloat;
+      desc.instance_data_step = 0;
+      desc.aligned = false;
+      descs.push_back(desc);
     } else {
       break;
     }
@@ -447,31 +437,27 @@ static void GetInputLayoutDesc( _In_reads_(32) const DXUT::D3DVERTEXELEMENT9 dec
 
 
 
-//======================================================================================
+//===============================================================================
 // Model Loader
-//======================================================================================
+//===============================================================================
 
-std::unique_ptr<Model> DirectX::Model::CreateFromSDKMESH(
-    ID3D11Device* d3dDevice, const uint8_t* meshData, size_t dataSize, 
-    IEffectFactory& fxFactory, bool ccw, bool pmalpha) {
-  if (!d3dDevice || !meshData)
-    throw std::exception("Device and meshData cannot be null");
-
+void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize, 
+                       bool ccw, bool pmalpha, SdkModel* model) {
   // File Headers
-  if (dataSize < sizeof(DXUT::SDKMESH_HEADER))
+  if (dataSize < sizeof(SDKMESH_HEADER))
     throw std::exception("End of file");
-  auto header = reinterpret_cast<const DXUT::SDKMESH_HEADER*>(meshData);
+  auto header = reinterpret_cast<const SDKMESH_HEADER*>(meshData);
 
-  size_t headerSize = sizeof(DXUT::SDKMESH_HEADER)
-      + header->NumVertexBuffers * sizeof(DXUT::SDKMESH_VERTEX_BUFFER_HEADER)
-      + header->NumIndexBuffers * sizeof(DXUT::SDKMESH_INDEX_BUFFER_HEADER);
+  size_t headerSize = sizeof(SDKMESH_HEADER)
+      + header->NumVertexBuffers * sizeof(SDKMESH_VERTEX_BUFFER_HEADER)
+      + header->NumIndexBuffers * sizeof(SDKMESH_INDEX_BUFFER_HEADER);
   if (header->HeaderSize != headerSize)
     throw std::exception("Not a valid SDKMESH file");
 
   if (dataSize < header->HeaderSize)
     throw std::exception("End of file");
 
-  if(header->Version != DXUT::SDKMESH_FILE_VERSION)
+  if(header->Version != SDKMESH_FILE_VERSION)
     throw std::exception("Not a supported SDKMESH version");
 
   if (header->IsBigEndian)
@@ -494,38 +480,38 @@ std::unique_ptr<Model> DirectX::Model::CreateFromSDKMESH(
 
   // Sub-headers
   if (dataSize < header->VertexStreamHeadersOffset
-       || (dataSize < (header->VertexStreamHeadersOffset + header->NumVertexBuffers * sizeof(DXUT::SDKMESH_VERTEX_BUFFER_HEADER))))
+       || (dataSize < (header->VertexStreamHeadersOffset + header->NumVertexBuffers * sizeof(SDKMESH_VERTEX_BUFFER_HEADER))))
     throw std::exception("End of file");
-  auto vbArray = reinterpret_cast<const DXUT::SDKMESH_VERTEX_BUFFER_HEADER*>(
+  auto vbArray = reinterpret_cast<const SDKMESH_VERTEX_BUFFER_HEADER*>(
       meshData + header->VertexStreamHeadersOffset);
 
   if (dataSize < header->IndexStreamHeadersOffset
-       || (dataSize < (header->IndexStreamHeadersOffset + header->NumIndexBuffers * sizeof(DXUT::SDKMESH_INDEX_BUFFER_HEADER))))
+       || (dataSize < (header->IndexStreamHeadersOffset + header->NumIndexBuffers * sizeof(SDKMESH_INDEX_BUFFER_HEADER))))
     throw std::exception("End of file");
-  auto ibArray = reinterpret_cast<const DXUT::SDKMESH_INDEX_BUFFER_HEADER*>(
+  auto ibArray = reinterpret_cast<const SDKMESH_INDEX_BUFFER_HEADER*>(
       meshData + header->IndexStreamHeadersOffset);
 
   if (dataSize < header->MeshDataOffset
-       || (dataSize < (header->MeshDataOffset + header->NumMeshes * sizeof(DXUT::SDKMESH_MESH))))
+       || (dataSize < (header->MeshDataOffset + header->NumMeshes * sizeof(SDKMESH_MESH))))
     throw std::exception("End of file");
-  auto meshArray = reinterpret_cast<const DXUT::SDKMESH_MESH*>(
+  auto meshArray = reinterpret_cast<const SDKMESH_MESH*>(
       meshData + header->MeshDataOffset);
 
   if (dataSize < header->SubsetDataOffset
-      || (dataSize < (header->SubsetDataOffset + header->NumTotalSubsets * sizeof(DXUT::SDKMESH_SUBSET))))
+      || (dataSize < (header->SubsetDataOffset + header->NumTotalSubsets * sizeof(SDKMESH_SUBSET))))
     throw std::exception("End of file");
-  auto subsetArray = reinterpret_cast<const DXUT::SDKMESH_SUBSET*>(
+  auto subsetArray = reinterpret_cast<const SDKMESH_SUBSET*>(
       meshData + header->SubsetDataOffset);
 
   if (dataSize < header->FrameDataOffset
-       || (dataSize < (header->FrameDataOffset + header->NumFrames * sizeof(DXUT::SDKMESH_FRAME))))
+       || (dataSize < (header->FrameDataOffset + header->NumFrames * sizeof(SDKMESH_FRAME))))
     throw std::exception("End of file");
-  // TODO - auto frameArray = reinterpret_cast<const DXUT::SDKMESH_FRAME*>(meshData + header->FrameDataOffset);
+  // TODO - auto frameArray = reinterpret_cast<const SDKMESH_FRAME*>(meshData + header->FrameDataOffset);
 
   if (dataSize < header->MaterialDataOffset
-       || (dataSize < (header->MaterialDataOffset + header->NumMaterials * sizeof(DXUT::SDKMESH_MATERIAL))))
+       || (dataSize < (header->MaterialDataOffset + header->NumMaterials * sizeof(SDKMESH_MATERIAL))))
     throw std::exception("End of file");
-  auto materialArray = reinterpret_cast<const DXUT::SDKMESH_MATERIAL*>(
+  auto materialArray = reinterpret_cast<const SDKMESH_MATERIAL*>(
       meshData + header->MaterialDataOffset);
 
   // Buffer data
@@ -536,12 +522,6 @@ std::unique_ptr<Model> DirectX::Model::CreateFromSDKMESH(
   const uint8_t* bufferData = meshData + bufferDataOffset;
 
   // Create vertex buffers
-  std::vector<ComPtr<ID3D11Buffer>> vbs;
-  vbs.resize(header->NumVertexBuffers);
-
-  std::vector<std::shared_ptr<std::vector<D3D11_INPUT_ELEMENT_DESC>>> vbDecls;
-  vbDecls.resize(header->NumVertexBuffers);
-
   std::vector<bool> perVertexColor;
   perVertexColor.resize(header->NumVertexBuffers);
 
@@ -551,42 +531,35 @@ std::unique_ptr<Model> DirectX::Model::CreateFromSDKMESH(
   std::vector<bool> enableDualTexture;
   enableDualTexture.resize(header->NumVertexBuffers);
 
+  RenderSystem* rs = RenderSystem::Current();
+  std::vector<VertexBufferPtr> vbs;;
   for(UINT j=0; j < header->NumVertexBuffers; ++j) {
     auto& vh = vbArray[j];
-
     if (dataSize < vh.DataOffset
          || (dataSize < vh.DataOffset + vh.SizeBytes))
       throw std::exception("End of file");
 
-    vbDecls[j] = std::make_shared<std::vector<D3D11_INPUT_ELEMENT_DESC>>();
     bool vertColor = false;
     bool skinning = false;
     bool dualTexture = false;
-    GetInputLayoutDesc(vh.Decl, *vbDecls[j].get(), vertColor, skinning, dualTexture);
+
+    std::vector<VertexDesc::Desc> descs;
+    GetInputLayoutDesc(vh.Decl, descs, vertColor, skinning, dualTexture);
     perVertexColor[j] = vertColor;
     enableSkinning[j] = skinning;
     enableDualTexture[j] = dualTexture;
 
+    VertexDescPtr desc(new VertexDesc(&descs.front(), descs.size()));
+    int32 vertex_count = vh.SizeBytes / desc->vertex_size();
+    SlotVertexDataPtr vdata(new SlotVertexData(desc, vertex_count));
     auto verts = reinterpret_cast<const uint8_t*>(
         bufferData + (vh.DataOffset - bufferDataOffset));
-
-    D3D11_BUFFER_DESC desc = {0};
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.ByteWidth = static_cast<UINT>(vh.SizeBytes);
-    desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-    D3D11_SUBRESOURCE_DATA initData = {0};
-    initData.pSysMem = verts;
-
-    ThrowIfFailed(d3dDevice->CreateBuffer(&desc, &initData, &vbs[j]));
-
-    SetDebugObjectName(vbs[j].Get(), "ModelSDKMESH");
+    memcpy(vdata->pointer(), verts, vh.SizeBytes);
+    vbs.push_back(rs->CreateVertexBuffer(VertexBuffer::Options(), vdata));
   }
 
   // Create index buffers
-  std::vector<ComPtr<ID3D11Buffer>> ibs;
-  ibs.resize(header->NumIndexBuffers);
-
+  std::vector<IndicesBufferPtr> ibs; 
   for(UINT j=0; j < header->NumIndexBuffers; ++j) {
     auto& ih = ibArray[j];
 
@@ -594,29 +567,27 @@ std::unique_ptr<Model> DirectX::Model::CreateFromSDKMESH(
          || (dataSize < ih.DataOffset + ih.SizeBytes))
       throw std::exception("End of file");
 
-    if (ih.IndexType != DXUT::IT_16BIT && ih.IndexType != DXUT::IT_32BIT)
+    if (ih.IndexType != IT_16BIT && ih.IndexType != IT_32BIT)
       throw std::exception("Invalid index buffer type found");
 
-    auto indices = reinterpret_cast<const uint8_t*>(bufferData + (ih.DataOffset - bufferDataOffset));
+    auto indices = reinterpret_cast<const uint8_t*>(
+        bufferData + (ih.DataOffset - bufferDataOffset));
 
-    D3D11_BUFFER_DESC desc = {0};
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.ByteWidth = static_cast<UINT>(ih.SizeBytes);
-    desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-    D3D11_SUBRESOURCE_DATA initData = {0};
-    initData.pSysMem = indices;
-    ThrowIfFailed(d3dDevice->CreateBuffer(&desc, &initData, &ibs[j]));
-    SetDebugObjectName(ibs[j].Get(), "ModelSDKMESH");
+    IndexType type = ih.IndexType == IT_16BIT ? kIndexUint16 : kIndexUint32;
+    int32 unit_size = ih.IndexType == IT_16BIT ? 2 : 4;
+    int32 index_count = ih.SizeBytes / unit_size;
+    IndicesDataPtr idata(new IndicesData(index_count, type));
+    memcpy(idata->pointer(), indices, ih.SizeBytes);
+    ibs.push_back(rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata));
   }
 
   // Create meshes
+  /*
   std::vector<MaterialRecordSDKMESH> materials;
   materials.resize(header->NumMaterials);
+  */
 
-  std::unique_ptr<Model> model(new Model());
-  model->meshes.reserve(header->NumMeshes);
-
+  std::vector<EntityPtr> entityvec;
   for(UINT meshIndex = 0; meshIndex < header->NumMeshes; ++meshIndex) {
     auto& mh = meshArray[meshIndex];
 
@@ -639,61 +610,48 @@ std::unique_ptr<Model> DirectX::Model::CreateFromSDKMESH(
            || (dataSize < mh.FrameInfluenceOffset + mh.NumFrameInfluences*sizeof(UINT)))
         throw std::exception("End of file");
 
-      // TODO - auto influences = reinterpret_cast<const UINT*>(meshData + mh.FrameInfluenceOffset);
+      // TODO - auto influences = reinterpret_cast<const UINT*>(
+      // meshData + mh.FrameInfluenceOffset);
     }
 
-    auto mesh = std::make_shared<ModelMesh>();
-    WCHAR meshName[DXUT::MAX_MESH_NAME];
-    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, mh.Name, -1, meshName, DXUT::MAX_MESH_NAME);
-    mesh->name = meshName;
-    mesh->ccw = ccw;
-    mesh->pmalpha = pmalpha;
-
-    // Extents
-    mesh->boundingBox.Center = mh.BoundingBoxCenter;
-    mesh->boundingBox.Extents = mh.BoundingBoxExtents;
-    BoundingSphere::CreateFromBoundingBox(mesh->boundingSphere, mesh->boundingBox);
+    
+    SdkMesh mesh;
+    mesh.name = mh.Name;
+    mesh.ccw = ccw;
+    mesh.pmalpha = pmalpha;
+    mesh.center = mh.BoundingBoxCenter;
+    mesh.extents = mh.BoundingBoxExtents;
 
     // Create subsets
-    mesh->meshParts.reserve(mh.NumSubsets);
     for(UINT j = 0; j < mh.NumSubsets; ++j) {
       auto sIndex = subsets[j];
       if (sIndex >= header->NumTotalSubsets)
         throw std::exception("Invalid mesh found");
 
+      PrimitiveTopology primitive;
       auto& subset = subsetArray[sIndex];
-
-      D3D11_PRIMITIVE_TOPOLOGY primType;
       switch(subset.PrimitiveType) {
-        case DXUT::PT_TRIANGLE_LIST:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+        case PT_TRIANGLE_LIST:
+          primitive = kTriangleList;
           break;
-        case DXUT::PT_TRIANGLE_STRIP:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+        case PT_TRIANGLE_STRIP:
+          primitive = kTriangleStrip;
           break;
-        case DXUT::PT_LINE_LIST:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+        case PT_LINE_LIST:
+          primitive = kLineList;
           break;
-        case DXUT::PT_LINE_STRIP:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+        case PT_LINE_STRIP:
+          primitive = kLineStrip;
           break;
-        case DXUT::PT_POINT_LIST:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+        case PT_POINT_LIST:
+          primitive = kPointList;
           break;
-        case DXUT::PT_TRIANGLE_LIST_ADJ:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ;
-          break;
-        case DXUT::PT_TRIANGLE_STRIP_ADJ:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ;
-          break;
-        case DXUT::PT_LINE_LIST_ADJ:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_LINELIST_ADJ;
-          break;
-        case DXUT::PT_LINE_STRIP_ADJ:
-          primType = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ;
-          break;
-        case DXUT::PT_QUAD_PATCH_LIST:
-        case DXUT::PT_TRIANGLE_PATCH_LIST:
+        case PT_TRIANGLE_LIST_ADJ:
+        case PT_TRIANGLE_STRIP_ADJ:
+        case PT_LINE_LIST_ADJ:
+        case PT_LINE_STRIP_ADJ:
+        case PT_QUAD_PATCH_LIST:
+        case PT_TRIANGLE_PATCH_LIST:
           throw std::exception("Direct3D9 era tessellation not supported");
 
         default:
@@ -703,38 +661,43 @@ std::unique_ptr<Model> DirectX::Model::CreateFromSDKMESH(
       if (subset.MaterialID >= header->NumMaterials)
         throw std::exception("Invalid mesh found");
 
+      /*
       auto& mat = materials[subset.MaterialID];
-
       if (!mat.effect) {
         size_t vi = mh.VertexBuffers[0];
         LoadMaterial(materialArray[subset.MaterialID],
                       perVertexColor[vi], enableSkinning[vi], enableDualTexture[vi],
                       fxFactory, mat);
       }
+      */
 
-      ComPtr<ID3D11InputLayout> il;
-      CreateInputLayout(d3dDevice, mat.effect.get(), *vbDecls[mh.VertexBuffers[0]].get(), &il);
-
-      auto part = new ModelMeshPart();
-      part->isAlpha = mat.alpha;
-
-      part->indexCount = static_cast<uint32_t>(subset.IndexCount);
-      part->startIndex = static_cast<uint32_t>(subset.IndexStart);
-      part->vertexOffset = static_cast<uint32_t>(subset.VertexStart);
-      part->vertexStride = static_cast<uint32_t>(vbArray[mh.VertexBuffers[0]].StrideBytes);
-      part->indexFormat = (ibArray[mh.IndexBuffer].IndexType == DXUT::IT_32BIT) ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT;
-      part->primitiveType = primType;
-      part->inputLayout = il;
-      part->indexBuffer = ibs[mh.IndexBuffer];
-      part->vertexBuffer = vbs[mh.VertexBuffers[0]];
-      part->effect = mat.effect;
-      part->vbDecl = vbDecls[mh.VertexBuffers[0]];
-
-      mesh->meshParts.emplace_back(part);
+      SdkMeshPart part;
+      // part.isalpha = mat.alpha;
+      part.entity = new Entity(vbs[mh.VertexBuffers[0]], ibs[mh.IndexBuffer]);
+      part.entity->set_primitive(primitive);
+      part.entity->set_vertex_base(static_cast<uint32_t>(subset.VertexStart));
+      part.entity->set_start_index(static_cast<uint32_t>(subset.IndexStart));
+     mesh.entity.push_back(part);
     }
 
-    model->meshes.emplace_back(mesh);
+    model->meshes.push_back(mesh);
+  }
+}
+
+
+bool Load(const ::base::FilePath& path, SdkModel* model) {
+  std::string contents;
+  if (!ReadFileToString(path, &contents)) {
+    LOG(ERROR) << "Failed to load vertex data from: " << path.value();
+    return false;
   }
 
-  return model;
+  try {
+    CreateFromSDKMESH((const uint8*)contents.c_str(), contents.length(),
+                      true, false, model);
+    return true;
+  } catch (std::exception& e) {
+    LOG(ERROR) << "Failed to Load SDKMesh: " << e.what();
+    return false;
+  }
 }

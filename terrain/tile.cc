@@ -46,9 +46,9 @@ EntityPtr CreateQuadTile(VertexDesc* vertex_desc, int32 level, float cell,
   RenderSystem* rs = RenderSystem::Current();
   VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
   IndicesBufferPtr ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata);
-  EntityPtr entity(new Entity(vertex_desc, vb, ib));
+  EntityPtr entity(new Entity(vb, ib));
   entity->set_vmin(mat * Vector4( xbegin, 0.0f,   zbegin, 1.0f));
   entity->set_vmax(mat * Vector4(-xbegin, 0.01f, -zbegin, 1.0f));
-  entity->set_topology(kControlPoint4);
+  entity->set_primitive(kControlPoint4);
   return entity;
 }

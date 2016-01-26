@@ -285,7 +285,7 @@ void MyRenderWindow::OnInit() {
 
   effect_ = CreateTessEffect();
   entity_ = CreateQuadTile(effect_->vertex_desc(), 3, 1.0f, Matrix4::kIdentity);
-  entity_->set_topology(kControlPoint4);
+  entity_->set_primitive(kControlPoint4);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
   state_->SetFillMode(kWireFrame);

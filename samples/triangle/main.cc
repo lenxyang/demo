@@ -186,7 +186,7 @@ void MyRenderWindow::OnInit() {
                       Vector3( 1.0f, 0.0f, 0.0f)};
   entity_ = CreateGeoPointsList(points, (int)arraysize(points), 
                                 effect_->vertex_desc(), Matrix4::kIdentity);
-  entity_->set_topology(kTriangleList);
+  entity_->set_primitive(kTriangleList);
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
