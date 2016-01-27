@@ -15,7 +15,8 @@ typedef std::vector<SdkMeshMaterialPtr> SdkMeshMaterials;
 
 struct SdkMesh {
   std::string name;
-  std::vector<azer::MeshPartPtr> part;
+  std::vector<azer::EntityPtr> entity;
+  std::vector<int32> mtrlidx;
   bool ccw;
   bool pmalpha;
   azer::Vector3 center;
@@ -24,19 +25,21 @@ struct SdkMesh {
 
 class SdkModel {
  public:
-  SdkMesh();
+  SdkModel();
 
   void AddMesh(SdkMesh mesh);
   void Update(const azer::FrameArgs& args);
-  void Renderer(azer::Renderer* renderer);
+  void Renderer(const Camera* camera, azer::Renderer* renderer);
 
   SdkMeshMaterials* mutable_materials() { return &materials_;}
+  SdkMeshEffect* effect() { return effect_.get();}
  private:
+  void RenderMesh(SdkMesh* mesh);
   azer::RasterizerStatePtr rasterize_state_;
   SdkMeshMaterials materials_;
   scoped_refptr<SdkMeshEffect> effect_;
   std::vector<SdkMesh> meshes_;
-  DISALLOW_COPY_AND_ASSIGN(SdkMesh);
+  DISALLOW_COPY_AND_ASSIGN(SdkModel);
 };
 
 class SdkMeshMaterial : public azer::EffectParamsProvider {

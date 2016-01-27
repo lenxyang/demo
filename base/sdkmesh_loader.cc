@@ -837,3 +837,36 @@ scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect() {
   ptr->Init(desc, shaders);
   return ptr;
 }
+
+// class SdkModel
+SdkMesh::SdkMesh() {
+  RenderSystem* rs = RenderSystem::Current();
+  rasterizer_state_ = rs->CreateRasterizerState();
+  rasterizer_state_->SetFrontFace(kCounterClockwise);
+  effect_ = CreateSdkMeshEffect();
+}
+
+void SdkMesh::AddMesh(SdkMesh mesh) {
+  meshes_.push_back(mesh);
+}
+
+void SdkMesh::Update(const azer::FrameArgs& args) {
+}
+
+void SdkMesh::RenderMesh(SdkMesh* mesh, Renderer* renderer) {
+  for (int32 i = 0; i < mesh->entity.size(); ++i) {
+    Entity* entity = mesh->entity[i];
+    SdkMeshMaterial* mtrl = materials_[mtrlidx[i]];
+    effect_->SetDiffuseMap(mtr->texture1());
+    effect_->SetSpecularMap(mtr->texture2());
+    entity->DrawIndex(renderer);
+  }
+}
+
+void SdkMesh::Renderer(const Camera* camera, Renderer* renderer) {
+  effect_->SetWorld(world_);
+  effect_->SetPV(camera->GetProjViewMatrix());
+  for (int32 i = 0; i < meshes_.size(); ++i) {
+    RenderMesh(meshes_[i], renderer);
+  }
+}
