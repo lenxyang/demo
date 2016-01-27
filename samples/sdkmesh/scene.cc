@@ -13,61 +13,17 @@ using namespace lord;
 class MyRenderWindow : public lord::FrameWindow {
  public:
   MyRenderWindow(const gfx::Rect& rect) 
-      : lord::FrameWindow(rect),
-        default_renderer_(true),
-        switching_(false) {
+      : lord::FrameWindow(rect) {
   }
 
   SceneNodePtr InitScene() override;
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
-  void switch_renderer() {
-    default_renderer_ = !default_renderer_;
-    switching_ = true;
-  }
  private:
   RenderNodePtr bvolumn_root_;
   scoped_ptr<UISceneRender> scene_render_;
   scoped_ptr<ShadowDepthRenderer> depth_render_;
-  bool default_renderer_;
-  bool switching_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
-};
-
-class RendererToolbar : public nelf::Toolbar,
-                        public views::ButtonListener {
- public:
-  RendererToolbar(MyRenderWindow* render_window)
-      : nelf::Toolbar(render_window),
-        render_window_(render_window) {
-    LordEnv* context = LordEnv::instance();
-    int32 toolbar_id = IDR_ICON_TOOLBAR_LAYERS;
-
-    using views::BoxLayout;
-    views::View* contents = new views::View;
-    contents->SetLayoutManager(new BoxLayout(BoxLayout::kHorizontal, 0, 1, 0));
-    nelf::ResourceBundle* bundle = context->resource_bundle();
-    int32 id = toolbar_id;
-    const gfx::ImageSkia* img = bundle->GetImageSkiaNamed(id);
-    button_ = new nelf::ToggleButton(*img);
-    button_->SetInsets(gfx::Insets(1, 1, 1, 1));
-    button_->SetImageLabelSpacing(0);
-    button_->set_listener(this);
-    button_->set_tag(id);
-    button_->SetMinSize(gfx::Size(32, 32));
-    button_->SetTooltipText(::base::UTF8ToUTF16("This is tooltip"));
-    contents->AddChildView(button_);
-    SetContents(contents);
-  }
-  ~RendererToolbar() {
-  }
- private:
-  void ButtonPressed(views::Button* sender, const ui::Event& event) override {
-    render_window_->switch_renderer();
-  }
-  MyRenderWindow* render_window_;
-  nelf::ToggleButton* button_;
-  DISALLOW_COPY_AND_ASSIGN(RendererToolbar);
 };
 
 int main(int argc, char* argv[]) {
@@ -91,9 +47,6 @@ int main(int argc, char* argv[]) {
   window->Init();
   window->Show();
 
-  RendererToolbar* toolbar = new RendererToolbar(window);
-  toolbar->Float();
-  toolbar->Dock(0, 1);
   window->GetRenderLoop()->Run();
   return 0;
 }
@@ -123,10 +76,6 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  if (switching_) {
-    switching_ = false;
-    return;
-  }
   scene_render_->Render(renderer);
 }
 

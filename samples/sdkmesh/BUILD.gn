@@ -3,6 +3,7 @@ group("sdkmesh") {
   deps = [
     ":simple",
     ":mesh",
+    ":scene",
   ]
 }
 
@@ -18,6 +19,15 @@ executable("simple") {
 executable("mesh") {
   output_name = "samples_sdkmesh_mesh"
   sources = [ "mesh.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("scene") {
+  output_name = "samples_sdkmesh_scene"
+  sources = [ "scene.cc", ]
   deps = [
     "//lordaeron",
     "//demo/base",
