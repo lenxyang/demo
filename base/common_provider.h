@@ -22,13 +22,17 @@ class CameraProvider : public azer::EffectParamsProvider {
 
 class WorldProvider : public azer::EffectParamsProvider {
  public:
-  WorldProvider() {}
+  WorldProvider() : world_(azer::Matrix4::kIdentity) {}
   const char* GetProviderName() const override { return "WorldProvider";}
 
-  void SetTransform(const azer::Matrix4& mat) { world_ = mat;}
-  const azer::Matrix4& world() const { return world_;}
+  azer::TransformHolder* mutable_holder() { return &holder_;}
+  const azer::Matrix4& world() const { 
+    world_ = std::move(holder_.GenWorldMatrix());
+    return world_;
+  }
  private:
-  azer::Matrix4 world_;
+  mutable azer::Matrix4 world_;
+  azer::TransformHolder holder_;
   DISALLOW_COPY_AND_ASSIGN(WorldProvider);
 };
 

@@ -52,13 +52,13 @@ int main(int argc, char* argv[]) {
 void MyRenderWindow::OnInit() {
   RenderSystem* rs = RenderSystem::Current();
   LordEnv* env = LordEnv::instance();
+  azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   base::FilePath root(UTF8ToUTF16("demo/samples/sdkmesh/data"));
   scoped_ptr<FileSystem> fs(new NativeFileSystem(root));
   env->SetFileSystem(fs.Pass());
 
-
   SpotLight spotlight;
-  spotlight.diffuse = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+  spotlight.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
   spotlight.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
   spotlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
   spotlight.position = Vector4(-3.0, 3.0f, 0.0f, 1.0f);
@@ -70,7 +70,7 @@ void MyRenderWindow::OnInit() {
   spotlight.enable = 1.0f;
 
   lord::DirLight dirlight;
-  dirlight.ambient = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+  dirlight.ambient = Vector4(0.1f, 0.1f, 0.1f, 0.1f);
   dirlight.diffuse = Vector4(0.5f, 0.5f, 0.4f, 1.0f);
   dirlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
   dirlight.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
@@ -81,7 +81,7 @@ void MyRenderWindow::OnInit() {
 
   world_provider_ = new WorldProvider;
 
-  Vector3 camera_pos(0.0f, 0.0f, 5.0f);
+  Vector3 camera_pos(0.0f, 3.0f, 2.0f);
   Vector3 lookat(0.0f, 0.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
@@ -91,17 +91,19 @@ void MyRenderWindow::OnInit() {
   CHECK(LoadFileContents(modelpath, &contents, env->file_system()));
   SdkMeshData meshdata;
   CHECK(meshdata.LoadFromData(&contents.front(), contents.size()));
-  CHECK(meshdata.CreateMesh(&meshes_, env->file_system()));
-  azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
+  CHECK(meshdata.CreateMesh(&meshes_, adapterctx, env->file_system()));
   for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
-    (*iter)->SetEffectAdapterContext(adapterctx);
     (*iter)->AddProvider(camera_provider_);
     (*iter)->AddProvider(light_provider_);
     (*iter)->AddProvider(world_provider_);
   }
+
+  SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
+  Radians rad(3.14f * 0.5f * args.delta().InSecondsF());
+  world_provider_->mutable_holder()->yaw(rad);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {

@@ -11,7 +11,9 @@ class SdkMeshData {
   SdkMeshData();
 
   bool LoadFromData(const uint8* data, int32 size);
-  bool CreateMesh(std::vector<azer::MeshPtr>* meshes, azer::FileSystem* fs);
+  bool CreateMesh(std::vector<azer::MeshPtr>* meshes, 
+                  azer::EffectAdapterContext* ctx,
+                  azer::FileSystem* fs);
  private:
   bool LoadVertexData(const uint8* data, int32 size);
   bool LoadIndicesData(const uint8* data, int32 size);

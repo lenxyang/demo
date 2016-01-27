@@ -437,9 +437,10 @@ static void GetInputLayoutDesc(const D3DVERTEXELEMENT9 decl[],
 
 SdkMeshData::SdkMeshData() {}
 
-bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, FileSystem* fs) {
+bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, 
+                             azer::EffectAdapterContext* ctx,
+                             FileSystem* fs) {
   RenderSystem* rs = RenderSystem::Current();
-  azer::MeshPtr mesh(new azer::Mesh(NULL));
   std::vector<SdkMeshMaterialPtr> materials;
   scoped_refptr<SdkMeshEffect> effect = CreateSdkMeshEffect();
   std::vector<VertexBufferPtr> vbs;
@@ -452,7 +453,7 @@ bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, FileSystem* fs)
     m->set_specular(Vector4(mtrls_[i].specular_color, 1.0f));
     m->set_emissive(Vector4(mtrls_[i].emissive_color, 1.0f));
 
-    if (mtrls_[i].diffuse_texture.empty()) {
+    if (!mtrls_[i].diffuse_texture.empty()) {
       m->set_diffusemap(Load2DTexture(
           ResPath(UTF8ToUTF16(mtrls_[i].diffuse_texture)), fs));
     }
@@ -477,10 +478,11 @@ bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, FileSystem* fs)
   }
 
   for (uint32 i = 0; i < meshes_.size(); ++i) {
-    azer::MeshPtr mesh(new azer::Mesh(NULL));
+    azer::MeshPtr mesh(new azer::Mesh(ctx));
     meshes->push_back(mesh);
     for (uint32 j = 0; j < meshes_[i].subsets.size(); ++j) {
       MeshPartPtr part(new MeshPart(effect));
+      part->SetEffectAdapterContext(ctx);
       const Subset& subset = meshes_[i].subsets[j];
       VertexBuffer* vb = vbs[subset.vertex_data_index].get();
       IndicesBuffer* ib = subset.indices_data_index >= 0 

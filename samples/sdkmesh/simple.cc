@@ -60,7 +60,7 @@ void MyRenderWindow::OnInit() {
   CHECK(!LoadFileContents(modelpath, &contents, env->file_system()));
   SdkMeshData meshdata;
   CHECK(meshdata.LoadFromData(&contents.front(), contents.size()));
-  CHECK(meshdata.CreateMesh(&meshes_, env->file_system()));
+  CHECK(meshdata.CreateMesh(&meshes_, NULL, env->file_system()));
   for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
     (*iter)->AddProvider(camera_provider_);
   }

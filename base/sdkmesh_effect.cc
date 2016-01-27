@@ -40,6 +40,8 @@ void SdkMeshEffect::InitGpuConstantTable() {
     GpuConstantsTable::Desc("spotlight", offsetof(ps_cbuffer, spotlight),
                             sizeof(lord::SpotLight), 1),
   };
+  gpu_table_[kPixelStage] = rs->CreateGpuConstantsTable(
+      arraysize(ps_table_desc), ps_table_desc);
 }
 
 void SdkMeshEffect::ApplyGpuConstantTable(Renderer* renderer) {
@@ -49,6 +51,13 @@ void SdkMeshEffect::ApplyGpuConstantTable(Renderer* renderer) {
     DCHECK(tb != NULL);
     tb->SetValue(0, &pvw, sizeof(Matrix4));
     tb->SetValue(1, &world_, sizeof(Matrix4));
+  }
+
+  {
+    GpuConstantsTable* tb = gpu_table_[(int)kPixelStage].get();
+    DCHECK(tb != NULL);
+    tb->SetValue(0, &dir_light_, sizeof(lord::DirLight));
+    tb->SetValue(1, &spot_light_, sizeof(lord::SpotLight));
   }
 }
 
