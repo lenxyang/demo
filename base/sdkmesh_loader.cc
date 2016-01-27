@@ -497,7 +497,7 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
 
     auto indices = reinterpret_cast<const uint8_t*>(
         bufferData + (ih.DataOffset - bufferDataOffset));
-
+    
     IndexType type = ih.IndexType == IT_16BIT ? kIndexUint16 : kIndexUint32;
     int32 unit_size = ih.IndexType == IT_16BIT ? 2 : 4;
     int32 index_count = ih.SizeBytes / unit_size;

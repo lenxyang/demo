@@ -18,8 +18,8 @@ class MyRenderWindow : public lord::RenderWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  scoped_refptr<SdkMeshEffect> effect_;
-  SdkModel model;
+  // scoped_refptr<SdkMeshEffect> effect_;
+  // SdkModel model;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -55,17 +55,17 @@ void MyRenderWindow::OnInit() {
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
-  effect_ = CreateSdkMeshEffect();
-  azer::ResPath modelpath(FILE_PATH_LITERAL("//Helmet.sdkmesh"));
-  CHECK(LoadSDKModel(modelpath, env->file_system(), &model));
+  // effect_ = CreateSdkMeshEffect();
+  // azer::ResPath modelpath(FILE_PATH_LITERAL("//Helmet.sdkmesh"));
+  // CHECK(LoadSDKModel(modelpath, env->file_system(), &model));
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  effect_->SetPV(camera().GetProjViewMatrix());
-  effect_->SetWorld(Matrix4::kIdentity);
-  renderer->UseEffect(effect_);
-  model.meshes[0].entity[0]->DrawIndex(renderer);
+  // effect_->SetPV(camera().GetProjViewMatrix());
+  // effect_->SetWorld(Matrix4::kIdentity);
+  // renderer->UseEffect(effect_);
+  // model.meshes[0].entity[0]->DrawIndex(renderer);
 }

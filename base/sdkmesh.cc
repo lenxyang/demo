@@ -1,4 +1,4 @@
-#include "demo/tools/sdkmesh.h"
+#include "demo/base/sdkmesh.h"
 
 using namespace azer;
 
@@ -312,9 +312,7 @@ PrimitiveTopology TranslatePrimitiveType(uint32 type) {
 }
 
 static void GetInputLayoutDesc(const D3DVERTEXELEMENT9 decl[],
-                               std::vector<VertexDesc::Desc>& descs,
-                               bool &perVertexColor, bool& enableSkinning, 
-                               bool& dualTexture) {
+                               std::vector<VertexDesc::Desc>& descs) {
   uint32_t offset = 0;
   uint32_t texcoords = 0;
 
@@ -418,7 +416,6 @@ static void GetInputLayoutDesc(const D3DVERTEXELEMENT9 decl[],
       descs.push_back(desc);
     } else if (decl[index].Usage == D3DDECLUSAGE_BLENDINDICES
                && decl[index].Type == D3DDECLTYPE_UBYTE4) {
-      enableSkinning = true;
       strcpy(desc.name, "BLENDINDICES");
       desc.semantic_index = decl[index].UsageIndex;;
       desc.type = kFloat;
@@ -433,14 +430,168 @@ static void GetInputLayoutDesc(const D3DVERTEXELEMENT9 decl[],
       break;
     }
   }
-
-  if (!posfound)
-    throw std::exception("SV_Position is required");
-
-  if (texcoords == 2) {
-    dualTexture = true;
-  }
 }
 
-bool LoadFromData(const uint8* data, int32 size) {
+bool SdkMeshData::LoadFromData(const uint8* data, int32 size) {
+  if (!LoadVertexData(data, size)) {
+    LOG(ERROR) << "Failed to load VertexData;";
+    return false;
+  }
+
+  if (!LoadIndicesData(data, size)) {
+    LOG(ERROR) << "Failed to load IndicesData;";
+    return false;
+  }
+
+  if (!LoadMaterial(data, size)) {
+    LOG(ERROR) << "Failed to load Material.";
+    return false;
+  }
+
+  return true;
+}
+
+bool SdkMeshData::LoadMaterial(const uint8* data, int32 size) {
+  auto header = reinterpret_cast<const SDKMESH_HEADER*>(data);
+  auto materialArray = reinterpret_cast<const SDKMESH_MATERIAL*>(
+      data + header->MaterialDataOffset);
+
+  for (int32 i = 0; i < header->NumMaterials; ++i) {
+    auto& m = materialArray[i];
+    Material mtrl;
+    mtrl.name = m.Name;
+    mtrl.diffuse_color = m.Diffuse;
+    mtrl.ambient_color = m.Ambient;
+    mtrl.specular_color = m.Specular;
+    mtrl.emissive_color = m.Emissive;
+    mtrl.specular_power = m.Power;
+    mtrl.diffuse_texture = m.DiffuseTexture;
+    mtrl.normal_texture = m.NormalTexture;
+    mtrl.specular_texture = m.SpecularTexture;
+    mtrls.push_back(mtrl);
+  }
+  return true;
+}
+
+bool SdkMeshData::LoadIndicesData(const uint8* data, int32 size) {
+  auto header = reinterpret_cast<const SDKMESH_HEADER*>(data);
+  auto ibArray = reinterpret_cast<const SDKMESH_INDEX_BUFFER_HEADER*>(
+      data + header->IndexStreamHeadersOffset);
+  uint64 bufferDataOffset = header->HeaderSize + header->NonBufferDataSize;
+  const uint8* bufferData = data + bufferDataOffset;
+  for(uint32 i = 0; i < header->NumIndexBuffers; ++i) {
+    auto& ih = ibArray[i];
+    if (size < ih.DataOffset || (size < ih.DataOffset + ih.SizeBytes)) {
+      LOG(ERROR) << "Indices data overflow.";
+      return false;
+    }
+
+    if (ih.IndexType != IT_16BIT && ih.IndexType != IT_32BIT) {
+      LOG(ERROR) << "Invalid index buffer type found";
+      return false;
+    }
+
+    auto indices = reinterpret_cast<const uint8_t*>(
+        bufferData + (ih.DataOffset - bufferDataOffset));
+    
+    IndexType type = ih.IndexType == IT_16BIT ? kIndexUint16 : kIndexUint32;
+    int32 unit_size = ih.IndexType == IT_16BIT ? 2 : 4;
+    int32 index_count = ih.NumIndices;
+    IndicesDataPtr idata(new IndicesData(index_count, type));
+    memcpy(idata->pointer(), indices, ih.SizeBytes);
+    idata_vec_.push_back(idata);
+  }
+
+  return true;
+}
+
+bool SdkMeshData::LoadVertexData(const uint8* data, int32 size) {
+  auto header = reinterpret_cast<const SDKMESH_HEADER*>(data);
+  auto vbArray = reinterpret_cast<const SDKMESH_VERTEX_BUFFER_HEADER*>(
+      data + header->VertexStreamHeadersOffset);
+  uint64 bufferDataOffset = header->HeaderSize + header->NonBufferDataSize;
+  const uint8* bufferData = data + bufferDataOffset;
+  for(uint32 i = 0; i < header->NumVertexBuffers; ++i) {
+    auto& vh = vbArray[i];
+    if (size < vh.DataOffset || (size < vh.DataOffset + vh.SizeBytes)) {
+      LOG(ERROR) << "vertex data overflow.";
+      return false;
+    }
+
+    std::vector<VertexDesc::Desc> descs;
+    GetInputLayoutDesc(vh.Decl, descs);
+    VertexDescPtr desc(new VertexDesc(&descs.front(), descs.size()));
+    SlotVertexDataPtr vdata(new SlotVertexData(desc, vh.NumVertices));
+    auto verts = reinterpret_cast<const uint8_t*>(
+        bufferData + (vh.DataOffset - bufferDataOffset));
+    memcpy(vdata->pointer(), verts, vh.SizeBytes);
+    vdata_vec_.push_back(vdata);
+  }
+  return true;
+}
+
+bool SdkMeshData::LoadMesh(const uint8* data, int32 size) {
+  auto header = reinterpret_cast<const SDKMESH_HEADER*>(data);
+  auto meshArray = reinterpret_cast<const SDKMESH_MESH*>(
+      data + header->MeshDataOffset);
+  auto subsetArray = reinterpret_cast<const SDKMESH_SUBSET*>(
+      data + header->SubsetDataOffset);
+  for(uint32 midx = 0; midx < header->NumMeshes; ++midx) {
+    auto& mh = meshArray[midx];
+    if (!mh.NumSubsets
+         || !mh.NumVertexBuffers
+         || mh.IndexBuffer >= header->NumIndexBuffers
+        || mh.VertexBuffers[0] >= header->NumVertexBuffers) {
+      LOG(ERROR) << "Invalid mesh found";
+      return false;
+    }
+
+    if (size < mh.SubsetOffset || (size < mh.SubsetOffset + 
+                                   mh.NumSubsets * sizeof(uint32))) {
+      LOG(ERROR) << "Meshdata overflow";
+      return false;
+    }
+
+    if (mh.NumFrameInfluences > 0) {
+      if (size < mh.FrameInfluenceOffset ||
+          (size < mh.FrameInfluenceOffset + mh.NumFrameInfluences*sizeof(uint32))) {
+        LOG(ERROR) << "End of file";
+        return false;
+      }
+    }
+    
+
+    meshes.push_back(Mesh());
+    Mesh& mesh = meshes.back();
+    mesh.name = mh.Name;
+    mesh.center = mh.BoundingBoxCenter;
+    mesh.extends = mh.BoundingBoxExtents;
+
+    auto subsets = reinterpret_cast<const uint32*>(data + mh.SubsetOffset);
+    for(uint32 j = 0; j < mh.NumSubsets; ++j) {
+      auto sIndex = subsets[j];
+      if (sIndex >= header->NumTotalSubsets) {
+        LOG(ERROR) << "Invalid mesh found";
+        return false;
+      }
+
+      auto& subset = subsetArray[sIndex];
+      if (subset.MaterialID >= header->NumMaterials) {
+        LOG(ERROR) << "Invalid mesh found";
+        return false;
+      }
+
+      PrimitiveTopology primitive = TranslatePrimitiveType(
+          subsetArray[sIndex].PrimitiveType);
+      Subset s;
+      s.vertex_base = static_cast<uint32>(subset.VertexStart);
+      s.start_index = static_cast<uint32>(subset.IndexStart);
+      s.vertex_data_index = mh.VertexBuffers[0];
+      s.vertex_data_index = mh.IndexBuffer;
+      s.material_index = subset.MaterialID;
+      s.primitive = TranslatePrimitiveType(subset.PrimitiveType);
+      mesh.subsets.push_back(s);
+    }
+  }
+  return true;
 }

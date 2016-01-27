@@ -9,6 +9,11 @@ class SdkMeshData {
  public:
   bool LoadFromData(const uint8* data, int32 size);
  private:
+  bool LoadVertexData(const uint8* data, int32 size);
+  bool LoadIndicesData(const uint8* data, int32 size);
+  bool LoadMaterial(const uint8* data, int32 size);
+  bool LoadMesh(const uint8* data, int32 size);
+
   struct Material {
     std::string         name;
     bool                per_vertex_color;
@@ -18,10 +23,12 @@ class SdkMeshData {
     azer::Vector3       diffuse_color;
     azer::Vector3       specular_color;
     azer::Vector3       emissive_color;
-    std::string         texture;
+    std::string         diffuse_texture;
+    std::string         normal_texture;
+    std::string         specular_texture;
   };
   
-  struct Part {
+  struct Subset {
     int32 vertex_base;
     int32 start_index;
     int32 vertex_data_index;
@@ -30,17 +37,17 @@ class SdkMeshData {
     azer::PrimitiveTopology primitive;
   };
 
-  struct Subset {
+  struct Mesh {
     std::string name;
     bool ccw;
     azer::Vector3 center;
     azer::Vector3 extends;
-    std::vector<Part> part;
+    std::vector<Subset> subsets;
   };
 
   std::vector<Material> mtrls;
-  std::vector<Subset> subset;
-  std::vector<azer::VertexDataPtr> vdata_;
-  std::vector<azer::IndicesDataPtr> idata_;
+  std::vector<Mesh> meshes;
+  std::vector<azer::SlotVertexDataPtr> vdata_vec_;
+  std::vector<azer::IndicesDataPtr> idata_vec_;
   DISALLOW_COPY_AND_ASSIGN(SdkMeshData);
 };

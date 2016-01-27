@@ -11,13 +11,16 @@ static_library("base") {
     "material.h",
     "effected_scene_render.cc",
     "effected_scene_render.h",
+    "sdkmesh.cc",
+    "sdkmesh.h",
+    "sdkmesh_effect.h",
+    "sdkmesh_effect.cc",
     "shadow_render_tree.cc",
     "shadow_render_tree.h",
     "shadowmap_effect.cc",
     "shadowmap_effect.h",
     "textured_effect.cc",
     "textured_effect.h",
-    "sdkmesh_loader.cc",
   ]
 
   deps = [
