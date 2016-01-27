@@ -453,18 +453,44 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
 }
 
 
+PrimitiveTopology TranslatePrimitiveType(uint32 type) {
+  PrimitiveTopology primitive;
+  switch(type) {
+    case PT_TRIANGLE_LIST:
+      primitive = kTriangleList;
+      break;
+    case PT_TRIANGLE_STRIP:
+      primitive = kTriangleStrip;
+      break;
+    case PT_LINE_LIST:
+      primitive = kLineList;
+      break;
+    case PT_LINE_STRIP:
+      primitive = kLineStrip;
+      break;
+    case PT_POINT_LIST:
+      primitive = kPointList;
+      break;
+    case PT_TRIANGLE_LIST_ADJ:
+    case PT_TRIANGLE_STRIP_ADJ:
+    case PT_LINE_LIST_ADJ:
+    case PT_LINE_STRIP_ADJ:
+    case PT_QUAD_PATCH_LIST:
+    case PT_TRIANGLE_PATCH_LIST:
+      throw std::exception("Direct3D9 era tessellation not supported");
 
-//===============================================================================
-// Model Loader
-//===============================================================================
+    default:
+      throw std::exception("Unknown primitive type");
+  }
 
-void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize, 
-                       bool ccw, bool pmalpha, SdkModel* model, FileSystem* fs) {
-  // File Headers
+  return primitive;
+}
+
+void CheckMeshData(const uint8* meshData, const uint32 dataSize) {
   if (dataSize < sizeof(SDKMESH_HEADER))
     throw std::exception("End of file");
-  auto header = reinterpret_cast<const SDKMESH_HEADER*>(meshData);
 
+  auto header = reinterpret_cast<const SDKMESH_HEADER*>(meshData);
   size_t headerSize = sizeof(SDKMESH_HEADER)
       + header->NumVertexBuffers * sizeof(SDKMESH_VERTEX_BUFFER_HEADER)
       + header->NumIndexBuffers * sizeof(SDKMESH_INDEX_BUFFER_HEADER);
@@ -499,26 +525,18 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
   if (dataSize < header->VertexStreamHeadersOffset
        || (dataSize < (header->VertexStreamHeadersOffset + header->NumVertexBuffers * sizeof(SDKMESH_VERTEX_BUFFER_HEADER))))
     throw std::exception("End of file");
-  auto vbArray = reinterpret_cast<const SDKMESH_VERTEX_BUFFER_HEADER*>(
-      meshData + header->VertexStreamHeadersOffset);
 
   if (dataSize < header->IndexStreamHeadersOffset
        || (dataSize < (header->IndexStreamHeadersOffset + header->NumIndexBuffers * sizeof(SDKMESH_INDEX_BUFFER_HEADER))))
     throw std::exception("End of file");
-  auto ibArray = reinterpret_cast<const SDKMESH_INDEX_BUFFER_HEADER*>(
-      meshData + header->IndexStreamHeadersOffset);
 
   if (dataSize < header->MeshDataOffset
        || (dataSize < (header->MeshDataOffset + header->NumMeshes * sizeof(SDKMESH_MESH))))
     throw std::exception("End of file");
-  auto meshArray = reinterpret_cast<const SDKMESH_MESH*>(
-      meshData + header->MeshDataOffset);
 
   if (dataSize < header->SubsetDataOffset
       || (dataSize < (header->SubsetDataOffset + header->NumTotalSubsets * sizeof(SDKMESH_SUBSET))))
     throw std::exception("End of file");
-  auto subsetArray = reinterpret_cast<const SDKMESH_SUBSET*>(
-      meshData + header->SubsetDataOffset);
 
   if (dataSize < header->FrameDataOffset
        || (dataSize < (header->FrameDataOffset + header->NumFrames * sizeof(SDKMESH_FRAME))))
@@ -528,15 +546,34 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
   if (dataSize < header->MaterialDataOffset
        || (dataSize < (header->MaterialDataOffset + header->NumMaterials * sizeof(SDKMESH_MATERIAL))))
     throw std::exception("End of file");
-  auto materialArray = reinterpret_cast<const SDKMESH_MATERIAL*>(
-      meshData + header->MaterialDataOffset);
 
   // Buffer data
   uint64_t bufferDataOffset = header->HeaderSize + header->NonBufferDataSize;
   if ((dataSize < bufferDataOffset)
        || (dataSize < bufferDataOffset + header->BufferDataSize))
     throw std::exception("End of file");
+}
+//===============================================================================
+// Model Loader
+//===============================================================================
+
+void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize, 
+                       bool ccw, bool pmalpha, SdkModel* model, FileSystem* fs) {
+  // File Headers
+  CheckMeshData(meshData, dataSize);
+  auto header = reinterpret_cast<const SDKMESH_HEADER*>(meshData);
+  uint64_t bufferDataOffset = header->HeaderSize + header->NonBufferDataSize;
   const uint8_t* bufferData = meshData + bufferDataOffset;
+  auto vbArray = reinterpret_cast<const SDKMESH_VERTEX_BUFFER_HEADER*>(
+      meshData + header->VertexStreamHeadersOffset);
+  auto ibArray = reinterpret_cast<const SDKMESH_INDEX_BUFFER_HEADER*>(
+      meshData + header->IndexStreamHeadersOffset);
+  auto meshArray = reinterpret_cast<const SDKMESH_MESH*>(
+      meshData + header->MeshDataOffset);
+  auto subsetArray = reinterpret_cast<const SDKMESH_SUBSET*>(
+      meshData + header->SubsetDataOffset);
+  auto materialArray = reinterpret_cast<const SDKMESH_MATERIAL*>(
+      meshData + header->MaterialDataOffset);
 
   // Create vertex buffers
   std::vector<bool> perVertexColor;
@@ -640,37 +677,10 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
       auto sIndex = subsets[j];
       if (sIndex >= header->NumTotalSubsets)
         throw std::exception("Invalid mesh found");
+      auto& subset = subsetArray[ sIndex ];
 
-      PrimitiveTopology primitive;
-      auto& subset = subsetArray[sIndex];
-      switch(subset.PrimitiveType) {
-        case PT_TRIANGLE_LIST:
-          primitive = kTriangleList;
-          break;
-        case PT_TRIANGLE_STRIP:
-          primitive = kTriangleStrip;
-          break;
-        case PT_LINE_LIST:
-          primitive = kLineList;
-          break;
-        case PT_LINE_STRIP:
-          primitive = kLineStrip;
-          break;
-        case PT_POINT_LIST:
-          primitive = kPointList;
-          break;
-        case PT_TRIANGLE_LIST_ADJ:
-        case PT_TRIANGLE_STRIP_ADJ:
-        case PT_LINE_LIST_ADJ:
-        case PT_LINE_STRIP_ADJ:
-        case PT_QUAD_PATCH_LIST:
-        case PT_TRIANGLE_PATCH_LIST:
-          throw std::exception("Direct3D9 era tessellation not supported");
-
-        default:
-          throw std::exception("Unknown primitive type");
-      }
-
+      PrimitiveTopology primitive = TranslatePrimitiveType(
+          subsetArray[sIndex].PrimitiveType);
       if (subset.MaterialID >= header->NumMaterials)
         throw std::exception("Invalid mesh found");
       
@@ -781,7 +791,7 @@ void SdkMeshEffect::ApplyGpuConstantTable(Renderer* renderer) {
   }
 }
 
-scoped_refptr<SdkMeshEffect> CreateSimpleEffect() {
+scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect() {
   // class PositionVertex
   const VertexDesc::Desc kVertexDesc[] = {
     {"POSITION", 0, kVec3},

@@ -7,6 +7,12 @@
 #include "lordaeron/effect/material.h"
 
 struct SDKMESH_MATERIAL;
+class SdkMeshMaterial;
+class SdkMeshEffect;
+
+typedef scoped_refptr<SdkMeshMaterial> SdkMeshMaterialPtr;
+typedef std::vector<SdkMeshMaterialPtr> SdkMeshMaterials;
+
 struct SdkMesh {
   std::string name;
   std::vector<azer::MeshPartPtr> part;
@@ -16,11 +22,22 @@ struct SdkMesh {
   azer::Vector3 extents;
 };
 
-struct SdkModel {
-  std::vector<SdkMesh> meshes;
-  std::vector<scoped_refptr<SdkMeshMaterial> > materials;
-};
+class SdkModel {
+ public:
+  SdkMesh();
 
+  void AddMesh(SdkMesh mesh);
+  void Update(const azer::FrameArgs& args);
+  void Renderer(azer::Renderer* renderer);
+
+  SdkMeshMaterials* mutable_materials() { return &materials_;}
+ private:
+  azer::RasterizerStatePtr rasterize_state_;
+  SdkMeshMaterials materials_;
+  scoped_refptr<SdkMeshEffect> effect_;
+  std::vector<SdkMesh> meshes_;
+  DISALLOW_COPY_AND_ASSIGN(SdkMesh);
+};
 
 class SdkMeshMaterial : public azer::EffectParamsProvider {
  public:
@@ -75,8 +92,8 @@ class SdkMeshEffect : public azer::Effect {
 
   void SetPV(const azer::Matrix4& value) { pv_ = value;}
   void SetWorld(const azer::Matrix4& value) { world_ = value;}
-  void SetDiffuseMap(Texture* ptr) { diffusemap_ = ptr;}
-  void SetSpecularMap(Texture* ptr) { specular_ = ptr;}
+  void SetDiffuseMap(azer::Texture* ptr) { diffusemap_ = ptr;}
+  void SetSpecularMap(azer::Texture* ptr) { specularmap_ = ptr;}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitGpuConstantTable();
@@ -87,6 +104,6 @@ class SdkMeshEffect : public azer::Effect {
   DISALLOW_COPY_AND_ASSIGN(SdkMeshEffect);
 };
 
-
+scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect();
 bool LoadSDKModel(const ::base::FilePath& path, SdkModel* model);
 bool LoadSDKModel(const azer::ResPath& path, azer::FileSystem* fs, SdkModel* model);

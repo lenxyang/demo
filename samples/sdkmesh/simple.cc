@@ -55,11 +55,9 @@ void MyRenderWindow::OnInit() {
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
-  effect_ = CreateSimpleEffect();
+  effect_ = CreateSdkMeshEffect();
   azer::ResPath modelpath(FILE_PATH_LITERAL("//Helmet.sdkmesh"));
   CHECK(LoadSDKModel(modelpath, env->file_system(), &model));
-  VertexBufferGroup* group = model.meshes[0].entity[0]->vertex_buffer_group();
-  LOG(ERROR) << DumpVertexDesc(group->vertex_desc());
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -68,7 +66,6 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetWorld(Matrix4::kIdentity);
-  effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   renderer->UseEffect(effect_);
   model.meshes[0].entity[0]->DrawIndex(renderer);
 }
