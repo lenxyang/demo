@@ -297,6 +297,9 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
 
   bool posfound = false;
   VertexDesc::Desc desc;
+  desc.input_slot = 0;
+  desc.instance_data_step = 0;
+  desc.aligned = false;
   for(uint32_t index = 0; index < MAX_VERTEX_ELEMENTS; ++index) {
     if (decl[index].Usage == 0xFF)
       break;
@@ -312,16 +315,12 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
       strcpy(desc.name, "POSITION");
       desc.semantic_index = 0;
       desc.type = kVec3;
-      desc.instance_data_step = 0;
-      desc.aligned = false;
       descs.push_back(desc);
       posfound = true;
     } else if (decl[index].Usage == D3DDECLUSAGE_NORMAL) {
       strcpy(desc.name, "NORMAL");
       desc.semantic_index = 0;
       desc.type = kVec3;
-      desc.instance_data_step = 0;
-      desc.aligned = false;
       if (decl[index].Type == D3DDECLTYPE_FLOAT3) {
         desc.type = kVec3;
       } else if (decl[index].Type == D3DDECLTYPE_FLOAT16_4) {
@@ -339,15 +338,11 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
       strcpy(desc.name, "COLOR");
       desc.semantic_index = 0;
       desc.type = kUint;
-      desc.instance_data_step = 0;
-      desc.aligned = false;
       descs.push_back(desc);
     } else if (decl[index].Usage == D3DDECLUSAGE_TANGENT) {
       strcpy(desc.name, "TANGENT");
       desc.semantic_index = 0;
       desc.type = kVec3;
-      desc.instance_data_step = 0;
-      desc.aligned = false;
       descs.push_back(desc);
       if (decl[index].Type == D3DDECLTYPE_FLOAT3) {
       } else if (decl[index].Type == D3DDECLTYPE_FLOAT16_4) {
@@ -363,8 +358,6 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
       strcpy(desc.name, "BINORMAL");
       desc.semantic_index = 0;
       desc.type = kVec3;
-      desc.instance_data_step = 0;
-      desc.aligned = false;
       descs.push_back(desc);
       if (decl[index].Type == D3DDECLTYPE_FLOAT3) {
       } else if (decl[index].Type == D3DDECLTYPE_FLOAT16_4) {
@@ -380,8 +373,6 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
       strcpy(desc.name, "BINORMAL");
       desc.semantic_index = decl[index].UsageIndex;;
       desc.type = kVec2;
-      desc.instance_data_step = 0;
-      desc.aligned = false;
       bool unk = false;
       switch(decl[index].Type) {
         case D3DDECLTYPE_FLOAT2:    
@@ -411,16 +402,12 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
       strcpy(desc.name, "BLENDINDICES");
       desc.semantic_index = decl[index].UsageIndex;;
       desc.type = kFloat;
-      desc.instance_data_step = 0;
-      desc.aligned = false;
       descs.push_back(desc);
     } else if (decl[index].Usage == D3DDECLUSAGE_BLENDWEIGHT
                && decl[index].Type == D3DDECLTYPE_UBYTE4N) {
       strcpy(desc.name, "BLENDWEIGHT");
       desc.semantic_index = decl[index].UsageIndex;;
       desc.type = kFloat;
-      desc.instance_data_step = 0;
-      desc.aligned = false;
       descs.push_back(desc);
     } else {
       break;
@@ -671,13 +658,13 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
       }
       */
 
-      SdkMeshPart part;
+      EntityPtr entity;
       // part.isalpha = mat.alpha;
-      part.entity = new Entity(vbs[mh.VertexBuffers[0]], ibs[mh.IndexBuffer]);
-      part.entity->set_primitive(primitive);
-      part.entity->set_vertex_base(static_cast<uint32_t>(subset.VertexStart));
-      part.entity->set_start_index(static_cast<uint32_t>(subset.IndexStart));
-     mesh.entity.push_back(part);
+      entity = new Entity(vbs[mh.VertexBuffers[0]], ibs[mh.IndexBuffer]);
+      entity->set_primitive(primitive);
+      entity->set_vertex_base(static_cast<uint32_t>(subset.VertexStart));
+      entity->set_start_index(static_cast<uint32_t>(subset.IndexStart));
+      mesh.entity.push_back(entity);
     }
 
     model->meshes.push_back(mesh);
@@ -685,7 +672,7 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
 }
 
 
-bool Load(const ::base::FilePath& path, SdkModel* model) {
+bool LoadSDKModel(const ::base::FilePath& path, SdkModel* model) {
   std::string contents;
   if (!ReadFileToString(path, &contents)) {
     LOG(ERROR) << "Failed to load vertex data from: " << path.value();

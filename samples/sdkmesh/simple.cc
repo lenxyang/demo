@@ -1,10 +1,7 @@
 #include <memory>
 
-#include "azer/render/geometry.h"
 #include "lordaeron/sandbox/sandbox.h"
-#include "lordaeron/resource/variant_resource.h"
-#include "demo/base/material.h"
-#include "demo/base/textured_effect.h"
+#include "demo/base/base.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -107,7 +104,7 @@ SimpleEffectPtr CreateSimpleEffect() {
       "  float4 position:SV_POSITION;\n"
       "}\n;"
       "struct VSInput {\n"
-      "  float4 position:POSITION;\n"
+      "  float3 position:POSITION;\n"
       "};\n"
       "cbuffer c_buffer {\n"
       "  float4x4 pvw;"
@@ -115,7 +112,7 @@ SimpleEffectPtr CreateSimpleEffect() {
       "};"
       "VsOutput vs_main(VSInput input) {\n"
       "VsOutput o;"
-      "o.position = mul(pvw, input.position);"
+      "o.position = mul(pvw, float4(input.position, 1.0));"
       "return o;"
       "}";
   shaders[kPixelStage].path = "effect.ps";
@@ -143,8 +140,8 @@ class MyRenderWindow : public lord::RenderWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
-  EntityPtr entity_;
-  SimpleEffectPtr effect_;
+  scoped_refptr<SimpleEffect> effect_;
+  SdkModel model;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -169,13 +166,10 @@ int main(int argc, char* argv[]) {
 }
 
 void MyRenderWindow::OnInit() {
+  RenderSystem* rs = RenderSystem::Current();
   LordEnv* env = LordEnv::instance();
-  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
-      FilePath(UTF8ToUTF16("demo/"))));
+  scoped_ptr<FileSystem> fs(new NativeFileSystem(FilePath(UTF8ToUTF16("demo/"))));
   env->SetFileSystem(fs.Pass());
-
-  ResourceLoader* resloader = env->resource_loader();
-  InitDefaultLoader(resloader);
 
   Vector3 camera_pos(0.0f, 0.0f, 5.0f);
   Vector3 lookat(0.0f, 0.0f, 0.0f);
@@ -183,12 +177,10 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateSimpleEffect();
-  Vector3 points[] = {Vector3( 0.0f, 1.0f, 0.0f),
-                      Vector3(-1.0f, 0.0f, 0.0f),
-                      Vector3( 1.0f, 0.0f, 0.0f)};
-  entity_ = CreateGeoPointsList(points, (int)arraysize(points), 
-                                effect_->vertex_desc(), Matrix4::kIdentity);
-  entity_->set_primitive(kTriangleList);
+  base::FilePath modelpath(FILE_PATH_LITERAL("demo/data/model/armor.sdkmesh"));
+  CHECK(LoadSDKModel(modelpath, &model));
+  VertexBufferGroup* group = model.meshes[0].entity[0]->vertex_buffer_group();
+  LOG(ERROR) << DumpVertexDesc(group->vertex_desc());
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -199,5 +191,5 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   effect_->SetWorld(Matrix4::kIdentity);
   effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   renderer->UseEffect(effect_);
-  entity_->Draw(renderer);
+  model.meshes[0].entity[0]->DrawIndex(renderer);
 }

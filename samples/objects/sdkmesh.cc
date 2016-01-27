@@ -1,10 +1,7 @@
 #include <memory>
 
 #include "lordaeron/sandbox/sandbox.h"
-#include "lordaeron/resource/variant_resource.h"
-#include "demo/base/material.h"
-#include "demo/base/textured_effect.h"
-#include "demo/base/resource_util.h"
+#include "demo/base/base.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -22,9 +19,8 @@ class MyRenderWindow : public lord::RenderWindow {
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
   scoped_refptr<TexturedEffect> effect_;
-  TexturePtr earthmap_;
-  EntityPtr earch_;
   SpotLight spotlight_;
+  SdkModel model;
   lord::DirLight dirlight_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
@@ -73,10 +69,6 @@ void MyRenderWindow::OnInit() {
   CHECK(LoadShaderAtStage(kVertexStage, "demo/base/hlsl/tex.hlsl.vs", &programs));
   CHECK(LoadShaderAtStage(kPixelStage, "demo/base/hlsl/tex.hlsl.ps", &programs));
   CHECK(effect_->Init(desc, programs));
-  ResPath earthmap_path(AZER_LITERAL("//data/media/earth.dds"));
-  earthmap_ = Load2DTexture(earthmap_path, env->file_system());
-  GeoSphereParams params;
-  earch_ = CreateSphereEntity(desc, params, Matrix4::kIdentity);
 
   spotlight_.diffuse = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
   spotlight_.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
@@ -94,6 +86,11 @@ void MyRenderWindow::OnInit() {
   dirlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
   dirlight_.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
   dirlight_.enable = 1.0f;
+
+  base::FilePath modelpath(FILE_PATH_LITERAL("demo/data/model/armor.sdkmesh"));
+  CHECK(LoadSDKModel(modelpath, &model));
+  VertexBufferGroup* group = model.meshes[0].entity[0]->vertex_buffer_group();
+  LOG(ERROR) << DumpVertexDesc(group->vertex_desc());
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -107,7 +104,6 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   effect_->SetSpotLight(spotlight_);
   effect_->set_ambient_scalar(0.01f);
   effect_->set_specular_scalar(0.8f);
-  effect_->set_diffuse_texture(earthmap_);
+  // effect_->set_diffuse_texture(earthmap_);
   renderer->UseEffect(effect_);
-  earch_->DrawIndex(renderer);
 }
