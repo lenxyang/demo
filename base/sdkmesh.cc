@@ -451,12 +451,21 @@ bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, FileSystem* fs)
     m->set_diffuse(Vector4(mtrls_[i].diffuse_color, 1.0f));
     m->set_specular(Vector4(mtrls_[i].specular_color, 1.0f));
     m->set_emissive(Vector4(mtrls_[i].emissive_color, 1.0f));
-    m->set_diffusemap(Load2DTexture(
-        ResPath(UTF8ToUTF16(mtrls_[i].diffuse_texture)), fs));
-    m->set_normalmap(Load2DTexture(
+
+    if (mtrls_[i].diffuse_texture.empty()) {
+      m->set_diffusemap(Load2DTexture(
+          ResPath(UTF8ToUTF16(mtrls_[i].diffuse_texture)), fs));
+    }
+
+    if (!mtrls_[i].normal_texture.empty()) {
+      m->set_normalmap(Load2DTexture(
         ResPath(UTF8ToUTF16(mtrls_[i].normal_texture)), fs));
-    m->set_specularmap(Load2DTexture(
-        ResPath(UTF8ToUTF16(mtrls_[i].specular_texture)), fs));
+    }
+
+    if (!mtrls_[i].specular_texture.empty()) {
+      m->set_specularmap(Load2DTexture(
+          ResPath(UTF8ToUTF16(mtrls_[i].specular_texture)), fs));
+    }
     materials.push_back(m);
   }
 
@@ -474,7 +483,8 @@ bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, FileSystem* fs)
       MeshPartPtr part(new MeshPart(effect));
       const Subset& subset = meshes_[i].subsets[j];
       VertexBuffer* vb = vbs[subset.vertex_data_index].get();
-      IndicesBuffer* ib = ibs[subset.indices_data_index].get();
+      IndicesBuffer* ib = subset.indices_data_index >= 0 
+        ? ibs[subset.indices_data_index].get() : NULL;
       EntityPtr entity = new Entity(vb, ib);
       entity->set_vertex_base(subset.vertex_base);
       entity->set_start_index(subset.start_index);
@@ -528,6 +538,15 @@ bool SdkMeshData::LoadMaterial(const uint8* data, int32 size) {
     mtrl.diffuse_texture = m.DiffuseTexture;
     mtrl.normal_texture = m.NormalTexture;
     mtrl.specular_texture = m.SpecularTexture;
+    if (!mtrl.diffuse_texture.empty()) {
+      mtrl.diffuse_texture.insert(0, "//");
+    }
+    if (!mtrl.normal_texture.empty()) {
+      mtrl.normal_texture.insert(0, "//");
+    }
+    if (!mtrl.specular_texture.empty()) {
+      mtrl.specular_texture.insert(0, "//");
+    }
     mtrls_.push_back(mtrl);
   }
   return true;

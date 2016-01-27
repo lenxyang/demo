@@ -1,6 +1,7 @@
 #include "demo/base/sdkmesh_effect.h"
 
-#include "demo/base/camera_provider.h"
+#include "demo/base/common_provider.h"
+#include "azer/render/util/shader_util.h"
 
 using namespace azer;
 
@@ -71,42 +72,13 @@ scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect() {
     {"TEXCOORD", 0, kVec2},
     {"TANGENT", 0, kVec3},
   };
-  Effect::ShaderPrograms shaders;
-  shaders.resize(kRenderPipelineStageNum);
-  shaders[kVertexStage].path = "effect.vs";
-  shaders[kVertexStage].stage = kVertexStage;
-  shaders[kVertexStage].code = ""
-      "#pragma pack_matrix(row_major)\n"
-      "struct VsOutput {\n"
-      "  float4 position:SV_POSITION;\n"
-      "}\n;"
-      "struct VSInput {\n"
-      "  float3 position:POSITION;\n"
-      "  float3 normal:NORMAL;\n"
-      "  float2 texcoord:TEXCOORD;\n"
-      "  float3 tangent:TANGENT;\n"
-      "};\n"
-      "cbuffer c_buffer {\n"
-      "  float4x4 pvw;"
-      "  float4x4 world;"
-      "};"
-      "VsOutput vs_main(VSInput input) {\n"
-      "VsOutput o;"
-      "o.position = mul(pvw, float4(input.position, 1.0));"
-      "return o;"
-      "}";
-  shaders[kPixelStage].path = "effect.ps";
-  shaders[kPixelStage].stage = kPixelStage;
-  shaders[kPixelStage].code = "#pragma pack_matrix(row_major)\n"
-      "struct VsOutput {\n"
-      "  float4 position:SV_POSITION;\n"
-      "};\n"
-      "float4 ps_main(VsOutput o):SV_TARGET {\n"
-      "  return color;"
-      "}\n";
+  Effect::ShaderPrograms s;
+  s.resize(kRenderPipelineStageNum);
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
+  CHECK(LoadShaderAtStage(kPixelStage, "demo/base/hlsl/sdkmesh.hlsl.ps", &s));
+  CHECK(LoadShaderAtStage(kVertexStage, "demo/base/hlsl/sdkmesh.hlsl.vs", &s));
   scoped_refptr<SdkMeshEffect> ptr(new SdkMeshEffect);
-  ptr->Init(desc, shaders);
+  ptr->Init(desc, s);
   return ptr;
 }
 
@@ -129,7 +101,9 @@ void SdkMeshMaterialEffectAdapter::Apply(
   CHECK(typeid(*params) == typeid(SdkMeshMaterial));
   const SdkMeshMaterial* provider = (const SdkMeshMaterial*)params;
   SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
-  effect->Set
+  effect->SetDiffuseMap(provider->diffusemap());
+  effect->SetNormalMap(provider->normalmap());
+  effect->SetSpecularMap(provider->specularmap());
 }
 
 
@@ -137,7 +111,7 @@ void SdkMeshMaterialEffectAdapter::Apply(
 CameraProviderSdkMeshAdapter::CameraProviderSdkMeshAdapter() {}
 EffectAdapterKey CameraProviderSdkMeshAdapter::key() const {
   return std::make_pair(typeid(SdkMeshEffect).name(),
-                        typeid(SdkMeshMaterial).name());
+                        typeid(CameraProvider).name());
 }
 
 void CameraProviderSdkMeshAdapter::Apply(
@@ -147,5 +121,40 @@ void CameraProviderSdkMeshAdapter::Apply(
   const CameraProvider* provider = (const CameraProvider*)params;
   SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
   effect->SetPV(provider->GetProjViewMatrix());
-  effect->SetCameraPos(provider->GetCameraPos());
+  effect->SetCameraPos(Vector4(provider->GetCameraPos(), 1.0f));
+}
+
+
+// class CameraProviderSdkMeshEffectProvider
+WorldProviderSdkMeshAdapter::WorldProviderSdkMeshAdapter() {}
+EffectAdapterKey WorldProviderSdkMeshAdapter::key() const {
+  return std::make_pair(typeid(SdkMeshEffect).name(),
+                        typeid(WorldProvider).name());
+}
+
+void WorldProviderSdkMeshAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(SdkMeshEffect));
+  CHECK(typeid(*params) == typeid(WorldProvider));
+  const WorldProvider* provider = (const WorldProvider*)params;
+  SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
+  effect->SetWorld(provider->world());
+}
+
+
+// class LightProviderSdkMeshEffectProvider
+LightProviderSdkMeshAdapter::LightProviderSdkMeshAdapter() {}
+EffectAdapterKey LightProviderSdkMeshAdapter::key() const {
+  return std::make_pair(typeid(SdkMeshEffect).name(),
+                        typeid(LightProvider).name());
+}
+
+void LightProviderSdkMeshAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(SdkMeshEffect));
+  CHECK(typeid(*params) == typeid(LightProvider));
+  const LightProvider* provider = (const LightProvider*)params;
+  SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
+  effect->SetSpotLight(provider->spot_light());
+  effect->SetDirLight(provider->dir_light());
 }

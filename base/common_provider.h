@@ -1,6 +1,7 @@
 #pragma once
 
 #include "azer/render/render.h"
+#include "lordaeron/effect/light.h"
 
 class CameraProvider : public azer::EffectParamsProvider {
  public:

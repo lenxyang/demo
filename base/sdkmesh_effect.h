@@ -110,4 +110,22 @@ class CameraProviderSdkMeshAdapter : public EffectParamsAdapter {
   DISALLOW_COPY_AND_ASSIGN(CameraProviderSdkMeshAdapter);
 };
 
+class WorldProviderSdkMeshAdapter : public EffectParamsAdapter {
+ public:
+  WorldProviderSdkMeshAdapter();
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(WorldProviderSdkMeshAdapter);
+};
+
+class LightProviderSdkMeshAdapter : public EffectParamsAdapter {
+ public:
+  LightProviderSdkMeshAdapter();
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LightProviderSdkMeshAdapter);
+};
+
 typedef scoped_refptr<SdkMeshMaterial> SdkMeshMaterialPtr;
