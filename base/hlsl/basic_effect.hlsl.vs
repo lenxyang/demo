@@ -8,8 +8,8 @@ struct VsOutput {
 };
 
 struct VSInput {
-  float4 position:POSITION;
-  float4 normal:NORMAL;
+  float3 position:POSITION;
+  float3 normal:NORMAL;
 };
 
 cbuffer c_buffer {
@@ -20,9 +20,11 @@ cbuffer c_buffer {
 
 VsOutput vs_main(VSInput input) {
   VsOutput o;
-  o.position = mul(pvw, input.position);
-  o.worldpos = mul(world, input.position).xyz;
+  float4 pos = float4(input.position, 1.0);
+  float4 normal = float4(input.normal, 0.0);
+  o.position = mul(pvw, pos);
+  o.worldpos = mul(world, pos).xyz;
   o.viewin = normalize(camerapos - o.worldpos);
-  o.normal = mul(world, input.normal);
+  o.normal = mul(world, normal);
   return o;
 }

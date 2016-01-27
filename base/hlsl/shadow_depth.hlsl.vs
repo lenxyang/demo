@@ -5,8 +5,8 @@ struct VsOutput {
 };
 
 struct VSInput {
-  float4 position:POSITION;
-  float4 normal:NORMAL;
+  float3 position:POSITION;
+  float3 normal:NORMAL;
 };
 
 cbuffer c_buffer {
@@ -15,6 +15,6 @@ cbuffer c_buffer {
 
 VsOutput vs_main(VSInput input) {
   VsOutput o;
-  o.position = mul(pvw, input.position);
+  o.position = mul(pvw, float4(input.position, 1.0f));
   return o;
 }

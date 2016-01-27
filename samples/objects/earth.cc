@@ -63,8 +63,8 @@ void MyRenderWindow::OnInit() {
   // earchmap
   // class ColoredPosNormalVertex
   const VertexDesc::Desc kVertexDesc[] = {
-    {"POSITION", 0, kVec4},
-    {"NORMAL", 0, kVec4},
+    {"POSITION", 0, kVec3},
+    {"NORMAL", 0, kVec3},
     {"TEXCOORD", 0, kVec2},
   };
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));

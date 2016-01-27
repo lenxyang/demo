@@ -2,7 +2,7 @@
 <effects>
   <!-- for depth -->
   <vertex_desc name="depth_vertex_desc">
-    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="position" semindex="0" slot="0" data_type="vector3" />
   </vertex_desc>
   
   <effect name="depth_effect" effect_name="DepthEffect" 
@@ -26,8 +26,8 @@
 
   <!-- for shadow depth -->
   <vertex_desc name="shadow_depth_vertex_desc">
-    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
-    <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="position" semindex="0" slot="0" data_type="vector3" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector3" />
   </vertex_desc>
   <effect name="shadow_depth_effect2" effect_name="DepthEffect" 
           vertex_desc=":shadow_depth_vertex_desc">
@@ -36,14 +36,14 @@
   </effect>
 
   <vertex_desc name="tex_vertex_desc">
-    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
-    <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="position" semindex="0" slot="0" data_type="vector3" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector3" />
     <desc semantic="texcoord" semindex="0" slot="0" data_type="vector2" />
   </vertex_desc>
 
   <vertex_desc name="mslot_tex_vertex_desc">
-    <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
-    <desc semantic="normal" semindex="0" slot="0" data_type="vector4" />
+    <desc semantic="position" semindex="0" slot="0" data_type="vector3" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector3" />
     <desc semantic="texcoord" semindex="0" slot="1" data_type="vector2" />
   </vertex_desc>
 
