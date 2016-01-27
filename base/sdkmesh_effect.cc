@@ -25,9 +25,18 @@ void SdkMeshEffect::InitGpuConstantTable() {
                             offsetof(vs_cbuffer, pvw), 1),
     GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
                             offsetof(vs_cbuffer, world), 1),
+    GpuConstantsTable::Desc("camerapos", GpuConstantsType::kVector4,
+                            offsetof(vs_cbuffer, camerapos), 1),
   };
   gpu_table_[kVertexStage] = rs->CreateGpuConstantsTable(
       arraysize(vs_table_desc), vs_table_desc);
+
+  GpuConstantsTable::Desc ps_table_desc[] = {
+    GpuConstantsTable::Desc("dirlight", offsetof(ps_cbuffer, light),
+                            sizeof(lord::DirLight), 1),
+    GpuConstantsTable::Desc("spotlight", offsetof(ps_cbuffer, spotlight),
+                            sizeof(lord::SpotLight), 1),
+  };
 }
 
 void SdkMeshEffect::ApplyGpuConstantTable(Renderer* renderer) {
@@ -38,6 +47,18 @@ void SdkMeshEffect::ApplyGpuConstantTable(Renderer* renderer) {
     tb->SetValue(0, &pvw, sizeof(Matrix4));
     tb->SetValue(1, &world_, sizeof(Matrix4));
   }
+}
+
+void SdkMeshEffect::SetCameraPos(const Vector4& value) {
+  camerapos_ = value;
+}
+
+void SdkMeshEffect::SetDirLight(const lord::DirLight& value) {
+  dir_light_ = value;
+}
+
+void SdkMeshEffect::SetSpotLight(const SpotLight& value) {
+  spot_light_ = value;
 }
 
 scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect() {
@@ -85,4 +106,42 @@ scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect() {
   scoped_refptr<SdkMeshEffect> ptr(new SdkMeshEffect);
   ptr->Init(desc, shaders);
   return ptr;
+}
+
+void SdkMeshEffect::UseTexture(azer::Renderer* renderer) {
+  renderer->UseTexture(kPixelStage, 0, diffusemap_.get());
+  renderer->UseTexture(kPixelStage, 1, normalmap_.get());
+  renderer->UseTexture(kPixelStage, 2, specularmap_.get());
+}
+
+// class SdkMeshMaterialEffectAdapter
+SdkMeshMaterialEffectAdapter::SdkMeshMaterialEffectAdapter() {}
+EffectAdapterKey SdkMeshMaterialEffectAdapter::key() const {
+  return std::make_pair(typeid(SdkMeshEffect).name(),
+                        typeid(SdkMeshMaterial).name());
+}
+
+void SdkMeshMaterialEffectAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(SdkMeshEffect));
+  CHECK(typeid(*params) == typeid(RenderNode));
+  const SdkMeshEffect* provider = (const SdkMeshEffect*)params;
+  SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
+}
+
+
+// class CameraProviderSdkMeshEffectProvider
+CameraProviderSdkMeshEffectProvider::CameraProviderSdkMeshEffectProvider() {}
+EffectAdapterKey CameraProviderSdkMeshEffectProvider::key() const {
+  return std::make_pair(typeid(SdkMeshEffect).name(),
+                        typeid(SdkMeshMaterial).name());
+}
+
+void CameraProviderSdkMeshEffectProvider::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(SdkMeshEffect));
+  CHECK(typeid(*params) == typeid(CameraProvider));
+  const SdkMeshMaterial* provider = (const SdkMeshMaterial*)params;
+  SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
+  
 }

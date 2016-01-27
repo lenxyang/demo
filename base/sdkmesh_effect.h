@@ -7,6 +7,7 @@
 
 class SdkMeshMaterial : public azer::EffectParamsProvider {
  public:
+  SdkMeshMaterial();
   const char* GetProviderName() const override;
 
   azer::Texture* diffusemap() const { return diffusemap_.get();}
@@ -44,6 +45,11 @@ class SdkMeshEffect : public azer::Effect {
   struct vs_cbuffer {
     azer::Matrix4 pvw;
     azer::Matrix4 world;
+    azer::Vector4 camerapos;
+  };
+  struct ps_cbuffer {
+    lord::DirLight   dirlight;
+    lord::SpotLight  spotlight;
   };
 #pragma pack(pop)
 
@@ -52,11 +58,17 @@ class SdkMeshEffect : public azer::Effect {
   void SetDiffuseMap(azer::Texture* ptr) { diffusemap_ = ptr;}
   void SetNormalMap(azer::Texture* ptr) { normalmap_ = ptr;}
   void SetSpecularMap(azer::Texture* ptr) { specularmap_ = ptr;}
+  void SetPointLight(const lord::PointLight& value);
+  void SetSpotLight(const lord::SpotLight& value);
  protected:
+  void UseTexture(azer::Renderer* renderer) override;
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitGpuConstantTable();
   azer::Matrix4 pv_;
   azer::Matrix4 world_;
+  azer::Vector4 camerapos_;
+  lord::DirLight dir_light_;
+  lord::SpotLight spot_light_;
   azer::TexturePtr diffusemap_;
   azer::TexturePtr normalmap_;
   azer::TexturePtr specularmap_;
@@ -64,3 +76,26 @@ class SdkMeshEffect : public azer::Effect {
 };
 
 scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect();
+
+using azer::Effect;
+using azer::EffectParamsProvider;
+using azer::EffectAdapterKey;
+using azer::EffectParamsAdapter;
+
+class SdkMeshMaterialEffectAdapter : public EffectParamsAdapter {
+ public:
+  SdkMeshMaterialEffectAdapter();
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(SdkMeshMaterialEffectAdapter);
+};
+
+class CameraProviderSdkMeshAdapter : public EffectParamsAdapter {
+ public:
+  CameraProviderSdkMeshAdapter();
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CameraProviderSdkMeshAdapter);
+};
