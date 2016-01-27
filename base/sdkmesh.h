@@ -6,19 +6,12 @@
 #include "azer/base/file_system.h"
 #include "azer/render/render.h"
 
+class SdkMeshMaterial;
+typedef scoped_refptr<SdkMeshMaterial> SdkMeshMaterialPtr;
+
 class SdkMeshData {
  public:
   SdkMeshData(azer::FileSystem* fs);
-
-  bool LoadFromFile(const azer::ResPath& path);
-  bool CreateMesh(std::vector<azer::MeshPtr>* meshes, 
-                  azer::EffectAdapterContext* ctx);
- private:
-  bool LoadFromData(const uint8* data, int32 size);
-  bool LoadVertexData(const uint8* data, int32 size);
-  bool LoadIndicesData(const uint8* data, int32 size);
-  bool LoadMaterial(const uint8* data, int32 size);
-  bool LoadMesh(const uint8* data, int32 size);
 
   struct Material {
     std::string         name;
@@ -51,10 +44,30 @@ class SdkMeshData {
     std::vector<Subset> subsets;
   };
 
+  bool LoadFromFile(const azer::ResPath& path);
+  bool CreateMesh(std::vector<azer::MeshPtr>* meshes, 
+                  azer::EffectAdapterContext* ctx);
+  SdkMeshMaterialPtr CreateMaterial(int32 index);
+  const Subset& GetSubset(int32 mesh_index, int32 part_index);
+  azer::EntityPtr CreateEntity(int32 mesh_index, int32 part_index);
+
+  int32 mesh_count() const { return static_cast<int32>(meshes_.size());}
+  const Mesh& mesh_at(int32 index) { return meshes_[index];}
+  int32 material_count() const { return static_cast<int32>(mtrls_.size());}
+  const Material& mtrl_at(int32 index) { return mtrls_[index];}
+ private:
+  bool LoadFromData(const uint8* data, int32 size);
+  bool LoadVertexData(const uint8* data, int32 size);
+  bool LoadIndicesData(const uint8* data, int32 size);
+  bool LoadMaterial(const uint8* data, int32 size);
+  bool LoadMesh(const uint8* data, int32 size);
+
   std::vector<Material> mtrls_;
   std::vector<Mesh> meshes_;
   std::vector<azer::SlotVertexDataPtr> vdata_vec_;
   std::vector<azer::IndicesDataPtr> idata_vec_;
+  std::vector<azer::VertexBufferPtr> vbs_;
+  std::vector<azer::IndicesBufferPtr> ibs_;
   azer::ResPath model_path_;
   azer::FileSystem* filesystem_;
   DISALLOW_COPY_AND_ASSIGN(SdkMeshData);

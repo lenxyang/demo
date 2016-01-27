@@ -439,62 +439,56 @@ SdkMeshData::SdkMeshData(azer::FileSystem* fs)
     : filesystem_(fs) {
 }
 
+SdkMeshMaterialPtr SdkMeshData::CreateMaterial(int32 index) {
+  SdkMeshMaterialPtr m(new SdkMeshMaterial);
+  const Material& mtrl = mtrls_[index];
+  m->set_ambient(Vector4(mtrl.ambient_color, 1.0f));
+  m->set_diffuse(Vector4(mtrl.diffuse_color, 1.0f));
+  m->set_specular(Vector4(mtrl.specular_color, 1.0f));
+  m->set_emissive(Vector4(mtrl.emissive_color, 1.0f));
+
+  ResPath basedir(model_path_.DirName().as_string());
+  if (!mtrl.diffuse_texture.empty()) {
+    ResPath texpath = basedir;
+    texpath.Append(ResPath(UTF8ToUTF16(mtrl.diffuse_texture)));
+    m->set_diffusemap(Load2DTexture(texpath, filesystem_));
+  }
+
+  if (!mtrl.normal_texture.empty()) {
+    ResPath texpath = basedir;
+    texpath.Append(ResPath(UTF8ToUTF16(mtrl.normal_texture)));
+    m->set_normalmap(Load2DTexture(texpath, filesystem_));
+  }
+
+  if (!mtrl.specular_texture.empty()) {
+    ResPath texpath = basedir;
+    texpath.Append(ResPath(UTF8ToUTF16(mtrl.specular_texture)));
+    m->set_specularmap(Load2DTexture(texpath, filesystem_));
+  }
+  return m;
+}
+
 bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, 
                              azer::EffectAdapterContext* ctx) {
   RenderSystem* rs = RenderSystem::Current();
   std::vector<SdkMeshMaterialPtr> materials;
   scoped_refptr<SdkMeshEffect> effect = CreateSdkMeshEffect();
-  std::vector<VertexBufferPtr> vbs;
-  std::vector<IndicesBufferPtr> ibs;
 
   for (int32 i = 0; i < mtrls_.size(); ++i) {
-    SdkMeshMaterialPtr m(new SdkMeshMaterial);
-    m->set_ambient(Vector4(mtrls_[i].ambient_color, 1.0f));
-    m->set_diffuse(Vector4(mtrls_[i].diffuse_color, 1.0f));
-    m->set_specular(Vector4(mtrls_[i].specular_color, 1.0f));
-    m->set_emissive(Vector4(mtrls_[i].emissive_color, 1.0f));
-
-    ResPath basedir(model_path_.DirName().as_string());
-    if (!mtrls_[i].diffuse_texture.empty()) {
-      ResPath texpath = basedir;
-	  texpath.Append(ResPath(UTF8ToUTF16(mtrls_[i].diffuse_texture)));
-      m->set_diffusemap(Load2DTexture(texpath, filesystem_));
-    }
-
-    if (!mtrls_[i].normal_texture.empty()) {
-      ResPath texpath = basedir;
-	  texpath.Append(ResPath(UTF8ToUTF16(mtrls_[i].normal_texture)));
-      m->set_normalmap(Load2DTexture(texpath, filesystem_));
-    }
-
-    if (!mtrls_[i].specular_texture.empty()) {
-      ResPath texpath = basedir;
-	  texpath.Append(ResPath(UTF8ToUTF16(mtrls_[i].specular_texture)));
-      m->set_specularmap(Load2DTexture(texpath, filesystem_));
-    }
-    materials.push_back(m);
+    materials.push_back(CreateMaterial(i));
   }
 
-  for (int32 i = 0; i < vdata_vec_.size(); ++i) {
-    vbs.push_back(rs->CreateVertexBuffer(VertexBuffer::Options(), vdata_vec_[i]));
-  }
-  for (int32 i = 0; i < idata_vec_.size(); ++i) {
-    ibs.push_back(rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata_vec_[i]));
-  }
+  vbs_.resize(vdata_vec_.size());
+  ibs_.resize(idata_vec_.size());
 
   for (uint32 i = 0; i < meshes_.size(); ++i) {
     azer::MeshPtr mesh(new azer::Mesh(ctx));
     meshes->push_back(mesh);
     for (uint32 j = 0; j < meshes_[i].subsets.size(); ++j) {
+      const Subset& subset = meshes_[i].subsets[j];
       MeshPartPtr part(new MeshPart(effect));
       part->SetEffectAdapterContext(ctx);
-      const Subset& subset = meshes_[i].subsets[j];
-      VertexBuffer* vb = vbs[subset.vertex_data_index].get();
-      IndicesBuffer* ib = subset.indices_data_index >= 0 
-        ? ibs[subset.indices_data_index].get() : NULL;
-      EntityPtr entity = new Entity(vb, ib);
-      entity->set_vertex_base(subset.vertex_base);
-      entity->set_start_index(subset.start_index);
+      EntityPtr entity = CreateEntity(i, j);
       part->AddEntity(entity);
       part->AddProvider(materials[subset.material_index]);
       mesh->AddMeshPart(part);
@@ -502,6 +496,38 @@ bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes,
   }
 
   return true;
+}
+
+const SdkMeshData::Subset& SdkMeshData::GetSubset(int32 mesh_index,
+                                                  int32 part_index) {
+  DCHECK_LT(mesh_index, meshes_.size());
+  DCHECK_LT(part_index, meshes_[mesh_index].subsets.size());
+  return meshes_[mesh_index].subsets[part_index];
+}
+
+azer::EntityPtr SdkMeshData::CreateEntity(int32 mesh_index, int32 part_index) {
+  vbs_.resize(vdata_vec_.size());
+  ibs_.resize(idata_vec_.size());
+  const Subset& subset = GetSubset(mesh_index, part_index);
+  RenderSystem* rs = RenderSystem::Current();
+  int vidx = subset.vertex_data_index;
+  VertexBufferPtr vb = vbs_[vidx];
+  if (!vb.get()) {
+    vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata_vec_[vidx]);
+    vbs_[vidx] = vb;
+  }
+
+  int iidx = subset.indices_data_index;
+  IndicesBufferPtr ib = (iidx >= 0) ? ibs_[iidx] : NULL;
+  if (!vb.get() && iidx >= 0) {
+    ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata_vec_[iidx]);
+    ibs_[iidx] = ib;
+  }
+  
+  EntityPtr entity = new Entity(vb, ib);
+  entity->set_vertex_base(subset.vertex_base);
+  entity->set_start_index(subset.start_index);
+  return entity;
 }
 
 bool SdkMeshData::LoadFromFile(const azer::ResPath& path) {
