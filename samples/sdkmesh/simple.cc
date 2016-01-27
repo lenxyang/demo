@@ -92,7 +92,10 @@ typedef scoped_refptr<SimpleEffect> SimpleEffectPtr;
 SimpleEffectPtr CreateSimpleEffect() {
   // class PositionVertex
   const VertexDesc::Desc kVertexDesc[] = {
-    {"POSITION", 0, kVec4},
+    {"POSITION", 0, kVec3},
+    {"NORMAL", 0, kVec3},
+    {"TEXCOORD", 0, kVec2},
+    {"TANGENT", 0, kVec3},
   };
   Effect::ShaderPrograms shaders;
   shaders.resize(kRenderPipelineStageNum);
@@ -105,6 +108,9 @@ SimpleEffectPtr CreateSimpleEffect() {
       "}\n;"
       "struct VSInput {\n"
       "  float3 position:POSITION;\n"
+      "  float3 normal:NORMAL;\n"
+      "  float2 texcoord:TEXCOORD;\n"
+      "  float3 tangent:TANGENT;\n"
       "};\n"
       "cbuffer c_buffer {\n"
       "  float4x4 pvw;"
@@ -188,11 +194,9 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  /*
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetWorld(Matrix4::kIdentity);
   effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   renderer->UseEffect(effect_);
   model.meshes[0].entity[0]->DrawIndex(renderer);
-  */
 }

@@ -5,9 +5,13 @@
 
 #include "base/basictypes.h"
 #include "base/files/file_util.h"
+#include "base/strings/utf_string_conversions.h"
+#include "demo/base/resource_util.h"
 #include "azer/render/render.h"
 
 using namespace azer;
+using base::UTF8ToUTF16;
+
 enum D3DDECLUSAGE
 {
   D3DDECLUSAGE_POSITION = 0,
@@ -284,6 +288,35 @@ struct SDKANIMATION_FRAME_DATA {
 
 #pragma pack(pop)
 
+void InitFromSDKMaterial(const SDKMESH_MATERIAL& mh, bool enable_vertex_color,
+                         bool enable_skinned, bool enable_dual_texture, 
+                         FileSystem* fs, SdkMeshMaterial* mtrl) {
+  mtrl->ambient_ = mh.Ambient;
+  mtrl->diffuse_ = mh.Diffuse;
+  mtrl->specular_ = mh.Specular;
+  mtrl->emissive_ = mh.Emissive;
+  if (mh.Diffuse.w != 1.f && mh.Diffuse.w != 0.f) {
+    mtrl->alpha_ = mh.Diffuse.w;
+  } else {
+    mtrl->alpha_ = 1.0f;
+  }
+
+  if (mh.Power) {
+    mtrl->specular_power_ = mh.Power;
+    mtrl->specular_ = mh.Specular;
+  }
+  // mtrl->alpha_ = (mh.Alpha > 1.0f);
+
+  std::string path1 = std::string("//") + mh.DiffuseTexture;
+  if (path1.length() > 2) {
+    mtrl->texture1_ = Load2DTexture(ResPath(UTF8ToUTF16(path1)), fs);
+  }
+  if (enable_dual_texture) {
+    std::string path2 = std::string("//") + mh.SpecularTexture;
+    mtrl->texture2_ = Load2DTexture(ResPath(UTF8ToUTF16(path2)), fs);
+  }
+}
+
 
 //---------------------------------------------------------------------------------
 // Direct3D 9 Vertex Declaration to DirectInput 11 Input Layout mapping
@@ -367,7 +400,7 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
         break;
       }
     } else if (decl[index].Usage == D3DDECLUSAGE_TEXCOORD) {
-      strcpy(desc.name, "BINORMAL");
+      strcpy(desc.name, "TEXCOORD");
       desc.semantic_index = decl[index].UsageIndex;;
       desc.type = kVec2;
       bool unk = false;
@@ -426,7 +459,7 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
 //===============================================================================
 
 void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize, 
-                       bool ccw, bool pmalpha, SdkModel* model) {
+                       bool ccw, bool pmalpha, SdkModel* model, FileSystem* fs) {
   // File Headers
   if (dataSize < sizeof(SDKMESH_HEADER))
     throw std::exception("End of file");
@@ -565,12 +598,19 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
     ibs.push_back(rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata));
   }
 
-  // Create meshes
-  /*
-  std::vector<MaterialRecordSDKMESH> materials;
-  materials.resize(header->NumMaterials);
-  */
+  
+  for (uint32  index = 0; index < header->NumMaterials; ++index) {
+    scoped_refptr<SdkMeshMaterial> mtrl(new SdkMeshMaterial);
+    model->materials.push_back(mtrl);
+    InitFromSDKMaterial(materialArray[index], 
+                        false, // perVertexColor[vi],
+                        false, // enableSkinning[vi],
+                        false, // enableDualTexture[vi],
+                        fs,
+                        mtrl.get());
+  }
 
+  // Create meshes
   std::vector<EntityPtr> entityvec;
   for(UINT meshIndex = 0; meshIndex < header->NumMeshes; ++meshIndex) {
     auto& mh = meshArray[meshIndex];
@@ -645,23 +685,16 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
       if (subset.MaterialID >= header->NumMaterials)
         throw std::exception("Invalid mesh found");
 
-      /*
-      auto& mat = materials[subset.MaterialID];
-      if (!mat.effect) {
-        size_t vi = mh.VertexBuffers[0];
-        LoadMaterial(materialArray[subset.MaterialID],
-                      perVertexColor[vi], enableSkinning[vi], enableDualTexture[vi],
-                      fxFactory, mat);
-      }
-      */
-
       EntityPtr entity;
       // part.isalpha = mat.alpha;
       entity = new Entity(vbs[mh.VertexBuffers[0]], ibs[mh.IndexBuffer]);
       entity->set_primitive(primitive);
       entity->set_vertex_base(static_cast<uint32_t>(subset.VertexStart));
       entity->set_start_index(static_cast<uint32_t>(subset.IndexStart));
-      mesh.entity.push_back(entity);
+      MeshPartPtr part(new MeshPart(NULL));
+      part->AddEntity(entity);
+      part->AddProvider(model->materials[subset.MaterialID]);
+      mesh.part.push_back(part);
     }
 
     model->meshes.push_back(mesh);
@@ -678,7 +711,7 @@ bool LoadSDKModel(const ::base::FilePath& path, SdkModel* model) {
 
   try {
     CreateFromSDKMESH((const uint8*)contents.c_str(), contents.length(),
-                      true, false, model);
+                      true, false, model, NULL);
     return true;
   } catch (std::exception& e) {
     LOG(ERROR) << "Failed to Load SDKMesh: " << e.what();
@@ -694,10 +727,17 @@ bool LoadSDKModel(const azer::ResPath& path, azer::FileSystem* fs, SdkModel* mod
   }
 
   try {
-    CreateFromSDKMESH(&contents.front(), contents.size(), true, false, model);
+    CreateFromSDKMESH(&contents.front(), contents.size(), true, false, model, fs);
     return true;
   } catch (std::exception& e) {
     LOG(ERROR) << "Failed to Load SDKMesh: " << e.what();
     return false;
   }
+}
+
+// class SdkMeshMaterial
+const char SdkMeshMaterial::kEffectProviderName[] = "SdkMeshMaterial";
+SdkMeshMaterial::SdkMeshMaterial() {}
+const char* SdkMeshMaterial::GetProviderName() const {
+  return kEffectProviderName;
 }
