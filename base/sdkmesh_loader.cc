@@ -599,19 +599,8 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
   }
 
   
-  for (uint32  index = 0; index < header->NumMaterials; ++index) {
-    scoped_refptr<SdkMeshMaterial> mtrl(new SdkMeshMaterial);
-    model->materials.push_back(mtrl);
-    InitFromSDKMaterial(materialArray[index], 
-                        false, // perVertexColor[vi],
-                        false, // enableSkinning[vi],
-                        false, // enableDualTexture[vi],
-                        fs,
-                        mtrl.get());
-  }
-
+  model->materials.resize(header->NumMaterials);
   // Create meshes
-  std::vector<EntityPtr> entityvec;
   for(UINT meshIndex = 0; meshIndex < header->NumMeshes; ++meshIndex) {
     auto& mh = meshArray[meshIndex];
 
@@ -684,6 +673,18 @@ void CreateFromSDKMESH(const uint8* meshData, uint32 dataSize,
 
       if (subset.MaterialID >= header->NumMaterials)
         throw std::exception("Invalid mesh found");
+      
+      if (!model->materials[subset.MaterialID].get()) {
+        size_t vi = mh.VertexBuffers[0];
+        scoped_refptr<SdkMeshMaterial> mtrl(new SdkMeshMaterial);
+        InitFromSDKMaterial(materialArray[subset.MaterialID], 
+                            perVertexColor[vi],
+                            enableSkinning[vi],
+                            enableDualTexture[vi],
+                            fs,
+                            mtrl.get());
+        model->materials[subset.MaterialID] = mtrl;
+      }
 
       EntityPtr entity;
       // part.isalpha = mat.alpha;
@@ -740,4 +741,89 @@ const char SdkMeshMaterial::kEffectProviderName[] = "SdkMeshMaterial";
 SdkMeshMaterial::SdkMeshMaterial() {}
 const char* SdkMeshMaterial::GetProviderName() const {
   return kEffectProviderName;
+}
+
+// class SdkMeshEffect
+const char SdkMeshEffect::kEffectName[] = "SdkMeshEffect";
+SdkMeshEffect::SdkMeshEffect() {
+  world_ = Matrix4::kIdentity;
+}
+bool SdkMeshEffect::Init(VertexDesc* desc, const ShaderPrograms& sources) {
+  DCHECK(sources.size() == kRenderPipelineStageNum);
+  DCHECK(!sources[kVertexStage].code.empty());
+  DCHECK(!sources[kPixelStage].code.empty());
+  DCHECK(desc);
+  vertex_desc_ = desc;
+  InitShaders(sources);
+  InitGpuConstantTable();
+  return true;
+}
+void SdkMeshEffect::InitGpuConstantTable() {
+  RenderSystem* rs = RenderSystem::Current();
+  // generate GpuTable init for stage kVertexStage
+  GpuConstantsTable::Desc vs_table_desc[] = {
+    GpuConstantsTable::Desc("pvw", GpuConstantsType::kMatrix4,
+                            offsetof(vs_cbuffer, pvw), 1),
+    GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
+                            offsetof(vs_cbuffer, world), 1),
+  };
+  gpu_table_[kVertexStage] = rs->CreateGpuConstantsTable(
+      arraysize(vs_table_desc), vs_table_desc);
+}
+
+void SdkMeshEffect::ApplyGpuConstantTable(Renderer* renderer) {
+  {
+    Matrix4 pvw = std::move(pv_ * world_);
+    GpuConstantsTable* tb = gpu_table_[(int)kVertexStage].get();
+    DCHECK(tb != NULL);
+    tb->SetValue(0, &pvw, sizeof(Matrix4));
+    tb->SetValue(1, &world_, sizeof(Matrix4));
+  }
+}
+
+scoped_refptr<SdkMeshEffect> CreateSimpleEffect() {
+  // class PositionVertex
+  const VertexDesc::Desc kVertexDesc[] = {
+    {"POSITION", 0, kVec3},
+    {"NORMAL", 0, kVec3},
+    {"TEXCOORD", 0, kVec2},
+    {"TANGENT", 0, kVec3},
+  };
+  Effect::ShaderPrograms shaders;
+  shaders.resize(kRenderPipelineStageNum);
+  shaders[kVertexStage].path = "effect.vs";
+  shaders[kVertexStage].stage = kVertexStage;
+  shaders[kVertexStage].code = ""
+      "#pragma pack_matrix(row_major)\n"
+      "struct VsOutput {\n"
+      "  float4 position:SV_POSITION;\n"
+      "}\n;"
+      "struct VSInput {\n"
+      "  float3 position:POSITION;\n"
+      "  float3 normal:NORMAL;\n"
+      "  float2 texcoord:TEXCOORD;\n"
+      "  float3 tangent:TANGENT;\n"
+      "};\n"
+      "cbuffer c_buffer {\n"
+      "  float4x4 pvw;"
+      "  float4x4 world;"
+      "};"
+      "VsOutput vs_main(VSInput input) {\n"
+      "VsOutput o;"
+      "o.position = mul(pvw, float4(input.position, 1.0));"
+      "return o;"
+      "}";
+  shaders[kPixelStage].path = "effect.ps";
+  shaders[kPixelStage].stage = kPixelStage;
+  shaders[kPixelStage].code = "#pragma pack_matrix(row_major)\n"
+      "struct VsOutput {\n"
+      "  float4 position:SV_POSITION;\n"
+      "};\n"
+      "float4 ps_main(VsOutput o):SV_TARGET {\n"
+      "  return color;"
+      "}\n";
+  VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
+  scoped_refptr<SdkMeshEffect> ptr(new SdkMeshEffect);
+  ptr->Init(desc, shaders);
+  return ptr;
 }
