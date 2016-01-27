@@ -168,7 +168,8 @@ int main(int argc, char* argv[]) {
 void MyRenderWindow::OnInit() {
   RenderSystem* rs = RenderSystem::Current();
   LordEnv* env = LordEnv::instance();
-  scoped_ptr<FileSystem> fs(new NativeFileSystem(FilePath(UTF8ToUTF16("demo/"))));
+  base::FilePath root(UTF8ToUTF16("demo/samples/sdkmesh/data"));
+  scoped_ptr<FileSystem> fs(new NativeFileSystem(root));
   env->SetFileSystem(fs.Pass());
 
   Vector3 camera_pos(0.0f, 0.0f, 5.0f);
@@ -177,8 +178,8 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateSimpleEffect();
-  base::FilePath modelpath(FILE_PATH_LITERAL("demo/data/model/armor.sdkmesh"));
-  CHECK(LoadSDKModel(modelpath, &model));
+  azer::ResPath modelpath(FILE_PATH_LITERAL("//Helmet.sdkmesh"));
+  CHECK(LoadSDKModel(modelpath, env->file_system(), &model));
   VertexBufferGroup* group = model.meshes[0].entity[0]->vertex_buffer_group();
   LOG(ERROR) << DumpVertexDesc(group->vertex_desc());
 }
@@ -187,9 +188,11 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
+  /*
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetWorld(Matrix4::kIdentity);
   effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   renderer->UseEffect(effect_);
   model.meshes[0].entity[0]->DrawIndex(renderer);
+  */
 }

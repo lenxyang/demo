@@ -1,6 +1,8 @@
 #pragma once
 
 #include "base/files/file_path.h"
+#include "azer/base/res_path.h"
+#include "azer/base/file_system.h"
 #include "azer/render/render.h"
 
 struct SdkMesh {
@@ -17,3 +19,4 @@ struct SdkModel {
 };
 
 bool LoadSDKModel(const ::base::FilePath& path, SdkModel* model);
+bool LoadSDKModel(const azer::ResPath& path, azer::FileSystem* fs, SdkModel* model);

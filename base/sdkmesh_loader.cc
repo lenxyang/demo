@@ -307,9 +307,6 @@ static void GetInputLayoutDesc( _In_reads_(32) const D3DVERTEXELEMENT9 decl[],
     if (decl[index].Type == D3DDECLTYPE_UNUSED)
       break;
 
-    if (decl[index].Offset != offset)
-      break;
-
     if (decl[index].Usage == D3DDECLUSAGE_POSITION
         && decl[index].Type == D3DDECLTYPE_FLOAT3) {
       strcpy(desc.name, "POSITION");
@@ -682,6 +679,22 @@ bool LoadSDKModel(const ::base::FilePath& path, SdkModel* model) {
   try {
     CreateFromSDKMESH((const uint8*)contents.c_str(), contents.length(),
                       true, false, model);
+    return true;
+  } catch (std::exception& e) {
+    LOG(ERROR) << "Failed to Load SDKMesh: " << e.what();
+    return false;
+  }
+}
+
+bool LoadSDKModel(const azer::ResPath& path, azer::FileSystem* fs, SdkModel* model) {
+  FileContents contents;
+  if (!LoadFileContents(path, &contents , fs)) {
+    LOG(ERROR) << "Failed to load data: " << path.fullpath();
+    return false;
+  }
+
+  try {
+    CreateFromSDKMESH(&contents.front(), contents.size(), true, false, model);
     return true;
   } catch (std::exception& e) {
     LOG(ERROR) << "Failed to Load SDKMesh: " << e.what();
