@@ -435,11 +435,12 @@ static void GetInputLayoutDesc(const D3DVERTEXELEMENT9 decl[],
   }
 }
 
-SdkMeshData::SdkMeshData() {}
+SdkMeshData::SdkMeshData(azer::FileSystem* fs)
+    : filesystem_(fs) {
+}
 
 bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, 
-                             azer::EffectAdapterContext* ctx,
-                             FileSystem* fs) {
+                             azer::EffectAdapterContext* ctx) {
   RenderSystem* rs = RenderSystem::Current();
   std::vector<SdkMeshMaterialPtr> materials;
   scoped_refptr<SdkMeshEffect> effect = CreateSdkMeshEffect();
@@ -453,19 +454,23 @@ bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes,
     m->set_specular(Vector4(mtrls_[i].specular_color, 1.0f));
     m->set_emissive(Vector4(mtrls_[i].emissive_color, 1.0f));
 
+    ResPath basedir(model_path_.DirName().as_string());
     if (!mtrls_[i].diffuse_texture.empty()) {
-      m->set_diffusemap(Load2DTexture(
-          ResPath(UTF8ToUTF16(mtrls_[i].diffuse_texture)), fs));
+      ResPath texpath = basedir;
+	  texpath.Append(ResPath(UTF8ToUTF16(mtrls_[i].diffuse_texture)));
+      m->set_diffusemap(Load2DTexture(texpath, filesystem_));
     }
 
     if (!mtrls_[i].normal_texture.empty()) {
-      m->set_normalmap(Load2DTexture(
-        ResPath(UTF8ToUTF16(mtrls_[i].normal_texture)), fs));
+      ResPath texpath = basedir;
+	  texpath.Append(ResPath(UTF8ToUTF16(mtrls_[i].normal_texture)));
+      m->set_normalmap(Load2DTexture(texpath, filesystem_));
     }
 
     if (!mtrls_[i].specular_texture.empty()) {
-      m->set_specularmap(Load2DTexture(
-          ResPath(UTF8ToUTF16(mtrls_[i].specular_texture)), fs));
+      ResPath texpath = basedir;
+	  texpath.Append(ResPath(UTF8ToUTF16(mtrls_[i].specular_texture)));
+      m->set_specularmap(Load2DTexture(texpath, filesystem_));
     }
     materials.push_back(m);
   }
@@ -497,6 +502,16 @@ bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes,
   }
 
   return true;
+}
+
+bool SdkMeshData::LoadFromFile(const azer::ResPath& path) {
+  FileContents contents;
+  if (!LoadFileContents(path, &contents, filesystem_)) {
+    return false;
+  }
+
+  model_path_ = path;
+  return LoadFromData(&contents.front(), contents.size());
 }
 
 bool SdkMeshData::LoadFromData(const uint8* data, int32 size) {
@@ -540,15 +555,6 @@ bool SdkMeshData::LoadMaterial(const uint8* data, int32 size) {
     mtrl.diffuse_texture = m.DiffuseTexture;
     mtrl.normal_texture = m.NormalTexture;
     mtrl.specular_texture = m.SpecularTexture;
-    if (!mtrl.diffuse_texture.empty()) {
-      mtrl.diffuse_texture.insert(0, "//");
-    }
-    if (!mtrl.normal_texture.empty()) {
-      mtrl.normal_texture.insert(0, "//");
-    }
-    if (!mtrl.specular_texture.empty()) {
-      mtrl.specular_texture.insert(0, "//");
-    }
     mtrls_.push_back(mtrl);
   }
   return true;

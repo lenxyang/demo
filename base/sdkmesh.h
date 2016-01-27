@@ -8,13 +8,13 @@
 
 class SdkMeshData {
  public:
-  SdkMeshData();
+  SdkMeshData(azer::FileSystem* fs);
 
-  bool LoadFromData(const uint8* data, int32 size);
+  bool LoadFromFile(const azer::ResPath& path);
   bool CreateMesh(std::vector<azer::MeshPtr>* meshes, 
-                  azer::EffectAdapterContext* ctx,
-                  azer::FileSystem* fs);
+                  azer::EffectAdapterContext* ctx);
  private:
+  bool LoadFromData(const uint8* data, int32 size);
   bool LoadVertexData(const uint8* data, int32 size);
   bool LoadIndicesData(const uint8* data, int32 size);
   bool LoadMaterial(const uint8* data, int32 size);
@@ -55,6 +55,8 @@ class SdkMeshData {
   std::vector<Mesh> meshes_;
   std::vector<azer::SlotVertexDataPtr> vdata_vec_;
   std::vector<azer::IndicesDataPtr> idata_vec_;
+  azer::ResPath model_path_;
+  azer::FileSystem* filesystem_;
   DISALLOW_COPY_AND_ASSIGN(SdkMeshData);
 };
 

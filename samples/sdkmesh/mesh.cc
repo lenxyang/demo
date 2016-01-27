@@ -1,5 +1,6 @@
 #include <memory>
 
+#include "lordaeron/sandbox/sandbox.h"
 #include "demo/base/base.h"
 
 using base::FilePath;
@@ -10,78 +11,31 @@ using lord::SceneNode;
 using namespace azer;
 using namespace lord;
 
-class MyRenderWindow : public lord::FrameWindow {
+class MyRenderWindow : public lord::RenderWindow {
  public:
-  MyRenderWindow(const gfx::Rect& rect) 
-      : lord::FrameWindow(rect),
-        default_renderer_(true),
-        switching_(false) {
-  }
-
-  SceneNodePtr InitScene() override;
+  MyRenderWindow(const gfx::Rect& rect) : lord::RenderWindow(rect) {}
+  void OnInit() override;
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
-  void switch_renderer() {
-    default_renderer_ = !default_renderer_;
-    switching_ = true;
-  }
  private:
-  RenderNodePtr bvolumn_root_;
-  scoped_ptr<UISceneRender> scene_render_;
-  scoped_ptr<ShadowDepthRenderer> depth_render_;
-  bool default_renderer_;
-  bool switching_;
+  std::vector<MeshPtr> meshes_;
+  scoped_refptr<WorldProvider> world_provider_;
+  scoped_refptr<CameraProvider> camera_provider_;
+  scoped_refptr<LightProvider> light_provider_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
-};
-
-class RendererToolbar : public nelf::Toolbar,
-                        public views::ButtonListener {
- public:
-  RendererToolbar(MyRenderWindow* render_window)
-      : nelf::Toolbar(render_window),
-        render_window_(render_window) {
-    LordEnv* context = LordEnv::instance();
-    int32 toolbar_id = IDR_ICON_TOOLBAR_LAYERS;
-
-    using views::BoxLayout;
-    views::View* contents = new views::View;
-    contents->SetLayoutManager(new BoxLayout(BoxLayout::kHorizontal, 0, 1, 0));
-    nelf::ResourceBundle* bundle = context->resource_bundle();
-    int32 id = toolbar_id;
-    const gfx::ImageSkia* img = bundle->GetImageSkiaNamed(id);
-    button_ = new nelf::ToggleButton(*img);
-    button_->SetInsets(gfx::Insets(1, 1, 1, 1));
-    button_->SetImageLabelSpacing(0);
-    button_->set_listener(this);
-    button_->set_tag(id);
-    button_->SetMinSize(gfx::Size(32, 32));
-    button_->SetTooltipText(::base::UTF8ToUTF16("This is tooltip"));
-    contents->AddChildView(button_);
-    SetContents(contents);
-  }
-  ~RendererToolbar() {
-  }
- private:
-  void ButtonPressed(views::Button* sender, const ui::Event& event) override {
-    render_window_->switch_renderer();
-  }
-  MyRenderWindow* render_window_;
-  nelf::ToggleButton* button_;
-  DISALLOW_COPY_AND_ASSIGN(RendererToolbar);
 };
 
 int main(int argc, char* argv[]) {
   CHECK(lord::LordEnv::InitEnv(argc, argv));
-
   lord::LordEnv* env = lord::LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
-  adapterctx->RegisteAdapter(new RenderNodeShadowMapEffectAdapter);
-  adapterctx->RegisteAdapter(new EffectedEnvNodeDelegateShadowMapEffectAdapter);
-  adapterctx->RegisteAdapter(new ShadowMapMaterialEffectAdapter);
-  adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
   adapterctx->RegisteAdapter(new LordEnvNodeDelegateTexEffectAdapter);
+  adapterctx->RegisteAdapter(new SdkMeshMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new CameraProviderSdkMeshAdapter);
+  adapterctx->RegisteAdapter(new WorldProviderSdkMeshAdapter);
+  adapterctx->RegisteAdapter(new LightProviderSdkMeshAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -91,42 +45,67 @@ int main(int argc, char* argv[]) {
   window->Init();
   window->Show();
 
-  RendererToolbar* toolbar = new RendererToolbar(window);
-  toolbar->Float();
-  toolbar->Dock(0, 1);
   window->GetRenderLoop()->Run();
   return 0;
 }
 
-SceneNodePtr MyRenderWindow::InitScene() {
+void MyRenderWindow::OnInit() {
+  RenderSystem* rs = RenderSystem::Current();
   LordEnv* env = LordEnv::instance();
-  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
-      FilePath(UTF8ToUTF16("demo/"))));
+  azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
+  base::FilePath root(UTF8ToUTF16("demo"));
+  scoped_ptr<FileSystem> fs(new NativeFileSystem(root));
   env->SetFileSystem(fs.Pass());
 
-  ResourceLoader* resloader = env->resource_loader();
-  InitDefaultLoader(resloader);
-  ResPath respath(UTF8ToUTF16("//samples/sdkmesh/scene.xml:scene"));
-  VariantResource res = resloader->Load(respath);
-  SceneNodePtr root = res.scene;
-  CHECK(root.get()) << "Failed to init scene";
+  SpotLight spotlight;
+  spotlight.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  spotlight.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+  spotlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  spotlight.position = Vector4(-3.0, 3.0f, 0.0f, 1.0f);
+  spotlight.directional = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
+  spotlight.phi = cos(Degree(45.0f));
+  spotlight.theta = cos(Degree(30.0f));
+  spotlight.range = 30.0f;
+  spotlight.falloff = 0.5f;
+  spotlight.enable = 1.0f;
 
-  scene_render_.reset(new UISceneRender);
-  scene_render_->Init(root, &camera());
-  LOG(ERROR) << scene_render_->root()->DumpTree();
+  lord::DirLight dirlight;
+  dirlight.ambient = Vector4(0.1f, 0.1f, 0.1f, 0.1f);
+  dirlight.diffuse = Vector4(0.5f, 0.5f, 0.4f, 1.0f);
+  dirlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  dirlight.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
+  dirlight.enable = 1.0f;
+  light_provider_ = new LightProvider;
+  light_provider_->SetDirLight(dirlight);
+  light_provider_->SetSpotLight(spotlight);
 
-  return root;
+  world_provider_ = new WorldProvider;
+
+  Vector3 camera_pos(0.0f, 3.0f, 2.0f);
+  Vector3 lookat(0.0f, 0.0f, 0.0f);
+  Vector3 up(0.0f, 1.0f, 0.0f);
+  mutable_camera()->reset(camera_pos, lookat, up);
+  camera_provider_ = new CameraProvider(&camera());
+  ResPath modelpath(UTF8ToUTF16("//data/sdkmesh/Helmet.sdkmesh"));
+  SdkMeshData meshdata(env->file_system());;
+  CHECK(meshdata.LoadFromFile(modelpath));
+  CHECK(meshdata.CreateMesh(&meshes_, adapterctx));
+  for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
+    (*iter)->AddProvider(camera_provider_);
+    (*iter)->AddProvider(light_provider_);
+    (*iter)->AddProvider(world_provider_);
+  }
+
+  SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
-  scene_render_->Update(args);
+  Radians rad(3.14f * 0.5f * args.delta().InSecondsF());
+  world_provider_->mutable_holder()->yaw(rad);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  if (switching_) {
-    switching_ = false;
-    return;
+  for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
+    (*iter)->Render(renderer);
   }
-  scene_render_->Render(renderer);
 }
-
