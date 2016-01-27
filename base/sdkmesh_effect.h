@@ -4,11 +4,12 @@
 #include <vector>
 
 #include "azer/render/render.h"
+#include "demo/base/base.h"
 
 class SdkMeshMaterial : public azer::EffectParamsProvider {
  public:
-  SdkMeshMaterial();
-  const char* GetProviderName() const override;
+  SdkMeshMaterial() {}
+  const char* GetProviderName() const override { return "SdkMeshMaterial";}
 
   azer::Texture* diffusemap() const { return diffusemap_.get();}
   azer::Texture* normalmap() const { return normalmap_.get();}
@@ -17,6 +18,14 @@ class SdkMeshMaterial : public azer::EffectParamsProvider {
   const azer::Vector4& diffuse() const { return diffuse_;}
   const azer::Vector4& emissive() const { return emissive_;}
   const azer::Vector4& specular() const { return specular_;}
+
+  void set_ambient(const azer::Vector4& v) { ambient_ = v;}
+  void set_diffuse(const azer::Vector4& v) { diffuse_ = v;}
+  void set_emissive(const azer::Vector4& v) { emissive_ = v;}
+  void set_specular(const azer::Vector4& v) { specular_ = v;}
+  void set_diffusemap(azer::Texture* tex) { diffusemap_ = tex;}
+  void set_normalmap(azer::Texture* tex) { normalmap_ = tex;}
+  void set_specularmap(azer::Texture* tex) { specularmap_ = tex;}
  private:
   azer::TexturePtr diffusemap_;
   azer::TexturePtr normalmap_;
@@ -55,10 +64,11 @@ class SdkMeshEffect : public azer::Effect {
 
   void SetPV(const azer::Matrix4& value) { pv_ = value;}
   void SetWorld(const azer::Matrix4& value) { world_ = value;}
+  void SetCameraPos(const azer::Vector4& pos);
   void SetDiffuseMap(azer::Texture* ptr) { diffusemap_ = ptr;}
   void SetNormalMap(azer::Texture* ptr) { normalmap_ = ptr;}
   void SetSpecularMap(azer::Texture* ptr) { specularmap_ = ptr;}
-  void SetPointLight(const lord::PointLight& value);
+  void SetDirLight(const lord::DirLight& value);
   void SetSpotLight(const lord::SpotLight& value);
  protected:
   void UseTexture(azer::Renderer* renderer) override;
@@ -99,3 +109,5 @@ class CameraProviderSdkMeshAdapter : public EffectParamsAdapter {
  private:
   DISALLOW_COPY_AND_ASSIGN(CameraProviderSdkMeshAdapter);
 };
+
+typedef scoped_refptr<SdkMeshMaterial> SdkMeshMaterialPtr;

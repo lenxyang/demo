@@ -1,5 +1,7 @@
 #include "demo/base/sdkmesh_effect.h"
 
+#include "demo/base/camera_provider.h"
+
 using namespace azer;
 
 // class SdkMeshEffect
@@ -32,7 +34,7 @@ void SdkMeshEffect::InitGpuConstantTable() {
       arraysize(vs_table_desc), vs_table_desc);
 
   GpuConstantsTable::Desc ps_table_desc[] = {
-    GpuConstantsTable::Desc("dirlight", offsetof(ps_cbuffer, light),
+    GpuConstantsTable::Desc("dirlight", offsetof(ps_cbuffer, dirlight),
                             sizeof(lord::DirLight), 1),
     GpuConstantsTable::Desc("spotlight", offsetof(ps_cbuffer, spotlight),
                             sizeof(lord::SpotLight), 1),
@@ -57,7 +59,7 @@ void SdkMeshEffect::SetDirLight(const lord::DirLight& value) {
   dir_light_ = value;
 }
 
-void SdkMeshEffect::SetSpotLight(const SpotLight& value) {
+void SdkMeshEffect::SetSpotLight(const lord::SpotLight& value) {
   spot_light_ = value;
 }
 
@@ -124,24 +126,26 @@ EffectAdapterKey SdkMeshMaterialEffectAdapter::key() const {
 void SdkMeshMaterialEffectAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(SdkMeshEffect));
-  CHECK(typeid(*params) == typeid(RenderNode));
-  const SdkMeshEffect* provider = (const SdkMeshEffect*)params;
+  CHECK(typeid(*params) == typeid(SdkMeshMaterial));
+  const SdkMeshMaterial* provider = (const SdkMeshMaterial*)params;
   SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
+  effect->Set
 }
 
 
 // class CameraProviderSdkMeshEffectProvider
-CameraProviderSdkMeshEffectProvider::CameraProviderSdkMeshEffectProvider() {}
-EffectAdapterKey CameraProviderSdkMeshEffectProvider::key() const {
+CameraProviderSdkMeshAdapter::CameraProviderSdkMeshAdapter() {}
+EffectAdapterKey CameraProviderSdkMeshAdapter::key() const {
   return std::make_pair(typeid(SdkMeshEffect).name(),
                         typeid(SdkMeshMaterial).name());
 }
 
-void CameraProviderSdkMeshEffectProvider::Apply(
+void CameraProviderSdkMeshAdapter::Apply(
     Effect* e, const EffectParamsProvider* params) const  {
   CHECK(typeid(*e) == typeid(SdkMeshEffect));
   CHECK(typeid(*params) == typeid(CameraProvider));
-  const SdkMeshMaterial* provider = (const SdkMeshMaterial*)params;
+  const CameraProvider* provider = (const CameraProvider*)params;
   SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
-  
+  effect->SetPV(provider->GetProjViewMatrix());
+  effect->SetCameraPos(provider->GetCameraPos());
 }

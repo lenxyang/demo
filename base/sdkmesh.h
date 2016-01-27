@@ -3,11 +3,15 @@
 #include <string>
 #include <vector>
 
+#include "azer/base/file_system.h"
 #include "azer/render/render.h"
 
 class SdkMeshData {
  public:
+  SdkMeshData();
+
   bool LoadFromData(const uint8* data, int32 size);
+  bool CreateMesh(std::vector<azer::MeshPtr>* meshes, azer::FileSystem* fs);
  private:
   bool LoadVertexData(const uint8* data, int32 size);
   bool LoadIndicesData(const uint8* data, int32 size);
@@ -45,9 +49,10 @@ class SdkMeshData {
     std::vector<Subset> subsets;
   };
 
-  std::vector<Material> mtrls;
-  std::vector<Mesh> meshes;
+  std::vector<Material> mtrls_;
+  std::vector<Mesh> meshes_;
   std::vector<azer::SlotVertexDataPtr> vdata_vec_;
   std::vector<azer::IndicesDataPtr> idata_vec_;
   DISALLOW_COPY_AND_ASSIGN(SdkMeshData);
 };
+

@@ -1,5 +1,8 @@
 #include "demo/base/sdkmesh.h"
 
+#include "demo/base/sdkmesh_effect.h"
+#include "demo/base/resource_util.h"
+
 using namespace azer;
 
 enum D3DDECLUSAGE
@@ -432,6 +435,58 @@ static void GetInputLayoutDesc(const D3DVERTEXELEMENT9 decl[],
   }
 }
 
+SdkMeshData::SdkMeshData() {}
+
+bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes, FileSystem* fs) {
+  RenderSystem* rs = RenderSystem::Current();
+  azer::MeshPtr mesh(new azer::Mesh(NULL));
+  std::vector<SdkMeshMaterialPtr> materials;
+  scoped_refptr<SdkMeshEffect> effect = CreateSdkMeshEffect();
+  std::vector<VertexBufferPtr> vbs;
+  std::vector<IndicesBufferPtr> ibs;
+
+  for (int32 i = 0; i < mtrls_.size(); ++i) {
+    SdkMeshMaterialPtr m(new SdkMeshMaterial);
+    m->set_ambient(Vector4(mtrls_[i].ambient_color, 1.0f));
+    m->set_diffuse(Vector4(mtrls_[i].diffuse_color, 1.0f));
+    m->set_specular(Vector4(mtrls_[i].specular_color, 1.0f));
+    m->set_emissive(Vector4(mtrls_[i].emissive_color, 1.0f));
+    m->set_diffusemap(Load2DTexture(
+        ResPath(UTF8ToUTF16(mtrls_[i].diffuse_texture)), fs));
+    m->set_normalmap(Load2DTexture(
+        ResPath(UTF8ToUTF16(mtrls_[i].normal_texture)), fs));
+    m->set_specularmap(Load2DTexture(
+        ResPath(UTF8ToUTF16(mtrls_[i].specular_texture)), fs));
+    materials.push_back(m);
+  }
+
+  for (int32 i = 0; i < vdata_vec_.size(); ++i) {
+    vbs.push_back(rs->CreateVertexBuffer(VertexBuffer::Options(), vdata_vec_[i]));
+  }
+  for (int32 i = 0; i < idata_vec_.size(); ++i) {
+    ibs.push_back(rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata_vec_[i]));
+  }
+
+  for (uint32 i = 0; i < meshes_.size(); ++i) {
+    azer::MeshPtr mesh(new azer::Mesh(NULL));
+    meshes->push_back(mesh);
+    for (uint32 j = 0; j < meshes_[i].subsets.size(); ++j) {
+      MeshPartPtr part(new MeshPart(effect));
+      const Subset& subset = meshes_[i].subsets[j];
+      VertexBuffer* vb = vbs[subset.vertex_data_index].get();
+      IndicesBuffer* ib = ibs[subset.indices_data_index].get();
+      EntityPtr entity = new Entity(vb, ib);
+      entity->set_vertex_base(subset.vertex_base);
+      entity->set_start_index(subset.start_index);
+      part->AddEntity(entity);
+      part->AddProvider(materials[subset.material_index]);
+      mesh->AddMeshPart(part);
+    }
+  }
+
+  return true;
+}
+
 bool SdkMeshData::LoadFromData(const uint8* data, int32 size) {
   if (!LoadVertexData(data, size)) {
     LOG(ERROR) << "Failed to load VertexData;";
@@ -445,6 +500,11 @@ bool SdkMeshData::LoadFromData(const uint8* data, int32 size) {
 
   if (!LoadMaterial(data, size)) {
     LOG(ERROR) << "Failed to load Material.";
+    return false;
+  }
+
+  if (!LoadMesh(data, size)) {
+    LOG(ERROR) << "Failed to load Mesh.";
     return false;
   }
 
@@ -468,7 +528,7 @@ bool SdkMeshData::LoadMaterial(const uint8* data, int32 size) {
     mtrl.diffuse_texture = m.DiffuseTexture;
     mtrl.normal_texture = m.NormalTexture;
     mtrl.specular_texture = m.SpecularTexture;
-    mtrls.push_back(mtrl);
+    mtrls_.push_back(mtrl);
   }
   return true;
 }
@@ -561,8 +621,8 @@ bool SdkMeshData::LoadMesh(const uint8* data, int32 size) {
     }
     
 
-    meshes.push_back(Mesh());
-    Mesh& mesh = meshes.back();
+    meshes_.push_back(Mesh());
+    Mesh& mesh = meshes_.back();
     mesh.name = mh.Name;
     mesh.center = mh.BoundingBoxCenter;
     mesh.extends = mh.BoundingBoxExtents;

@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "base/files/file_path.h"
+#include "demo/base/camera_provider.h"
 #include "demo/base/basic_effect.h"
 #include "demo/base/depth_effect.h"
 #include "demo/base/effected_scene_render.h"
