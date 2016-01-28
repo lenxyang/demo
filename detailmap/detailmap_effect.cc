@@ -82,7 +82,7 @@ void DetailmapEffect::SetSpotLight(const lord::SpotLight& value) {
 
 void DetailmapEffect::UseTexture(azer::Renderer* renderer) {
   renderer->UseTexture(kPixelStage, 0, diffusemap_.get());
-  renderer->UseTexture(kPixelStage, 1, nmmap_.get());
+  renderer->UseTexture(kDomainStage, 0, nmmap_.get());
 }
 
 DetailmapEffectPtr CreateDetailmapEffect() {

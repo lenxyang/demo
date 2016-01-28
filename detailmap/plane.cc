@@ -63,10 +63,10 @@ void MyRenderWindow::OnInit() {
 
   effect_ = CreateDetailmapEffect();
   GeoPlaneParams params;
-  params.row = 1;
-  params.column = 1;
-  params.row_width = 10.0f;
-  params.column_width = 10.0f;
+  params.row = 10.0;
+  params.column = 10.0;
+  params.row_width = 1.0f;
+  params.column_width = 1.0f;
   entity_ = CreatePlaneEntity(effect_->vertex_desc(), params, Matrix4::kIdentity);
   entity_->set_primitive(kControlPoint3);
 

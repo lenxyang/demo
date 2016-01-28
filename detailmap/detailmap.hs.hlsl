@@ -27,6 +27,10 @@ HSCOutput PatchConstantFunc(InputPatch<VsOutput, 3> input,
   output.edge[1] = edge.y;
   output.edge[2] = edge.z;
   output.inside = edge.w;
+  output.edge[0] = 3;
+  output.edge[1] = 3;
+  output.edge[2] = 3;
+  output.inside = 1;
   return output;
 }
 
