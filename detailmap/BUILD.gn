@@ -1,7 +1,7 @@
 
 group("detailmap") {
   deps = [
-    ":quad",
+    ":plane",
   ]
 }
 
@@ -13,12 +13,13 @@ static_library("effect") {
   ]
 }
 
-executable("quad") {
-  output_name = "demo_detailmap_quad"
-  sources = [ "quad.cc", "detailmap_effect.cc",]
+executable("plane") {
+  output_name = "demo_detailmap_plane"
+  sources = [ "plane.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",
+    "//azer",
     ":effect",
   ]
 }

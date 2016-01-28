@@ -1,13 +1,12 @@
-
 #pragma pack_matrix(row_major)
-struct VsOutput {
-float4 position:SV_POSITION;
+
+struct VsInput {
+  float3 position: POSITION;
+  float3 normal  : NORMAL;
+  float2 texcoord: TEXCOORD;
+  float3 tangent : TANGENT;
 };
-struct VSInput {
-float4 position:POSITION;
-};
-VsOutput vs_main(VSInput input) {
-VsOutput o;
-o.position = input.position;
-return o;
+
+VsInput vs_main(VsInput input) {
+  return input;
 };

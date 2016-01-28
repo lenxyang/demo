@@ -6,7 +6,6 @@ using namespace azer;
 const char DetailmapEffect::kEffectName[] = "DetailmapEffect";
 DetailmapEffect::DetailmapEffect() {
   world_ = Matrix4::kIdentity;
-  color_ = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 }
 DetailmapEffect::~DetailmapEffect() {}
 bool DetailmapEffect::Init(azer::VertexDesc* desc, const ShaderPrograms& sources) {
@@ -27,18 +26,12 @@ void DetailmapEffect::ApplyGpuConstantTable(azer::Renderer* renderer)  {
     DCHECK(tb != NULL);
     tb->SetValue(0, &pvw, sizeof(Matrix4));
     tb->SetValue(1, &world_, sizeof(Matrix4));
+    tb->SetValue(2, &eyepos_, sizeof(Vector4));
   }
   {
     GpuConstantsTable* tb = gpu_table_[(int)kHullStage].get();
     DCHECK(tb != NULL);
     tb->SetValue(0, &edge_, sizeof(Vector4));
-    tb->SetValue(1, &inside_, sizeof(Vector4));
-  }
-
-  {
-    GpuConstantsTable* tb = gpu_table_[(int)kPixelStage].get();
-    DCHECK(tb != NULL);
-    tb->SetValue(0, &color_, sizeof(Vector4));
   }
 }
 void DetailmapEffect::InitGpuConstantTable() {
@@ -49,6 +42,8 @@ void DetailmapEffect::InitGpuConstantTable() {
                             offsetof(ds_cbuffer, pvw), 1),
     GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
                             offsetof(ds_cbuffer, world), 1),
+    GpuConstantsTable::Desc("eyepos", GpuConstantsType::kVector4,
+                            offsetof(ds_cbuffer, eyepos), 1),
   };
   gpu_table_[kDomainStage] = rs->CreateGpuConstantsTable(
       arraysize(ds_table_desc), ds_table_desc);
@@ -57,25 +52,23 @@ void DetailmapEffect::InitGpuConstantTable() {
   GpuConstantsTable::Desc hs_table_desc[] = {
     GpuConstantsTable::Desc("edge", GpuConstantsType::kVector4,
                             offsetof(hs_cbuffer, edge), 1),
-    GpuConstantsTable::Desc("inside", GpuConstantsType::kVector4,
-                            offsetof(hs_cbuffer, inside), 1),
   };
   gpu_table_[kHullStage] = rs->CreateGpuConstantsTable(
       arraysize(hs_table_desc), hs_table_desc);
-
-  // generate GpuTable init for stage kPixelStage
-  GpuConstantsTable::Desc ps_table_desc[] = {
-    GpuConstantsTable::Desc("color", GpuConstantsType::kVector4,
-                            offsetof(ps_cbuffer, color), 1),
-  };
-  gpu_table_[kPixelStage] = rs->CreateGpuConstantsTable(
-      arraysize(ps_table_desc), ps_table_desc);
 }
 
 
+void DetailmapEffect::UseTexture(azer::Renderer* renderer) {
+  renderer->UseTexture(kPixelStage, 0, diffusemap_.get());
+  renderer->UseTexture(kPixelStage, 1, nmmap_.get());
+}
+
 DetailmapEffectPtr CreateDetailmapEffect() {
   const VertexDesc::Desc kVertexDesc[] = {
-    {"POSITION", 0, kVec4},
+    {"POSITION", 0, kVec3},
+    {"NORMAL", 0, kVec3},
+    {"TEXCOORD", 0, kVec2},
+    {"TANGENT", 0, kVec3},
   };
   Effect::ShaderPrograms s;
   s.resize(kRenderPipelineStageNum);

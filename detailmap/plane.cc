@@ -22,6 +22,8 @@ class MyRenderWindow : public lord::RenderWindow {
   EntityPtr entity_;
   DetailmapEffectPtr effect_;
   RasterizerStatePtr state_;
+  TexturePtr diffusemap_;
+  TexturePtr nmmap_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -32,6 +34,10 @@ int main(int argc, char* argv[]) {
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
   adapterctx->RegisteAdapter(new LordEnvNodeDelegateTexEffectAdapter);
+
+  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
+      FilePath(UTF8ToUTF16("demo/"))));
+  env->SetFileSystem(fs.Pass());
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -47,66 +53,45 @@ int main(int argc, char* argv[]) {
 
 void MyRenderWindow::OnInit() {
   LordEnv* env = LordEnv::instance();
-  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
-      FilePath(UTF8ToUTF16("demo/"))));
-  env->SetFileSystem(fs.Pass());
-
   ResourceLoader* resloader = env->resource_loader();
   InitDefaultLoader(resloader);
 
-  Vector3 camera_pos(0.0f, 0.0f, 3.0f);
+  Vector3 camera_pos(0.0f, 8.0f, 8.0f);
   Vector3 lookat(0.0f, 0.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateDetailmapEffect();
-  Vector3 points[] = {Vector3(-0.5f,  0.5f, 0.0f),
-                      Vector3(-0.5f, -0.5f, 0.0f),
-                      Vector3( 0.5f, -0.5f, 0.0f),
-                      Vector3( 0.5f,  0.5f, 0.0f),};
-  entity_ = CreateGeoPointsList(points, (int)arraysize(points), 
-                                effect_->vertex_desc(), Matrix4::kIdentity);
-  entity_->set_primitive(kControlPoint4);
+  GeoPlaneParams params;
+  params.row = 1;
+  params.column = 1;
+  params.row_width = 10.0f;
+  params.column_width = 10.0f;
+  entity_ = CreatePlaneEntity(effect_->vertex_desc(), params, Matrix4::kIdentity);
+  entity_->set_primitive(kControlPoint3);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
   state_->SetFillMode(kWireFrame);
   state_->SetCullingMode(kCullNone);
+
+  ResPath texpath(UTF8ToUTF16("//data/media/rocks.dds"));
+  diffusemap_ = Load2DTexture(texpath, env->file_system());
+  ResPath nmtexpath(UTF8ToUTF16("//data/media/rocks_NM_height.dds"));
+  nmmap_ = Load2DTexture(nmtexpath, env->file_system());
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  Vector3 position[] = {
-    Vector3(-1.0f, -1.0f, 0.0f),
-    Vector3(-1.0f,  1.0f, 0.0f),
-    Vector3( 1.0f,  1.0f, 0.0f),
-    Vector3( 1.0f, -1.0f, 0.0f),
-  };
-
-  Vector4 edge[] = {
-    Vector4(4.0f, 4.0f, 4.0f, 1.0f),
-    Vector4(3.0f, 3.0f, 3.0f, 3.0f),
-    Vector4(3.0f, 3.0f, 3.0f, 4.0f),
-    Vector4(3.0f, 5.0f, 6.0f, 6.0f),
-  };
-
-  Vector4 inside[] = {
-    Vector4(4.0f, 4.0f, 4.0f, 1.0f),
-    Vector4(3.0f, 3.0f, 3.0f, 1.0f),
-    Vector4(3.0f, 3.0f, 3.0f, 1.0f),
-    Vector4(3.0f, 5.0f, 6.0f, 1.0f),
-  };
-
+  Matrix4 world = Matrix4::kIdentity;
   effect_->SetPV(camera().GetProjViewMatrix());
-  effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-  for (uint32 i = 0; i < arraysize(position); ++i) {
-    Matrix4 world = Translate(position[i]);
-    effect_->SetWorld(world);
-    effect_->SetEdge(edge[i]);
-    effect_->SetInside(inside[i]);
-    renderer->UseEffect(effect_);
-    renderer->SetRasterizerState(state_);
-    entity_->Draw(renderer);
-  }
+  effect_->SetWorld(world);
+  effect_->SetEdgeInside(Vector4(3.0f, 3.0f, 3.0f, 1.0f));
+  effect_->SetEyePos(Vector4(camera().position(), 1.0f));
+  effect_->SetDiffuseMap(diffusemap_);
+  effect_->SetNMMap(nmmap_);
+  renderer->UseEffect(effect_);
+  // renderer->SetRasterizerState(state_);
+  entity_->DrawIndex(renderer);
 }

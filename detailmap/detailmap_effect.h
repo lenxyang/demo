@@ -14,31 +14,29 @@ class DetailmapEffect : public azer::Effect {
   struct ds_cbuffer {
     azer::Matrix4 pvw;
     azer::Matrix4 world;
+    azer::Vector4 eyepos;
   };
 
   struct hs_cbuffer {
     azer::Vector4 edge;
-    azer::Vector4 inside;
-  };
-
-  struct ps_cbuffer {
-    azer::Vector4 color;
   };
 #pragma pack(pop)
-
   void SetPV(const azer::Matrix4& value) { pv_ = value;}
   void SetWorld(const azer::Matrix4& value) { world_ = value;}
-  void SetColor(const azer::Vector4& value) {color_ = value;}
-  void SetEdge(const azer::Vector4& value) {edge_ = value;}
-  void SetInside(const azer::Vector4& value) {inside_ = value;}
+  void SetEyePos(const azer::Vector4& pos) { eyepos_ = pos;}
+  void SetEdgeInside(const azer::Vector4& value) {edge_ = value;}
+  void SetDiffuseMap(azer::Texture* ptr) { diffusemap_ = ptr;}
+  void SetNMMap(azer::Texture* ptr) { nmmap_ = ptr;}
  protected:
+  void UseTexture(azer::Renderer* renderer) override;
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitGpuConstantTable();
   azer::Matrix4 pv_;
   azer::Matrix4 world_;
-  azer::Vector4 color_;
+  azer::Vector4 eyepos_;
   azer::Vector4 edge_;
-  azer::Vector4 inside_;
+  azer::TexturePtr diffusemap_;
+  azer::TexturePtr nmmap_;
   DISALLOW_COPY_AND_ASSIGN(DetailmapEffect);
 };
 
