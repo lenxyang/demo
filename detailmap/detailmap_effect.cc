@@ -20,11 +20,10 @@ bool DetailmapEffect::Init(azer::VertexDesc* desc, const ShaderPrograms& sources
 }
 
 void DetailmapEffect::ApplyGpuConstantTable(azer::Renderer* renderer)  {
-  Matrix4 pvw = std::move(pv_ * world_);
   {
     GpuConstantsTable* tb = gpu_table_[(int)kDomainStage].get();
     DCHECK(tb != NULL);
-    tb->SetValue(0, &pvw, sizeof(Matrix4));
+    tb->SetValue(0, &pv_, sizeof(Matrix4));
     tb->SetValue(1, &world_, sizeof(Matrix4));
     tb->SetValue(2, &eyepos_, sizeof(Vector4));
   }

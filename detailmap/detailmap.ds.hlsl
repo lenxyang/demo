@@ -1,8 +1,9 @@
 #pragma pack_matrix(row_major)
 
 cbuffer c_buffer {
-  float4x4 pvw;
+  float4x4 pv;
   float4x4 world;
+  float4 eyepos;
 };
 struct HSCOutput {
   float edge[3]: SV_TessFactor;
@@ -28,22 +29,25 @@ struct DsOutput {
 DsOutput ds_main(HSCOutput input, 
                  const OutputPatch<VsOutput, 3> tri, 
                  float3 uvw : SV_DomainLocation) {
-  DsOutput output;
-  float3 v = uvw.x * tri[0].position.xyz 
-           + uvw.y * tri[1].position.xyz
-           + uvw.z * tri[2].position.xyz;
-  float3 normal = uvw.x * tri[0].normal
+  DsOutput o;
+  float3 pos = uvw.x * tri[0].position
+             + uvw.y * tri[1].position
+             + uvw.z * tri[2].position;
+  float4 worldpos = mul(world, float4(pos, 1.0));
+  o.normal = uvw.x * tri[0].normal
            + uvw.y * tri[1].normal
            + uvw.z * tri[2].normal;
-  float3 tangent = uvw.x * tri[0].tangent
+  o.tangent = uvw.x * tri[0].tangent
            + uvw.y * tri[1].tangent
            + uvw.z * tri[2].tangent;
-  float2 texcoord = uvw.x * tri[0].texcoord
-           + uvw.y * tri[1].texcoord
-           + uvw.z * tri[2].texcoord;
-  output.position = mul(pvw, float4(v, 1.0f));
-  output.normal = mul(world, float4(normal, 0.0)).xyz;
-  output.texcoord = texcoord;
-  output.tangent = mul(world, float4(tangent, 0.0)).xyz;
-  return output;
+  o.binormal = uvw.x * tri[0].binormal
+           + uvw.y * tri[1].binormal
+           + uvw.z * tri[2].binormal;
+  o.texcoord = uvw.x * tri[0].texcoord
+             + uvw.y * tri[1].texcoord
+             + uvw.z * tri[2].texcoord;
+  o.position = mul(pv, worldpos);
+  o.normal = mul(world, float4(o.normal, 0.0)).xyz;
+  o.tangent = mul(world, float4(o.tangent, 0.0)).xyz;
+  return o;
 };
