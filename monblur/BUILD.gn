@@ -1,0 +1,8 @@
+executable("monblur") {
+  output_name = "demo_monblur"
+  sources = [ "monblur.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}

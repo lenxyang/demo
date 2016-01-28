@@ -3,6 +3,7 @@ group("demo") {
   deps = [
     "samples",
     "stencil",
+    "monblur",
     "parallax_occlusion_mapping",
     "terrain",
     "shadow",

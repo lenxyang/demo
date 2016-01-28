@@ -454,19 +454,25 @@ SdkMeshMaterialPtr SdkMeshData::CreateMaterial(int32 index) {
   if (!mtrl.diffuse_texture.empty()) {
     ResPath texpath = basedir;
     texpath.Append(ResPath(UTF8ToUTF16(mtrl.diffuse_texture)));
-    m->set_diffusemap(Load2DTexture(texpath, filesystem_));
+    TexturePtr tex = Load2DTexture(texpath, filesystem_);
+    LOG_IF(ERROR, !tex.get()) << "Load Texture(" << texpath.fullpath() << ") failed";
+    m->set_diffusemap(tex);
   }
 
   if (!mtrl.normal_texture.empty()) {
     ResPath texpath = basedir;
     texpath.Append(ResPath(UTF8ToUTF16(mtrl.normal_texture)));
-    m->set_normalmap(Load2DTexture(texpath, filesystem_));
+    TexturePtr tex = Load2DTexture(texpath, filesystem_);
+    LOG_IF(ERROR, !tex.get()) << "Load Texture(" << texpath.fullpath() << ") failed";
+    m->set_normalmap(tex);
   }
 
   if (!mtrl.specular_texture.empty()) {
     ResPath texpath = basedir;
     texpath.Append(ResPath(UTF8ToUTF16(mtrl.specular_texture)));
-    m->set_specularmap(Load2DTexture(texpath, filesystem_));
+    TexturePtr tex = Load2DTexture(texpath, filesystem_);
+    LOG_IF(ERROR, !tex.get()) << "Load Texture(" << texpath.fullpath() << ") failed";
+    m->set_specularmap(tex);
   }
   return m;
 }
@@ -534,6 +540,7 @@ azer::EntityPtr SdkMeshData::CreateEntity(int32 mesh_index, int32 part_index) {
   EntityPtr entity = new Entity(vb, ib);
   entity->set_vertex_base(subset.vertex_base);
   entity->set_start_index(subset.start_index);
+  entity->set_primitive(subset.primitive);
   return entity;
 }
 
