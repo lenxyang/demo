@@ -3,12 +3,9 @@ group("demo") {
   deps = [
     "samples",
     "stencil",
-    "compute_shader",
     "parallax_occlusion_mapping",
-    "tessellation",
     "terrain",
     "shadow",
-    "depth",
     "base",
   ]
 }

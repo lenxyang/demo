@@ -6,5 +6,8 @@ group("samples") {
     "objects",
     "transform",
     "sdkmesh",
+    "depth",
+    "compute_shader",
+    "tessellation",
   ]
 }
