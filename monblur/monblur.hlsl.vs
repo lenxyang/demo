@@ -15,20 +15,6 @@ struct VSInput {
   float3 tang: TANGENT;
 };
 
-cbuffer c_buffer {
-   float4x4 pvw;
-   float4x4 world;
-   float4   camerapos;
-};
-
-VsOutput vs_main(VSInput input) {
-  VsOutput o;
-  float4 pos = float4(input.position, 1.0f);
-  float4 normal = float4(input.normal, 0.0f);
-  o.position = mul(pvw, pos);
-  o.worldpos = mul(world, pos).xyz;
-  o.normal = normalize(mul(world, normal)).xyz;
-  o.viewin = normalize(camerapos - o.worldpos);
-  o.texcoord = input.texcoord;
-  return o;
+VSInput vs_main(VSInput input) {
+  return input;
 }

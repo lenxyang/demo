@@ -13,8 +13,10 @@
 	</node>
       </node>
       <node name="fan">
-	<location><position>0.0f, 3.62f, 2.012f</position></location>
-	<refer type="mesh" path=":fan"/>
+        <location><position>0.0f, 3.62f, 2.012f</position></location>
+        <node name="normal">
+	  <refer type="mesh" path=":fan"/>
+        </node>
       </node>
       <node name="windmillstage">
 	<location><position>0.0f, 0.0f, 0.0f</position></location>
@@ -59,6 +61,7 @@
   <effect name="blur_effect" effect_name="MonblurEffect"
 	  vertex_desc=":sdk_vertex_desc">
     <shader stage="vertex" entry="vsmain" path="//monblur/monblur.hlsl.vs" />
+    <shader stage="geometry" entry="gsmain" path="//monblur/monblur.hlsl.gs" />
     <shader stage="pixel" entry="psmain" path="//monblur/monblur.hlsl.ps" />
   </effect>
 </xml>

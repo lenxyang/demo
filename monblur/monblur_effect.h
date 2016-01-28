@@ -16,10 +16,11 @@ class MonblurEffect : public azer::Effect {
   const char* GetEffectName() const override { return kEffectName;}
   bool Init(azer::VertexDesc* desc, const ShaderPrograms& sources) override;
 
+  static const int32 kMaxStep = 3;
 #pragma pack(push, 4)
-  struct vs_cbuffer {
-    azer::Matrix4 pvw;
-    azer::Matrix4 world;
+  struct gs_cbuffer {
+    azer::Matrix4 pv[kMaxStep];
+    azer::Matrix4 world[kMaxStep];
     azer::Vector4 camerapos;
   };
   struct ps_cbuffer {
@@ -28,8 +29,8 @@ class MonblurEffect : public azer::Effect {
   };
 #pragma pack(pop)
 
-  void SetPV(const azer::Matrix4& value) { pv_ = value;}
-  void SetWorld(const azer::Matrix4& value) { world_ = value;}
+  void SetPV(const azer::Matrix4& value);
+  void SetWorld(const azer::Matrix4& value);
   void SetCameraPos(const azer::Vector4& pos);
   void SetDiffuseMap(azer::Texture* ptr) { diffusemap_ = ptr;}
   void SetNormalMap(azer::Texture* ptr) { normalmap_ = ptr;}
@@ -41,8 +42,8 @@ class MonblurEffect : public azer::Effect {
   void UseTexture(azer::Renderer* renderer) override;
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
   void InitGpuConstantTable();
-  azer::Matrix4 pv_;
-  azer::Matrix4 world_;
+  azer::Matrix4 pv_[kMaxStep];
+  azer::Matrix4 world_[kMaxStep];
   azer::Vector4 camerapos_;
   lord::DirLight dir_light_;
   lord::SpotLight spot_light_;

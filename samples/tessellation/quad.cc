@@ -126,6 +126,7 @@ TessEffectPtr CreateTessEffect() {
   };
   Effect::ShaderPrograms shaders;
   shaders.resize(kRenderPipelineStageNum);
+  shaders[kVertexStage].stage = kVertexStage;
   shaders[kVertexStage].path = "effect.vs";
   shaders[kVertexStage].code = ""
       "#pragma pack_matrix(row_major)\n"
@@ -141,6 +142,7 @@ TessEffectPtr CreateTessEffect() {
       "  return o;"
       "}";
   shaders[kHullStage].path = "effect.hs";
+  shaders[kHullStage].stage = kHullStage;
   shaders[kHullStage].code = ""
       "#pragma pack_matrix(row_major)\n"
       "cbuffer c_buffer {"
@@ -181,6 +183,7 @@ TessEffectPtr CreateTessEffect() {
       "  output.position = patch[pointid].position;\n"
       "  return output;\n"
       "}\n";
+  shaders[kDomainStage].stage = kDomainStage;
   shaders[kDomainStage].path = "effect.ds";
   shaders[kDomainStage].code = ""
       "#pragma pack_matrix(row_major)\n"
@@ -209,6 +212,7 @@ TessEffectPtr CreateTessEffect() {
       "  return output;\n"
       "}\n";
   shaders[kPixelStage].path = "effect.ps";
+  shaders[kPixelStage].stage = kPixelStage;
   shaders[kPixelStage].code = ""
       "#pragma pack_matrix(row_major)\n"
       "struct DsOutput {\n"

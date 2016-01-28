@@ -1,0 +1,24 @@
+
+group("detailmap") {
+  deps = [
+    ":quad",
+  ]
+}
+
+static_library("effect") {
+  sources = ["detailmap_effect.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+executable("quad") {
+  output_name = "demo_detailmap_quad"
+  sources = [ "quad.cc", "detailmap_effect.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":effect",
+  ]
+}

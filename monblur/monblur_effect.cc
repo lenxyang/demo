@@ -24,16 +24,16 @@ bool MonblurEffect::Init(VertexDesc* desc, const ShaderPrograms& sources) {
 void MonblurEffect::InitGpuConstantTable() {
   RenderSystem* rs = RenderSystem::Current();
   // generate GpuTable init for stage kVertexStage
-  GpuConstantsTable::Desc vs_table_desc[] = {
+  GpuConstantsTable::Desc gs_table_desc[] = {
     GpuConstantsTable::Desc("pvw", GpuConstantsType::kMatrix4,
-                            offsetof(vs_cbuffer, pvw), 1),
+                            offsetof(vs_cbuffer, pvw), kMaxStep),
     GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
-                            offsetof(vs_cbuffer, world), 1),
+                            offsetof(vs_cbuffer, world), kMaxStep),
     GpuConstantsTable::Desc("camerapos", GpuConstantsType::kVector4,
                             offsetof(vs_cbuffer, camerapos), 1),
   };
-  gpu_table_[kVertexStage] = rs->CreateGpuConstantsTable(
-      arraysize(vs_table_desc), vs_table_desc);
+  gpu_table_[kGeometryStage] = rs->CreateGpuConstantsTable(
+      arraysize(gs_table_desc), gs_table_desc);
 
   GpuConstantsTable::Desc ps_table_desc[] = {
     GpuConstantsTable::Desc("dirlight", offsetof(ps_cbuffer, dirlight),
@@ -47,11 +47,11 @@ void MonblurEffect::InitGpuConstantTable() {
 
 void MonblurEffect::ApplyGpuConstantTable(Renderer* renderer) {
   {
-    Matrix4 pvw = std::move(pv_ * world_);
-    GpuConstantsTable* tb = gpu_table_[(int)kVertexStage].get();
+    GpuConstantsTable* tb = gpu_table_[(int)kGeometryStage].get();
     DCHECK(tb != NULL);
-    tb->SetValue(0, &pvw, sizeof(Matrix4));
-    tb->SetValue(1, &world_, sizeof(Matrix4));
+    tb->SetValue(0, pv_, sizeof(Matrix4) * arraysize(pv_));
+    tb->SetValue(1, world_, sizeof(Matrix4) * arraysize(world_));
+    tb->SetValue(2, camerapos_, sizeof(Vector4));
   }
 
   {
@@ -72,6 +72,20 @@ void MonblurEffect::SetDirLight(const lord::DirLight& value) {
 
 void MonblurEffect::SetSpotLight(const lord::SpotLight& value) {
   spot_light_ = value;
+}
+
+void MonblurEffect::SetPV(const azer::Matrix4& value) {
+  for (int i = 0; i < kMaxStep - 1; ++i) {
+    pv_[i + 1] - pv_[i];
+  }
+  pv_[0] = value;
+}
+
+void MonblurEffect::SetWorld(const azer::Matrix4& value) {
+  for (int i = 0; i < kMaxStep - 1; ++i) {
+    world_[i + 1] - world_[i];
+  }
+  world_[0] = value;
 }
 
 scoped_refptr<MonblurEffect> CreateMonblurEffect() {
