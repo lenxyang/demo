@@ -1,6 +1,7 @@
 #include <memory>
 
 #include "demo/base/base.h"
+#include "demo/monblur/monblur_effect.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -43,7 +44,9 @@ int main(int argc, char* argv[]) {
   adapterctx->RegisteAdapter(new SdkMeshMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeSdkMeshEffectAdapter);
   adapterctx->RegisteAdapter(new LordEnvNodeDelegateSdkMeshEffectAdapter);
-  
+  adapterctx->RegisteAdapter(new MonblurMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeMonblurEffectAdapter);
+  adapterctx->RegisteAdapter(new LordEnvNodeDelegateMonblurEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));

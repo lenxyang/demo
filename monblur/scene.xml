@@ -43,8 +43,22 @@
 
   <sdkmesh name="fan">
     <data path="//data/sdkmesh/Fan.sdkmesh"/>
+    <refer type="effect" path=":blur_effect"/>
   </sdkmesh>
   <sdkmesh name="windmillstage">
     <data path="//data/sdkmesh/windmillstage.sdkmesh"/>
   </sdkmesh>
+
+  <!-- diffuse effect -->
+  <vertex_desc name="sdk_vertex_desc">
+    <desc semantic="position" semindex="0" slot="0" data_type="vector3" />
+    <desc semantic="normal" semindex="0" slot="0" data_type="vector3" />
+    <desc semantic="texcoord" semindex="0" slot="0" data_type="vector2" />
+    <desc semantic="tangent" semindex="0" slot="0" data_type="vector3" />
+  </vertex_desc>
+  <effect name="blur_effect" effect_name="MonblurEffect"
+	  vertex_desc=":sdk_vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//monblur/monblur.hlsl.vs" />
+    <shader stage="pixel" entry="psmain" path="//monblur/monblur.hlsl.ps" />
+  </effect>
 </xml>

@@ -1,6 +1,6 @@
 executable("monblur") {
   output_name = "demo_monblur"
-  sources = [ "monblur.cc", ]
+  sources = [ "monblur.cc", "monblur_effect.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",

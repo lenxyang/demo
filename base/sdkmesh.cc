@@ -717,15 +717,20 @@ bool SdkMeshSpecialLoader::CouldLoad(azer::ConfigNode* node) const {
 }
 
 VariantResource SdkMeshSpecialLoader::Load(const azer::ConfigNode* node,
-                                                 lord::ResourceLoadContext* ctx) {
+                                           lord::ResourceLoadContext* ctx) {
   const ConfigNode* mesh_node = node->GetFirstChildTagged("data");
   if (!mesh_node || !mesh_node->HasAttr("path")) {
     LOG(ERROR) << "model[" << node->GetNodePath() << "] has no effect";
     return VariantResource();
   }
 
+  EffectPtr effect;
+  ConfigNode* effect_node = GetTypedReferNode("effect", node);
+  if (effect_node) {
+    effect = LoadReferEffect(effect_node, ctx);
+  }
+
   SdkMeshData data(ctx->filesystem);
-  
   ResPath mesh_path(::base::UTF8ToUTF16(mesh_node->GetAttr("path")));
   if (!data.LoadFromFile(mesh_path)) {
     return VariantResource();
@@ -743,5 +748,10 @@ VariantResource SdkMeshSpecialLoader::Load(const azer::ConfigNode* node,
   resource.type = kResTypeMesh;
   resource.mesh = (vec.size() > 0) ? vec[0] : NULL;
   resource.retcode = (resource.mesh.get() != NULL) ? 0 : -1;
+  if (effect && resource.mesh) {
+    for (uint32 i = 0; i < resource.mesh->part_count(); ++i) {
+      resource.mesh->part_at(i)->SetEffect(effect);
+    }
+  }
   return resource;
 }
