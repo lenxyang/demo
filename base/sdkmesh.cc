@@ -41,8 +41,8 @@ enum D3DDECLTYPE
 #pragma pack(push,4)
 
 struct D3DVERTEXELEMENT9 {
-  uint16    Stream;     // Stream index
-  uint16    Offset;     // Offset in the stream in bytes
+  uint16   Stream;     // Stream index
+  uint16   Offset;     // Offset in the stream in bytes
   uint8    Type;       // Data type
   uint8    Method;     // Processing method
   uint8    Usage;      // Semantics
@@ -227,33 +227,12 @@ struct SDKMESH_MATERIAL
   Vector4 Emissive;
   FLOAT Power;
 
-  /*
-  union {
-    uint64 Force64_1;//Force the union to 64bits
-    ID3D11Texture2D* pDiffuseTexture11;
-  };
-  union {
-    uint64 Force64_2;//Force the union to 64bits
-    ID3D11Texture2D* pNormalTexture11;
-  };
-  union {
-    uint64 Force64_3;//Force the union to 64bits
-    ID3D11Texture2D* pSpecularTexture11;
-  };
-
-  union {
-    uint64 Force64_4;//Force the union to 64bits
-    ID3D11ShaderResourceView* pDiffuseRV11;
-  };
-  union {
-    uint64 Force64_5;    //Force the union to 64bits
-    ID3D11ShaderResourceView* pNormalRV11;
-  };
-  union {
-    uint64 Force64_6;//Force the union to 64bits
-    ID3D11ShaderResourceView* pSpecularRV11;
-  };
-  */
+  uint64 Force64_1; //Force the union to 64bits
+  uint64 Force64_2; //Force the union to 64bits
+  uint64 Force64_3; //Force the union to 64bits
+  uint64 Force64_4; //Force the union to 64bits
+  uint64 Force64_5; //Force the union to 64bits
+  uint64 Force64_6; //Force the union to 64bits
 };
 
 struct SDKANIMATION_FILE_HEADER {
@@ -539,7 +518,9 @@ azer::EntityPtr SdkMeshData::CreateEntity(int32 mesh_index, int32 part_index) {
   
   EntityPtr entity = new Entity(vb, ib);
   entity->set_vertex_base(subset.vertex_base);
-  entity->set_start_index(subset.start_index);
+  entity->set_vertex_count(subset.vertex_count);
+  entity->set_index_base(subset.index_base);
+  entity->set_index_count(subset.index_count);
   entity->set_primitive(subset.primitive);
   return entity;
 }
@@ -712,7 +693,9 @@ bool SdkMeshData::LoadMesh(const uint8* data, int32 size) {
           subsetArray[sIndex].PrimitiveType);
       Subset s;
       s.vertex_base = static_cast<uint32>(subset.VertexStart);
-      s.start_index = static_cast<uint32>(subset.IndexStart);
+      s.vertex_count = static_cast<uint32>(subset.VertexCount);
+      s.index_base = static_cast<uint32>(subset.IndexStart);
+      s.index_count = static_cast<uint32>(subset.IndexCount);
       s.vertex_data_index = mh.VertexBuffers[0];
       s.vertex_data_index = mh.IndexBuffer;
       s.material_index = subset.MaterialID;

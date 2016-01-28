@@ -30,7 +30,9 @@ class SdkMeshData {
   
   struct Subset {
     int32 vertex_base;
-    int32 start_index;
+    int32 vertex_count;
+    int32 index_base;
+    int32 index_count;
     int32 vertex_data_index;
     int32 indices_data_index;
     int32 material_index;

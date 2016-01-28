@@ -77,6 +77,8 @@ SceneNodePtr MyRenderWindow::InitScene() {
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
+  SceneNode* fan = root()->GetNode("//scene/node/fan");
+  fan->roll(Radians(3.14f * 0.5f * args.delta().InSecondsF()));
   scene_render_->Update(args);
 }
 
