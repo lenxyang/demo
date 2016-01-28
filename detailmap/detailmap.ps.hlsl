@@ -1,10 +1,11 @@
-"#pragma pack_matrix(row_major)\n"
-      "struct DsOutput {\n"
-      "  float4 position:SV_POSITION;\n"
-      "};\n"
-      "cbuffer c_buffer {\n"
-      "  float4 color;\n"
-      "};\n"
-      "float4 ps_main(DsOutput o):SV_TARGET {\n"
-      "  return color;"
-      "}\n";
+#pragma pack_matrix(row_major)
+
+struct DsOutput {
+  float4 position:SV_POSITION;
+};
+cbuffer c_buffer {
+  float4 color;
+};
+float4 ps_main(DsOutput o):SV_TARGET {
+  return color;
+};

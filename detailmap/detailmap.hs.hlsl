@@ -1,4 +1,5 @@
 #pragma pack_matrix(row_major)
+
 cbuffer c_buffer {
   float4 edge;
   float4 inside;
@@ -13,6 +14,7 @@ struct HSCOutput {
 struct HsOutput {
   float4 position: POSITION;
 };
+
 HSCOutput PatchConstantFunc(InputPatch<VsOutput, 4> input, 
                             uint patchid : SV_PrimitiveID) {
   HSCOutput output;
@@ -25,11 +27,11 @@ HSCOutput PatchConstantFunc(InputPatch<VsOutput, 4> input,
   return output;
 }
 
-[domain(quad)]
-[partitioning(integer)]
-[outputtopology(triangle_cw)]
+[domain("quad")]
+[partitioning("integer")]
+[outputtopology("triangle_cw")]
 [outputcontrolpoints(4)]
-[patchconstantfunc(PatchConstantFunc)]
+[patchconstantfunc("PatchConstantFunc")]
 [maxtessfactor(64.0f)]
 HsOutput hs_main(InputPatch<VsOutput, 4> patch, 
                  uint pointid: SV_OutputControlPointID, 

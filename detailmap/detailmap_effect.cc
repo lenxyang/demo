@@ -80,10 +80,10 @@ DetailmapEffectPtr CreateDetailmapEffect() {
   Effect::ShaderPrograms s;
   s.resize(kRenderPipelineStageNum);
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
-  CHECK(LoadShaderAtStage(kPixelStage, "demo/base/hlsl/sdkmesh.ps.hlsl", &s));
-  CHECK(LoadShaderAtStage(kHullStage, "demo/base/hlsl/sdkmesh.hs.hlsl", &s));
-  CHECK(LoadShaderAtStage(kDomainStage, "demo/base/hlsl/sdkmesh.ds.hlsl", &s));
-  CHECK(LoadShaderAtStage(kVertexStage, "demo/base/hlsl/sdkmesh.vs.hlsl", &s));
+  CHECK(LoadShaderAtStage(kVertexStage, "demo/detailmap/detailmap.vs.hlsl", &s));
+  CHECK(LoadShaderAtStage(kHullStage, "demo/detailmap/detailmap.hs.hlsl", &s));
+  CHECK(LoadShaderAtStage(kDomainStage, "demo/detailmap/detailmap.ds.hlsl", &s));
+  CHECK(LoadShaderAtStage(kPixelStage, "demo/detailmap/detailmap.ps.hlsl", &s));
   scoped_refptr<DetailmapEffect> ptr(new DetailmapEffect);
   ptr->Init(desc, s);
   return ptr;

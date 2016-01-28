@@ -14,7 +14,7 @@ struct HsOutput {
 struct DsOutput {
   float4 position: SV_POSITION;
 };
-[domain(quad)]
+[domain("quad")]
 DsOutput ds_main(HSCOutput input, 
                  const OutputPatch<HsOutput, 4> quad, 
                  float2 uv : SV_DomainLocation) {
