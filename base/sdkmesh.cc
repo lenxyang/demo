@@ -1,9 +1,12 @@
 #include "demo/base/sdkmesh.h"
 
+#include "base/logging.h"
+#include "lordaeron/env.h"
 #include "demo/base/sdkmesh_effect.h"
 #include "demo/base/resource_util.h"
 
 using namespace azer;
+using namespace lord;
 
 enum D3DDECLUSAGE
 {
@@ -483,12 +486,16 @@ bool SdkMeshData::CreateMesh(std::vector<azer::MeshPtr>* meshes,
 
   for (uint32 i = 0; i < meshes_.size(); ++i) {
     azer::MeshPtr mesh(new azer::Mesh(ctx));
+    Vector3 min = meshes_[i].center - meshes_[i].extends * 0.5f;
+    Vector3 max = meshes_[i].center + meshes_[i].extends * 0.5f;
     meshes->push_back(mesh);
     for (uint32 j = 0; j < meshes_[i].subsets.size(); ++j) {
       const Subset& subset = meshes_[i].subsets[j];
       MeshPartPtr part(new MeshPart(effect));
       part->SetEffectAdapterContext(ctx);
       EntityPtr entity = CreateEntity(i, j);
+      entity->set_vmin(min);
+      entity->set_vmax(max);
       part->AddEntity(entity);
       part->AddProvider(materials[subset.material_index]);
       mesh->AddMeshPart(part);
@@ -707,4 +714,44 @@ bool SdkMeshData::LoadMesh(const uint8* data, int32 size) {
     }
   }
   return true;
+}
+
+SdkMeshSpecialLoader::SdkMeshSpecialLoader() {
+}
+
+const char* SdkMeshSpecialLoader::GetLoaderName() const {
+  return "SdkMeshSpecialLoader";
+}
+bool SdkMeshSpecialLoader::CouldLoad(azer::ConfigNode* node) const {
+  return node->tagname() == "sdkmesh";
+}
+
+VariantResource SdkMeshSpecialLoader::Load(const azer::ConfigNode* node,
+                                                 lord::ResourceLoadContext* ctx) {
+  const ConfigNode* mesh_node = node->GetFirstChildTagged("data");
+  if (!mesh_node || !mesh_node->HasAttr("path")) {
+    LOG(ERROR) << "model[" << node->GetNodePath() << "] has no effect";
+    return VariantResource();
+  }
+
+  SdkMeshData data(ctx->filesystem);
+  
+  ResPath mesh_path(::base::UTF8ToUTF16(mesh_node->GetAttr("path")));
+  if (!data.LoadFromFile(mesh_path)) {
+    return VariantResource();
+  }
+
+  LordEnv* env = LordEnv::instance();
+  azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
+  std::vector<MeshPtr> vec;
+  if (!data.CreateMesh(&vec, adapterctx)) {
+    return VariantResource();
+  }
+
+  DCHECK_EQ(vec.size(), 1u);
+  VariantResource resource;
+  resource.type = kResTypeMesh;
+  resource.mesh = (vec.size() > 0) ? vec[0] : NULL;
+  resource.retcode = (resource.mesh.get() != NULL) ? 0 : -1;
+  return resource;
 }

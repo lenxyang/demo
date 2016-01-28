@@ -22,22 +22,28 @@ class MyRenderWindow : public lord::FrameWindow {
  private:
   RenderNodePtr bvolumn_root_;
   scoped_ptr<UISceneRender> scene_render_;
-  scoped_ptr<ShadowDepthRenderer> depth_render_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
 int main(int argc, char* argv[]) {
   CHECK(lord::LordEnv::InitEnv(argc, argv));
-
   lord::LordEnv* env = lord::LordEnv::instance();
+  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
+      FilePath(UTF8ToUTF16("demo/"))));
+  env->SetFileSystem(fs.Pass());
+  ResourceLoader* resloader = env->resource_loader();
+  InitDefaultLoader(resloader);
+  resloader->RegisterSpecialLoader(new SdkMeshSpecialLoader);
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
   adapterctx->RegisteAdapter(new RenderNodeShadowMapEffectAdapter);
   adapterctx->RegisteAdapter(new EffectedEnvNodeDelegateShadowMapEffectAdapter);
-  adapterctx->RegisteAdapter(new ShadowMapMaterialEffectAdapter);
-  adapterctx->RegisteAdapter(new ShadowMapDepthEffectAdapter);
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
   adapterctx->RegisteAdapter(new LordEnvNodeDelegateTexEffectAdapter);
+  adapterctx->RegisteAdapter(new SdkMeshMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeSdkMeshEffectAdapter);
+  adapterctx->RegisteAdapter(new LordEnvNodeDelegateSdkMeshEffectAdapter);
+  
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -53,12 +59,7 @@ int main(int argc, char* argv[]) {
 
 SceneNodePtr MyRenderWindow::InitScene() {
   LordEnv* env = LordEnv::instance();
-  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
-      FilePath(UTF8ToUTF16("demo/"))));
-  env->SetFileSystem(fs.Pass());
-
-  ResourceLoader* resloader = env->resource_loader();
-  InitDefaultLoader(resloader);
+  ResourceLoader* resloader = env->resource_loader();  
   ResPath respath(UTF8ToUTF16("//samples/sdkmesh/scene.xml:scene"));
   VariantResource res = resloader->Load(respath);
   SceneNodePtr root = res.scene;

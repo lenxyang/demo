@@ -12,19 +12,9 @@
 	  <refer type="light" path=":spot" />
 	</node>
       </node>
-      <node name="sphere1">
-	<location><position>-7.0f, 3.0f, 0.0f</position></location>
-	<refer type="mesh" path=":sphere"/>
-      </node>
-
-      <node name="sphere2">
-	<location><position>0.0f, 3.0f, 0.0f</position></location>
-	<refer type="mesh" path=":sphere"/>
-      </node>
-
-      <node name="sphere3">
+      <node name="sdkmesh">
 	<location><position>7.0f, 3.0f, 0.0f</position></location>
-	<refer type="mesh" path=":sphere"/>
+	<refer type="mesh" path=":helmet"/>
       </node>
 
       <node name="plane" cast_shadow="true">
@@ -52,12 +42,9 @@
     <directional>0.0, -1.0, 0.0</directional>
   </light>
 
-  <mesh name="sphere">
-    <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
-    <refer type="effect" path="//data/effects.xml:tex_effect"/>
-    <refer type="material" path=":mtrl"/>
-    <data path="//data/media/sphere.x"/>
-  </mesh>
+  <sdkmesh name="helmet">
+    <data path="//data/sdkmesh/Helmet.sdkmesh"/>
+  </sdkmesh>
 
   <mesh name="plane">
     <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />

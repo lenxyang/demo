@@ -128,4 +128,25 @@ class LightProviderSdkMeshAdapter : public EffectParamsAdapter {
   DISALLOW_COPY_AND_ASSIGN(LightProviderSdkMeshAdapter);
 };
 
+class RenderNodeSdkMeshEffectAdapter : public EffectParamsAdapter {
+ public:
+  RenderNodeSdkMeshEffectAdapter();
+
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(RenderNodeSdkMeshEffectAdapter);
+};
+
+class LordEnvNodeDelegateSdkMeshEffectAdapter : public EffectParamsAdapter {
+ public:
+  LordEnvNodeDelegateSdkMeshEffectAdapter();
+
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LordEnvNodeDelegateSdkMeshEffectAdapter);
+};
+
+
 typedef scoped_refptr<SdkMeshMaterial> SdkMeshMaterialPtr;

@@ -167,3 +167,48 @@ void LightProviderSdkMeshAdapter::Apply(
   effect->SetSpotLight(provider->spot_light());
   effect->SetDirLight(provider->dir_light());
 }
+
+
+// class RenderNodeSdkMeshEffectAdapter
+using namespace lord;
+RenderNodeSdkMeshEffectAdapter::RenderNodeSdkMeshEffectAdapter() {}
+EffectAdapterKey RenderNodeSdkMeshEffectAdapter::key() const {
+  return std::make_pair(typeid(SdkMeshEffect).name(),
+                        typeid(RenderNode).name());
+}
+
+void RenderNodeSdkMeshEffectAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(SdkMeshEffect));
+  CHECK(typeid(*params) == typeid(RenderNode));
+  const RenderNode* provider = (const RenderNode*)params;
+  SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
+  effect->SetWorld(provider->GetWorld());
+  effect->SetPV(provider->camera()->GetProjViewMatrix());
+  effect->SetCameraPos(Vector4(provider->camera()->position(), 1.0f));
+}
+
+LordEnvNodeDelegateSdkMeshEffectAdapter::LordEnvNodeDelegateSdkMeshEffectAdapter() {}
+EffectAdapterKey LordEnvNodeDelegateSdkMeshEffectAdapter::key() const {
+  return std::make_pair(typeid(SdkMeshEffect).name(),
+                        typeid(LordEnvNodeDelegate).name());
+}
+
+void LordEnvNodeDelegateSdkMeshEffectAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(SdkMeshEffect));
+  CHECK(typeid(*params) == typeid(LordEnvNodeDelegate));
+  const LordEnvNodeDelegate* provider = (const LordEnvNodeDelegate*)params;
+  SdkMeshEffect* effect = dynamic_cast<SdkMeshEffect*>(e);
+  for (auto iter = provider->lights().begin(); 
+       iter != provider->lights().end();
+       ++iter) {
+    lord::Light* light = iter->get();
+    if (light->type() == kDirectionalLight) {
+      effect->SetDirLight(light->dir_light());
+    } else if (light->type() == kSpotLight) {
+      effect->SetSpotLight(light->spot_light());
+    }
+  }
+}
+

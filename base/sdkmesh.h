@@ -5,6 +5,7 @@
 
 #include "azer/base/file_system.h"
 #include "azer/render/render.h"
+#include "lordaeron/resource/resource_loader.h"
 
 class SdkMeshMaterial;
 typedef scoped_refptr<SdkMeshMaterial> SdkMeshMaterialPtr;
@@ -73,3 +74,13 @@ class SdkMeshData {
   DISALLOW_COPY_AND_ASSIGN(SdkMeshData);
 };
 
+class SdkMeshSpecialLoader : public lord::ResourceSpecialLoader {
+ public:
+  SdkMeshSpecialLoader();
+  const char* GetLoaderName() const override;
+  bool CouldLoad(azer::ConfigNode* node) const override;
+  lord::VariantResource Load(const azer::ConfigNode* node,
+                             lord::ResourceLoadContext* ctx) override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(SdkMeshSpecialLoader);
+};
