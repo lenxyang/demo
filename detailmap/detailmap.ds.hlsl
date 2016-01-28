@@ -9,11 +9,12 @@ struct HSCOutput {
   float inside:  SV_InsideTessFactor;
 };
 
-struct VsInput {
+struct VsOutput {
   float3 position: POSITION;
   float3 normal  : NORMAL;
   float2 texcoord: TEXCOORD;
   float3 tangent : TANGENT;
+  float3 binormal : BINORMAL;
 };
 
 struct DsOutput {
@@ -25,7 +26,7 @@ struct DsOutput {
 };
 [domain("tri")]
 DsOutput ds_main(HSCOutput input, 
-                 const OutputPatch<VsInput, 3> tri, 
+                 const OutputPatch<VsOutput, 3> tri, 
                  float3 uvw : SV_DomainLocation) {
   DsOutput output;
   float3 v = uvw.x * tri[0].position.xyz 

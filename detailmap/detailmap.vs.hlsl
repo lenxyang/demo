@@ -7,6 +7,20 @@ struct VsInput {
   float3 tangent : TANGENT;
 };
 
-VsInput vs_main(VsInput input) {
-  return input;
+struct VsOutput {
+  float3 position: POSITION;
+  float3 normal  : NORMAL;
+  float2 texcoord: TEXCOORD;
+  float3 tangent : TANGENT;
+  float3 binormal : BINORMAL;
+};
+
+VsOutput vs_main(VsInput input) {
+  VsOutput o;
+  o.position = input.position;
+  o.normal = normalize(input.normal);
+  o.texcoord = input.texcoord;
+  o.tangent = normalize(input.tangent);
+  o.binormal = normalize(cross(o.tangent, o.normal));
+  return o;
 };
