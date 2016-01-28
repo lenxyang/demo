@@ -33,6 +33,13 @@ void DetailmapEffect::ApplyGpuConstantTable(azer::Renderer* renderer)  {
     DCHECK(tb != NULL);
     tb->SetValue(0, &edge_, sizeof(Vector4));
   }
+
+  {
+    GpuConstantsTable* tb = gpu_table_[(int)kPixelStage].get();
+    DCHECK(tb != NULL);
+    tb->SetValue(0, &dir_light_, sizeof(lord::DirLight));
+    tb->SetValue(1, &spot_light_, sizeof(lord::SpotLight));
+  }
 }
 void DetailmapEffect::InitGpuConstantTable() {
   RenderSystem* rs = RenderSystem::Current();
@@ -55,8 +62,24 @@ void DetailmapEffect::InitGpuConstantTable() {
   };
   gpu_table_[kHullStage] = rs->CreateGpuConstantsTable(
       arraysize(hs_table_desc), hs_table_desc);
+
+  GpuConstantsTable::Desc ps_table_desc[] = {
+    GpuConstantsTable::Desc("dirlight", offsetof(ps_cbuffer, dirlight),
+                            sizeof(lord::DirLight), 1),
+    GpuConstantsTable::Desc("spotlight", offsetof(ps_cbuffer, spotlight),
+                            sizeof(lord::SpotLight), 1),
+  };
+  gpu_table_[kPixelStage] = rs->CreateGpuConstantsTable(
+      arraysize(ps_table_desc), ps_table_desc);
 }
 
+void DetailmapEffect::SetDirLight(const lord::DirLight& value) {
+  dir_light_ = value;
+}
+
+void DetailmapEffect::SetSpotLight(const lord::SpotLight& value) {
+  spot_light_ = value;
+}
 
 void DetailmapEffect::UseTexture(azer::Renderer* renderer) {
   renderer->UseTexture(kPixelStage, 0, diffusemap_.get());

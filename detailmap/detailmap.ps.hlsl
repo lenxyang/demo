@@ -1,11 +1,18 @@
 #pragma pack_matrix(row_major)
 
+#include "lordaeron/effect/lighting.hlsl"
+
 struct DsOutput {
   float4 position: SV_POSITION;
   float3 normal  : NORMAL;
   float2 texcoord: TEXCOORD;
   float3 tangent : TANGENT;
   float3 binormal : BINORMAL;
+};
+
+cbuffer c_buffer {
+  DirLight   dirlight;
+  SpotLight  spotlight;
 };
 
 Texture2D diffuse_map:  register(t0);

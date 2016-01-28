@@ -1,6 +1,7 @@
 #pragma once
 
 #include "azer/render/render.h"
+#include "lordaeron/effect/light.h"
 
 class DetailmapEffect : public azer::Effect {
  public:
@@ -20,6 +21,10 @@ class DetailmapEffect : public azer::Effect {
   struct hs_cbuffer {
     azer::Vector4 edge;
   };
+  struct ps_cbuffer {
+    lord::DirLight   dirlight;
+    lord::SpotLight  spotlight;
+  };
 #pragma pack(pop)
   void SetPV(const azer::Matrix4& value) { pv_ = value;}
   void SetWorld(const azer::Matrix4& value) { world_ = value;}
@@ -27,6 +32,8 @@ class DetailmapEffect : public azer::Effect {
   void SetEdgeInside(const azer::Vector4& value) {edge_ = value;}
   void SetDiffuseMap(azer::Texture* ptr) { diffusemap_ = ptr;}
   void SetNMMap(azer::Texture* ptr) { nmmap_ = ptr;}
+  void SetDirLight(const lord::DirLight& value);
+  void SetSpotLight(const lord::SpotLight& value);
  protected:
   void UseTexture(azer::Renderer* renderer) override;
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
@@ -35,6 +42,8 @@ class DetailmapEffect : public azer::Effect {
   azer::Matrix4 world_;
   azer::Vector4 eyepos_;
   azer::Vector4 edge_;
+  lord::DirLight dir_light_;
+  lord::SpotLight spot_light_;
   azer::TexturePtr diffusemap_;
   azer::TexturePtr nmmap_;
   DISALLOW_COPY_AND_ASSIGN(DetailmapEffect);

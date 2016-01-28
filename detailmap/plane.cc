@@ -78,6 +78,28 @@ void MyRenderWindow::OnInit() {
   diffusemap_ = Load2DTexture(texpath, env->file_system());
   ResPath nmtexpath(UTF8ToUTF16("//data/media/rocks_NM_height.dds"));
   nmmap_ = Load2DTexture(nmtexpath, env->file_system());
+
+  
+  SpotLight spotlight;
+  spotlight.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  spotlight.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+  spotlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  spotlight.position = Vector4(-3.0, 3.0f, 0.0f, 1.0f);
+  spotlight.directional = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
+  spotlight.phi = cos(Degree(45.0f));
+  spotlight.theta = cos(Degree(30.0f));
+  spotlight.range = 30.0f;
+  spotlight.falloff = 0.5f;
+  spotlight.enable = 1.0f;
+  
+  lord::DirLight dirlight;
+  dirlight.ambient = Vector4(0.1f, 0.1f, 0.1f, 0.1f);
+  dirlight.diffuse = Vector4(0.5f, 0.5f, 0.4f, 1.0f);
+  dirlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  dirlight.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
+  dirlight.enable = 1.0f;
+  effect_->SetSpotLight(spotlight);
+  effect_->SetDirLight(dirlight);
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
