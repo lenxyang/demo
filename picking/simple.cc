@@ -122,7 +122,7 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
-  listener_.reset(new EventListener(mutable_camera()));
+  listener_.reset(new ::EventListener(mutable_camera(), data_.get()));
   view()->AddEventListener(listener_.get());
 }
 

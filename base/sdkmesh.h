@@ -58,6 +58,8 @@ class SdkMeshData {
   const Mesh& mesh_at(int32 index) { return meshes_[index];}
   int32 material_count() const { return static_cast<int32>(mtrls_.size());}
   const Material& mtrl_at(int32 index) { return mtrls_[index];}
+  azer::SlotVertexData* vdata_at(int32 index) { return vdata_vec_[index];}
+  azer::IndicesData* idata_at(int32 index) { return idata_vec_[index];}
  private:
   bool LoadFromData(const uint8* data, int32 size);
   bool LoadVertexData(const uint8* data, int32 size);
@@ -91,4 +93,5 @@ struct PickingHit {
   azer::Vector3 triangle[3];
   azer::Vector3 hitpos;
 };
-void PickingSdkMesh(SdkMeshData* data, std::vector<PickingHit>* hit);
+void PickingSdkMesh(const azer::Ray& ray, SdkMeshData* data,
+                    std::vector<PickingHit>* hit);
