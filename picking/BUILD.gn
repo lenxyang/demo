@@ -1,0 +1,16 @@
+
+group("picking") {
+  deps = [
+    ":simple",
+  ]
+}
+
+executable("simple") {
+  output_name = "samples_picking_simple"
+  sources = [ "simple.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
