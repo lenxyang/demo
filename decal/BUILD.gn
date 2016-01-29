@@ -1,0 +1,16 @@
+
+group("decay") {
+  deps = [
+    ":simple",
+  ]
+}
+
+executable("simple") {
+  output_name = "samples_decay_simple"
+  sources = [ "simple.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+

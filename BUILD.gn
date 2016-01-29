@@ -6,6 +6,7 @@ group("demo") {
     "monblur",
     "parallax_occlusion_mapping",
     "detailmap",
+    "decal",
     "terrain",
     "shadow",
     "base",
