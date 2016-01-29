@@ -24,6 +24,7 @@ class MyRenderWindow : public lord::RenderWindow {
   RasterizerStatePtr state_;
   TexturePtr diffusemap_;
   TexturePtr nmmap_;
+  TransformHolder holder_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -56,15 +57,15 @@ void MyRenderWindow::OnInit() {
   ResourceLoader* resloader = env->resource_loader();
   InitDefaultLoader(resloader);
 
-  Vector3 camera_pos(0.0f, 8.0f, 8.0f);
+  Vector3 camera_pos(0.0f, 12.0f, 16.0f);
   Vector3 lookat(0.0f, 0.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateDetailmapEffect();
   GeoPlaneParams params;
-  params.row = 10.0;
-  params.column = 10.0;
+  params.row = 30.0;
+  params.column = 30.0;
   params.row_width = 1.0f;
   params.column_width = 1.0f;
   entity_ = CreatePlaneEntity(effect_->vertex_desc(), params, Matrix4::kIdentity);
@@ -108,7 +109,7 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   Matrix4 world = Matrix4::kIdentity;
   effect_->SetPV(camera().GetProjViewMatrix());
-  effect_->SetWorld(world);
+  effect_->SetWorld(RotateY(Degree(90.0f * args.time())));
   effect_->SetEdgeInside(Vector4(3.0f, 3.0f, 3.0f, 1.0f));
   effect_->SetEyePos(Vector4(camera().position(), 1.0f));
   effect_->SetDiffuseMap(diffusemap_);
