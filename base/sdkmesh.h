@@ -86,3 +86,9 @@ class SdkMeshSpecialLoader : public lord::ResourceSpecialLoader {
  private:
   DISALLOW_COPY_AND_ASSIGN(SdkMeshSpecialLoader);
 };
+
+struct PickingHit {
+  azer::Vector3 triangle[3];
+  azer::Vector3 hitpos;
+};
+void PickingSdkMesh(SdkMeshData* data, std::vector<PickingHit>* hit);

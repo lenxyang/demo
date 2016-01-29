@@ -1,6 +1,7 @@
 #include <memory>
 
 #include "lordaeron/sandbox/sandbox.h"
+#include "lordaeron/util/picking.h"
 #include "demo/base/base.h"
 
 using base::FilePath;
@@ -10,6 +11,43 @@ using lord::SceneNodePtr;
 using lord::SceneNode;
 using namespace azer;
 using namespace lord;
+
+class EventListener : public nelf::EventListener {
+ public:
+  EventListener(Camera* camera, SdkMeshData* data) 
+      : camera_(camera),
+        data_(data)  {
+    controller_.reset(new CameraController(camera));
+  }
+
+  void Update(const azer::FrameArgs& args) { controller_->Update(args);}
+
+  void OnKeyPressed(const ui::KeyEvent& event) override {
+    controller_->OnKeyPressed(event);
+  }
+
+  void OnKeyReleased(const ui::KeyEvent& event) override {
+    controller_->OnKeyReleased(event);
+  }
+
+  void OnMousePressed(const ui::MouseEvent& event) override {
+    Ray ray = lord::GetPickingRay(event.location(), gfx::Size(800, 600), camera_);
+    
+    controller_->OnMousePressed(event);
+  }
+
+  void OnMouseDragged(const ui::MouseEvent& event) override {
+    controller_->OnMouseDragged(event);
+  }
+
+  void OnMouseReleased(const ui::MouseEvent& event) override {
+    controller_->OnMouseReleased(event);
+  }
+ private:
+  Camera* camera_;
+  SdkMeshData* data_;
+  scoped_ptr<CameraController> controller_;
+};
 
 class MyRenderWindow : public lord::RenderWindow {
  public:
@@ -21,6 +59,8 @@ class MyRenderWindow : public lord::RenderWindow {
   EntityPtr entity_;
   SdkMeshMaterialPtr mtrl_;
   scoped_refptr<SdkMeshEffect> effect_;
+  scoped_ptr<EventListener> listener_;
+  scoped_ptr<SdkMeshData> data_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -49,10 +89,10 @@ void MyRenderWindow::OnInit() {
   env->SetFileSystem(fs.Pass());
 
   ResPath modelpath(UTF8ToUTF16("//data/sdkmesh/Helmet.sdkmesh"));
-  SdkMeshData meshdata(env->file_system());;
-  CHECK(meshdata.LoadFromFile(modelpath));
-  entity_ = meshdata.CreateEntity(0, 0);
-  mtrl_ = meshdata.CreateMaterial(0);
+  data_.reset(new SdkMeshData(env->file_system()));
+  CHECK(data_->LoadFromFile(modelpath));
+  entity_ = data_->CreateEntity(0, 0);
+  mtrl_ = data_->CreateMaterial(0);
   effect_ = CreateSdkMeshEffect();
 
   SpotLight spotlight;
@@ -76,15 +116,18 @@ void MyRenderWindow::OnInit() {
   effect_->SetSpotLight(spotlight);
   effect_->SetDirLight(dirlight);
 
-  Vector3 camera_pos(0.0f, 3.0f, 2.0f);
+  Vector3 camera_pos(0.0f, 4.0f, 2.0f);
   Vector3 lookat(0.0f, 0.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
   SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
+  listener_.reset(new EventListener(mutable_camera()));
+  view()->AddEventListener(listener_.get());
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
+  listener_->Update(args);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {

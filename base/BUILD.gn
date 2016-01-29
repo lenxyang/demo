@@ -3,6 +3,8 @@ static_library("base") {
   sources = [
     "basic_effect.cc",
     "basic_effect.h",
+    "camera_controller.cc",
+    "camera_controller.h",
     "resource_util.cc",
     "resource_util.h",
     "depth_effect.cc",

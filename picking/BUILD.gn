@@ -6,7 +6,7 @@ group("picking") {
 }
 
 executable("simple") {
-  output_name = "samples_picking_simple"
+  output_name = "demo_picking_simple"
   sources = [ "simple.cc", ]
   deps = [
     "//lordaeron",
