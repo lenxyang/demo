@@ -17,7 +17,9 @@ using base::UTF8ToUTF16;
 
 IMPLEMENT_EFFECT_DYNCREATE(TexturedEffect);
 const char TexturedEffect::kEffectName[] = "TexturedEffect";
-TexturedEffect::TexturedEffect() {
+TexturedEffect::TexturedEffect()
+    : ambient_scalar_(0.01f),
+      specular_scalar_(1.0f) {
 }
 
 TexturedEffect::~TexturedEffect() {

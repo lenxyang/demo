@@ -1,0 +1,15 @@
+
+group("stencil") {
+  deps = [
+    ":mirror",
+  ]
+}
+
+executable("mirror") {
+  output_name = "samples_stencil_mirror"
+  sources = [ "mirror.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
