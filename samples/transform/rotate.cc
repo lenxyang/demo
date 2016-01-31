@@ -71,8 +71,8 @@ void MyRenderWindow::OnInit() {
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
   effect_ = new TexturedEffect;
   Effect::ShaderPrograms programs;
-  CHECK(LoadShaderAtStage(kVertexStage, "demo/base/hlsl/tex.hlsl.vs", &programs));
-  CHECK(LoadShaderAtStage(kPixelStage, "demo/base/hlsl/tex.hlsl.ps", &programs));
+  CHECK(LoadShaderAtStage(kVertexStage, "demo/base/hlsl/tex.vs.hlsl", &programs));
+  CHECK(LoadShaderAtStage(kPixelStage, "demo/base/hlsl/tex.ps.hlsl", &programs));
   CHECK(effect_->Init(desc, programs));
   ResPath earthmap_path(AZER_LITERAL("//data/media/earth.dds"));
   earthmap_ = Load2DTexture(earthmap_path, env->file_system());

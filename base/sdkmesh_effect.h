@@ -48,7 +48,7 @@ class SdkMeshEffect : public azer::Effect {
   ~SdkMeshEffect() {}
 
   const char* GetEffectName() const override { return kEffectName;}
-  bool Init(azer::VertexDesc* desc, const ShaderPrograms& sources) override;
+  bool Init(azer::VertexDesc* desc, const azer::Shaders& sources) override;
 
 #pragma pack(push, 4)
   struct vs_cbuffer {

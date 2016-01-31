@@ -4,31 +4,59 @@
     <node name="node">
       <node name="env" type="environment">
 	<node name="dir">
-	  <location><position>8.0f, 8.0f, 0.0f</position></location>
+	  <location><position>8.0, 8.0, 0.0</position></location>
 	  <refer type="light" path=":dir" />
 	</node>
         <node name="spot">
-	  <location><position>0.0f, 8.0f, 0.0f</position></location>
+	  <location><position>0.0, 5.0, 20.0</position></location>
 	  <refer type="light" path=":spot" />
 	</node>
       </node>
       <node name="sphere1">
-	<location><position>-7.0f, 3.0f, 0.0f</position></location>
+	<location><position>-7.0, 1.0, 0.0</position></location>
 	<refer type="mesh" path=":sphere"/>
       </node>
 
       <node name="sphere2">
-	<location><position>0.0f, 3.0f, 0.0f</position></location>
+	<location><position>0.0, 1.0, 0.0</position></location>
 	<refer type="mesh" path=":sphere"/>
       </node>
 
       <node name="sphere3">
-	<location><position>7.0f, 3.0f, 0.0f</position></location>
+	<location><position>7.0, 1.0, 0.0</position></location>
 	<refer type="mesh" path=":sphere"/>
       </node>
 
+      <node name="sphere4">
+	<location><position>14.0, 1.0, 0.0</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="sphere5">
+        <location><position>14.0, 1.0, -15.0</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="sphere6">
+	<location><position>14.0, 1.0, -30.0</position></location>
+	<refer type="mesh" path=":sphere"/>
+      </node>
+
+      <node name="teapot1">
+	<location><position>0.0, 1.0, -50.0</position></location>
+	<refer type="mesh" path=":teapot"/>
+      </node>
+
+      <node name="teapot2">
+	<location><position>15.0, 1.0, -50.0</position></location>
+	<refer type="mesh" path=":teapot2"/>
+      </node>
+
       <node name="plane" cast_shadow="true">
-	<location><position>0.0f, 0.0f, 0.0f</position></location>
+	<location>
+          <position>0.0, 0.0, 0.0</position>
+          <scale>10.0, 10.0, 10.0</scale>
+        </location>
 	<refer type="mesh" path=":plane"/>
       </node>
     </node>
@@ -38,11 +66,11 @@
     <ambient>1.0, 1.0, 1.0, 1.0</ambient>
     <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
     <specular>0.1, 0.1, 0.1, 1.0</specular>
-    <directional>0.0, -1.0, -0.2</directional>
+    <directional>0.0, -0.5, -1.0</directional>
     <inner_angle>30</inner_angle>
     <outer_angle>40</outer_angle>
     <falloff>0.5</falloff>
-    <range>30</range>
+    <range>900.0</range>
   </light>
 
   <light name="dir" type="directional_light">
@@ -57,6 +85,20 @@
     <refer type="effect" path="//data/effects.xml:shadowmap_effect"/>
     <refer type="material" path=":mtrl"/>
     <data path="//data/media/sphere.x"/>
+  </mesh>
+
+  <mesh name="teapot">
+    <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:pcf_shadowmap_effect"/>
+    <refer type="material" path=":mtrl"/>
+    <data path="//data/media/teapot.obj"/>
+  </mesh>
+
+  <mesh name="teapot2">
+    <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:pcf_shadowmap_effect"/>
+    <refer type="material" path=":mtrl"/>
+    <data path="//data/media/teapot.obj"/>
   </mesh>
 
   <mesh name="plane">

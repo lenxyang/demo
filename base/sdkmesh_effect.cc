@@ -1,7 +1,6 @@
 #include "demo/base/sdkmesh_effect.h"
 
 #include "demo/base/common_provider.h"
-#include "azer/render/util/shader_util.h"
 
 using namespace azer;
 
@@ -10,7 +9,7 @@ const char SdkMeshEffect::kEffectName[] = "SdkMeshEffect";
 SdkMeshEffect::SdkMeshEffect() {
   world_ = Matrix4::kIdentity;
 }
-bool SdkMeshEffect::Init(VertexDesc* desc, const ShaderPrograms& sources) {
+bool SdkMeshEffect::Init(VertexDesc* desc, const azer::Shaders& sources) {
   DCHECK(sources.size() == kRenderPipelineStageNum);
   DCHECK(!sources[kVertexStage].code.empty());
   DCHECK(!sources[kPixelStage].code.empty());
@@ -81,11 +80,11 @@ scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect() {
     {"TEXCOORD", 0, kVec2},
     {"TANGENT", 0, kVec3},
   };
-  Effect::ShaderPrograms s;
+  azer::Shaders s;
   s.resize(kRenderPipelineStageNum);
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
-  CHECK(LoadShaderAtStage(kPixelStage, "demo/base/hlsl/sdkmesh.hlsl.ps", &s));
-  CHECK(LoadShaderAtStage(kVertexStage, "demo/base/hlsl/sdkmesh.hlsl.vs", &s));
+  CHECK(LoadStageShader(kPixelStage, "demo/base/hlsl/sdkmesh.ps.hlsl", &s));
+  CHECK(LoadStageShader(kVertexStage, "demo/base/hlsl/sdkmesh.vs.hlsl", &s));
   scoped_refptr<SdkMeshEffect> ptr(new SdkMeshEffect);
   ptr->Init(desc, s);
   return ptr;

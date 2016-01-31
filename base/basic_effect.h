@@ -14,7 +14,7 @@ class BasicEffect : public azer::Effect {
   ~BasicEffect();
 
   const char* GetEffectName() const override;
-  bool Init(azer::VertexDesc* desc, const ShaderPrograms& source) override;
+  bool Init(azer::VertexDesc* desc, const azer::Shaders& source) override;
 
 #pragma pack(push, 4)
   struct vs_cbuffer {
@@ -39,7 +39,7 @@ class BasicEffect : public azer::Effect {
   static azer::Effect* CreateObject() { return new BasicEffect;}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
-  void InitTechnique(const ShaderPrograms& source);
+  void InitTechnique(const azer::Shaders& source);
   void InitGpuConstantTable();
 
   azer::Matrix4 pv_;

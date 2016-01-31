@@ -1,7 +1,6 @@
 #include "demo/base/shadow_render_tree.h"
 
 #include "base/strings/utf_string_conversions.h"
-#include "azer/render/util/shader_util.h"
 #include "lordaeron/resource/resource_util.h"
 #include "lordaeron/scene/render_env_node.h"
 #include "lordaeron/scene/render_node.h"

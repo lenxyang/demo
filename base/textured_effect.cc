@@ -1,7 +1,6 @@
 #include "demo/base/textured_effect.h"
 
 #include "base/strings/utf_string_conversions.h"
-#include "azer/render/util/shader_util.h"
 #include "lordaeron/env.h"
 #include "lordaeron/resource/resource_util.h"
 #include "lordaeron/resource/resource_loader.h"
@@ -18,7 +17,9 @@ using base::UTF8ToUTF16;
 
 IMPLEMENT_EFFECT_DYNCREATE(TexturedEffect);
 const char TexturedEffect::kEffectName[] = "TexturedEffect";
-TexturedEffect::TexturedEffect() {
+TexturedEffect::TexturedEffect()
+    : ambient_scalar_(0.01f),
+      specular_scalar_(1.0f) {
 }
 
 TexturedEffect::~TexturedEffect() {
@@ -27,7 +28,7 @@ TexturedEffect::~TexturedEffect() {
 const char* TexturedEffect::GetEffectName() const {
   return kEffectName;
 }
-bool TexturedEffect::Init(VertexDesc* desc, const ShaderPrograms& sources) {
+bool TexturedEffect::Init(VertexDesc* desc, const azer::Shaders& sources) {
   DCHECK(sources.size() == kRenderPipelineStageNum);
   DCHECK(!sources[kVertexStage].code.empty());
   DCHECK(!sources[kPixelStage].code.empty());
@@ -72,7 +73,7 @@ void TexturedEffect::InitGpuConstantTable() {
   gpu_table_[kPixelStage] = rs->CreateGpuConstantsTable(
       arraysize(ps_table_desc), ps_table_desc);
 }
-void TexturedEffect::InitTechnique(const ShaderPrograms& sources) {
+void TexturedEffect::InitTechnique(const azer::Shaders& sources) {
   InitShaders(sources);
 }
 

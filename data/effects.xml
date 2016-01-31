@@ -7,21 +7,21 @@
   
   <effect name="depth_effect" effect_name="DepthEffect" 
           vertex_desc=":depth_vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//base/hlsl/depth.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/depth.ps.hlsl" />
   </effect>
 
   <effect name="color_depth_effect" effect_name="DepthEffect" 
           vertex_desc=":depth_vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//base/hlsl/color_depth.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/color_depth.ps.hlsl" />
   </effect>
 
   <!-- for shadow depth -->
   <effect name="shadow_depth_effect" effect_name="DepthEffect" 
           vertex_desc=":depth_vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//base/hlsl/depth.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/depth.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/depth.ps.hlsl" />
   </effect>
 
   <!-- for shadow depth -->
@@ -31,8 +31,8 @@
   </vertex_desc>
   <effect name="shadow_depth_effect2" effect_name="DepthEffect" 
           vertex_desc=":shadow_depth_vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadow_depth.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//base/hlsl/shadow_depth.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadow_depth.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/shadow_depth.ps.hlsl" />
   </effect>
 
   <vertex_desc name="tex_vertex_desc">
@@ -49,14 +49,20 @@
 
   <effect name="tex_effect" effect_name="TexturedEffect" 
           vertex_desc=":tex_vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//base/hlsl/tex.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//base/hlsl/tex.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/tex.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/tex.ps.hlsl" />
   </effect>
 
   <effect name="shadowmap_effect" effect_name="ShadowMapEffect"
 	  vertex_desc=":tex_vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadowmap.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//base/hlsl/shadowmap.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadowmap.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/shadowmap.ps.hlsl" />
+  </effect>
+
+  <effect name="pcf_shadowmap_effect" effect_name="ShadowMapEffect"
+	  vertex_desc=":tex_vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadowmap.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/shadowmap_pcf.ps.hlsl" />
   </effect>
 
   <!-- diffuse effect -->
@@ -66,7 +72,7 @@
   </vertex_desc>
   <effect name="basic_effect" effect_name="BasicEffect"
 	  vertex_desc=":tex_vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//base/hlsl/basic_effect.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//base/hlsl/basic_effect.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/basic_effect.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/basic_effect.ps.hlsl" />
   </effect>
 </effects>

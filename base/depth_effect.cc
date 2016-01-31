@@ -1,7 +1,6 @@
 #include "demo/base/depth_effect.h"
 
 #include "base/strings/utf_string_conversions.h"
-#include "azer/render/util/shader_util.h"
 #include "lordaeron/env.h"
 #include "lordaeron/resource/resource_loader.h"
 #include "demo/base/shadow_render_tree.h"
@@ -22,7 +21,7 @@ DepthEffect::~DepthEffect() {}
 const char* DepthEffect::GetEffectName() const {
   return kEffectName;
 }
-bool DepthEffect::Init(VertexDesc* desc, const ShaderPrograms& sources) {
+bool DepthEffect::Init(VertexDesc* desc, const azer::Shaders& sources) {
   DCHECK(sources.size() == kRenderPipelineStageNum);
   DCHECK(!sources[kVertexStage].code.empty());
   DCHECK(!sources[kPixelStage].code.empty());
@@ -43,7 +42,7 @@ void DepthEffect::InitGpuConstantTable() {
   gpu_table_[kVertexStage] = rs->CreateGpuConstantsTable(
       arraysize(vs_table_desc), vs_table_desc);
 }
-void DepthEffect::InitTechnique(const ShaderPrograms& sources) {
+void DepthEffect::InitTechnique(const azer::Shaders& sources) {
   InitShaders(sources);
 }
 

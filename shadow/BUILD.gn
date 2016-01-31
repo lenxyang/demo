@@ -28,6 +28,7 @@ executable("shadow_depth") {
 }
 
 executable("shadowmap") {
+  output_name = "demo_shadow_shadowmap"
   sources = [
     "shadowmap.cc",
   ]

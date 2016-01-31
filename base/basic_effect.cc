@@ -10,7 +10,6 @@
 #include "lordaeron/scene/render_env_node.h"
 #include "lordaeron/scene/render_node.h"
 #include "lordaeron/scene/ui_scene_render.h"
-#include "azer/render/util/shader_util.h"
 
 using namespace azer;
 using namespace lord;
@@ -27,7 +26,7 @@ BasicEffect::~BasicEffect() {
 const char* BasicEffect::GetEffectName() const {
   return kEffectName;
 }
-bool BasicEffect::Init(azer::VertexDesc* desc, const ShaderPrograms& sources) {
+bool BasicEffect::Init(azer::VertexDesc* desc, const azer::Shaders& sources) {
   DCHECK(sources.size() == kRenderPipelineStageNum);
   DCHECK(!sources[kVertexStage].code.empty());
   DCHECK(!sources[kPixelStage].code.empty());
@@ -63,7 +62,7 @@ void BasicEffect::InitGpuConstantTable() {
   gpu_table_[kPixelStage] = rs->CreateGpuConstantsTable(
       arraysize(ps_table_desc), ps_table_desc);
 }
-void BasicEffect::InitTechnique(const ShaderPrograms& sources) {
+void BasicEffect::InitTechnique(const azer::Shaders& sources) {
   InitShaders(sources);
 }
 
