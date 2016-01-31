@@ -45,7 +45,7 @@
   </vertex_desc>
 
   <effect name="DiffuseEffect" effect_name="MyEffect" vertex_desc=":vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//sandbox/lighting/effect.hlsl.vs" />
-    <shader stage="pixel" entry="psmain" path="//sandbox/lighting/effect.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//sandbox/lighting/effect.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//sandbox/lighting/effect.ps.hlsl" />
   </effect>
 </root>

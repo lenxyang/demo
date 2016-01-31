@@ -48,7 +48,7 @@
     <refer type="effect" path=":blur_effect"/>
   </sdkmesh>
   <sdkmesh name="windmillstage">
-    <data path="//data/sdkmesh/windmillstage.sdkmesh"/>
+1    <data path="//data/sdkmesh/windmillstage.sdkmesh"/>
   </sdkmesh>
 
   <!-- diffuse effect -->
@@ -60,8 +60,8 @@
   </vertex_desc>
   <effect name="blur_effect" effect_name="MonblurEffect"
 	  vertex_desc=":sdk_vertex_desc">
-    <shader stage="vertex" entry="vsmain" path="//monblur/monblur.hlsl.vs" />
-    <shader stage="geometry" entry="gsmain" path="//monblur/monblur.hlsl.gs" />
-    <shader stage="pixel" entry="psmain" path="//monblur/monblur.hlsl.ps" />
+    <shader stage="vertex" entry="vsmain" path="//monblur/monblur.vs.hlsl" />
+    <shader stage="geometry" entry="gsmain" path="//monblur/monblur.gs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//monblur/monblur.ps.hlsl" />
   </effect>
 </xml>

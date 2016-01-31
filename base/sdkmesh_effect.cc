@@ -83,8 +83,8 @@ scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect() {
   azer::Shaders s;
   s.resize(kRenderPipelineStageNum);
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
-  CHECK(LoadStageShader(kPixelStage, "demo/base/hlsl/sdkmesh.hlsl.ps", &s));
-  CHECK(LoadStageShader(kVertexStage, "demo/base/hlsl/sdkmesh.hlsl.vs", &s));
+  CHECK(LoadStageShader(kPixelStage, "demo/base/hlsl/sdkmesh.ps.hlsl", &s));
+  CHECK(LoadStageShader(kVertexStage, "demo/base/hlsl/sdkmesh.vs.hlsl", &s));
   scoped_refptr<SdkMeshEffect> ptr(new SdkMeshEffect);
   ptr->Init(desc, s);
   return ptr;
