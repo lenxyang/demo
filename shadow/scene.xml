@@ -42,9 +42,14 @@
 	<refer type="mesh" path=":sphere"/>
       </node>
 
-      <node name="sphere7">
-	<location><position>14.0, 1.0, -50.0</position></location>
-	<refer type="mesh" path=":sphere"/>
+      <node name="teapot1">
+	<location><position>0.0, 1.0, -50.0</position></location>
+	<refer type="mesh" path=":teapot"/>
+      </node>
+
+      <node name="teapot2">
+	<location><position>15.0, 1.0, -50.0</position></location>
+	<refer type="mesh" path=":teapot2"/>
       </node>
 
       <node name="plane" cast_shadow="true">
@@ -80,6 +85,20 @@
     <refer type="effect" path="//data/effects.xml:shadowmap_effect"/>
     <refer type="material" path=":mtrl"/>
     <data path="//data/media/sphere.x"/>
+  </mesh>
+
+  <mesh name="teapot">
+    <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:pcf_shadowmap_effect"/>
+    <refer type="material" path=":mtrl"/>
+    <data path="//data/media/teapot.obj"/>
+  </mesh>
+
+  <mesh name="teapot2">
+    <refer type="vertex_desc" path="//data/effects.xml:mslot_tex_vertex_desc" />
+    <refer type="effect" path="//data/effects.xml:pcf_shadowmap_effect"/>
+    <refer type="material" path=":mtrl"/>
+    <data path="//data/media/teapot.obj"/>
   </mesh>
 
   <mesh name="plane">

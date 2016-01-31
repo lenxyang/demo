@@ -59,6 +59,12 @@
     <shader stage="pixel" entry="psmain" path="//base/hlsl/shadowmap.ps.hlsl" />
   </effect>
 
+  <effect name="pcf_shadowmap_effect" effect_name="ShadowMapEffect"
+	  vertex_desc=":tex_vertex_desc">
+    <shader stage="vertex" entry="vsmain" path="//base/hlsl/shadowmap.vs.hlsl" />
+    <shader stage="pixel" entry="psmain" path="//base/hlsl/shadowmap_pcf.ps.hlsl" />
+  </effect>
+
   <!-- diffuse effect -->
   <vertex_desc name="basic_vertex_desc">
     <desc semantic="position" semindex="0" slot="0" data_type="vector4" />
