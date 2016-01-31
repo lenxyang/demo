@@ -25,7 +25,12 @@ class MyRenderWindow : public lord::RenderWindow {
   scoped_ptr<UISceneRender> scene_render_;
   OverlayPtr overlay_;
   SceneNodePtr root_;
+  TexturePtr horzblur_;
+  TexturePtr vertblur_;
   RendererPtr renderer_;
+  GpuComputeTaskPtr horztask_;
+  GpuComputeTaskPtr verttask_;
+  GpuComputeTaskDispatcherPtr dispatcher_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -60,6 +65,31 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
+const static char *cs_horzblur_shader = ""
+    "#pragma pack_matrix(row_major)\n"
+    "float weights[] = {0.0545, 0.2442, 0.4026, 0.2442, 0.0545};\n"
+    "Texture2D<float4> input : register(t0);"
+    "RWTexture2D<float4> output : register(u0);"
+    "[numthreads(1, 10, 1)]\n"
+    "void cs_main(int3 dtid : SV_DispatchThreadID,"
+    "             int gidx :SV_GroupIndex) {"
+    "  int2 xy = int2(dtid.x, dtid.y);\n"
+    "  const int N = 800;\n"
+    "  float count = 5;\n"
+    "  if (dtid.x == 0) count - 2;\n"
+    "  if (dtid.x == 1) count - 1;\n"
+    "  if (dtid.x == N - 2) count - 1;\n"
+    "  if (dtid.x == N - 1) count - 2;\n"
+    "  float4 v;\n"
+    "  v  = input[int2(dtid.x - 2, dtid.y)] * weights[0];\n"
+    "  v += input[int2(dtid.x - 1, dtid.y)] * weights[1];\n"
+    "  v += input[int2(dtid.x - 0, dtid.y)] * weights[2];\n"
+    "  v += input[int2(dtid.x + 1, dtid.y)] * weights[3];\n"
+    "  v += input[int2(dtid.x + 2, dtid.y)] * weights[4];\n"
+    "  output[xy] = v / count;\n"
+    "  output[xy] = input[xy];"
+    "}";
+
 void MyRenderWindow::OnInit() {
   LordEnv* env = LordEnv::instance();
   ResourceLoader* resloader = env->resource_loader();  
@@ -85,6 +115,18 @@ void MyRenderWindow::OnInit() {
   opt.size = gfx::Size(800, 600);
   opt.target = kBindTargetRenderTarget | kBindTargetShaderResource;
   renderer_ = rs->CreateRenderer(opt);
+
+  opt.target = kBindTargetUnorderedAccess | kBindTargetShaderResource;
+  vertblur_ = rs->CreateTexture(opt);
+  horzblur_ = rs->CreateTexture(opt);
+  dispatcher_ = rs->CreateDispatcher();
+  ShaderInfo horzinfo;
+  horzinfo.path = "horz.cs";
+  horzinfo.code = cs_horzblur_shader;
+  horzinfo.stage = kComputeStage;
+  horztask_ = new GpuComputeTask(horzinfo);
+  horztask_->SetInputCount(1);
+  horztask_->SetOutputCount(1);
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -100,8 +142,16 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   scene_render_->Render(renderer);
 
   renderer->Use();
-  
-  overlay_->SetTexture(renderer_->GetRenderTarget(0)->GetTexture());
+  GpuTaskParams params;
+  params.thread_group_x = 800;
+  params.thread_group_y = 60;
+  params.thread_group_z = 1;
+  horztask_->SetInputTexture(0, renderer_->GetRenderTarget(0)->GetTexture());
+  horztask_->SetOutputTexture(0, horzblur_);
+  dispatcher_->Dispatch(horztask_, params);
+
+  overlay_->SetTexture(horzblur_);
   overlay_->Render(renderer);
 }
+
 
