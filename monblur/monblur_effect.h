@@ -14,7 +14,7 @@ class MonblurEffect : public azer::Effect {
   ~MonblurEffect() {}
 
   const char* GetEffectName() const override { return kEffectName;}
-  bool Init(azer::VertexDesc* desc, const ShaderPrograms& sources) override;
+  bool Init(azer::VertexDesc* desc, const azer::Shaders& sources) override;
 
   static const int32 kMaxStep = 3;
 #pragma pack(push, 4)

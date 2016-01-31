@@ -13,7 +13,7 @@ class ShadowMapEffect : public azer::Effect {
   ~ShadowMapEffect();
 
   const char* GetEffectName() const override;
-  bool Init(azer::VertexDesc* desc, const ShaderPrograms& source) override;
+  bool Init(azer::VertexDesc* desc, const azer::Shaders& source) override;
 
 #pragma pack(push, 4)
   struct vs_cbuffer {
@@ -50,7 +50,7 @@ class ShadowMapEffect : public azer::Effect {
  protected:
   void UseTexture(azer::Renderer* renderer) override;
   void ApplyGpuConstantTable(azer::Renderer* renderer) override;
-  void InitTechnique(const ShaderPrograms& source);
+  void InitTechnique(const azer::Shaders& source);
   void InitGpuConstantTable();
 
   azer::Matrix4 pv_;

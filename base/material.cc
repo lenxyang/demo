@@ -1,7 +1,6 @@
 #include "demo/base/material.h"
 
 #include "base/strings/utf_string_conversions.h"
-#include "azer/render/util/shader_util.h"
 #include "lordaeron/env.h"
 #include "lordaeron/resource/resource_util.h"
 #include "lordaeron/resource/resource_loader.h"

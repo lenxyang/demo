@@ -65,33 +65,9 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-const static char *cs_horzblur_shader = ""
-    "#pragma pack_matrix(row_major)\n"
-    "float weights[] = {0.0545, 0.2442, 0.4026, 0.2442, 0.0545};\n"
-    "Texture2D<float4> input : register(t0);"
-    "RWTexture2D<float4> output : register(u0);"
-    "[numthreads(1, 10, 1)]\n"
-    "void cs_main(int3 dtid : SV_DispatchThreadID,"
-    "             int gidx :SV_GroupIndex) {"
-    "  int2 xy = int2(dtid.x, dtid.y);\n"
-    "  const int N = 800;\n"
-    "  float count = 5;\n"
-    "  if (dtid.x == 0) count - 2;\n"
-    "  if (dtid.x == 1) count - 1;\n"
-    "  if (dtid.x == N - 2) count - 1;\n"
-    "  if (dtid.x == N - 1) count - 2;\n"
-    "  float4 v;\n"
-    "  v  = input[int2(dtid.x - 2, dtid.y)] * weights[0];\n"
-    "  v += input[int2(dtid.x - 1, dtid.y)] * weights[1];\n"
-    "  v += input[int2(dtid.x - 0, dtid.y)] * weights[2];\n"
-    "  v += input[int2(dtid.x + 1, dtid.y)] * weights[3];\n"
-    "  v += input[int2(dtid.x + 2, dtid.y)] * weights[4];\n"
-    "  output[xy] = v / count;\n"
-    "  output[xy] = input[xy];"
-    "}";
-
 void MyRenderWindow::OnInit() {
   LordEnv* env = LordEnv::instance();
+  FileSystem* fs = env->file_system();
   ResourceLoader* resloader = env->resource_loader();  
   ResPath respath(UTF8ToUTF16("//samples/compute_shader/blur.xml:scene"));
   VariantResource res = resloader->Load(respath);
@@ -110,7 +86,6 @@ void MyRenderWindow::OnInit() {
 
   RenderSystem* rs = RenderSystem::Current();
   overlay_ = rs->CreateOverlay();
-  overlay_->SetBounds(gfx::RectF(-1.0f, -1.0f, 2.0f, 2.0f));
   Texture::Options opt;
   opt.size = gfx::Size(800, 600);
   opt.target = kBindTargetRenderTarget | kBindTargetShaderResource;
@@ -121,12 +96,18 @@ void MyRenderWindow::OnInit() {
   horzblur_ = rs->CreateTexture(opt);
   dispatcher_ = rs->CreateDispatcher();
   ShaderInfo horzinfo;
-  horzinfo.path = "horz.cs";
-  horzinfo.code = cs_horzblur_shader;
-  horzinfo.stage = kComputeStage;
+  ResPath horzpath(AZER_LITERAL("//samples/compute_shader/horzblur.cs.hlsl"));
+  CHECK(LoadStageShaderOnFS(kComputeStage, horzpath, &horzinfo, fs));
   horztask_ = new GpuComputeTask(horzinfo);
   horztask_->SetInputCount(1);
   horztask_->SetOutputCount(1);
+
+  ShaderInfo vertinfo;
+  ResPath vertpath(AZER_LITERAL("//samples/compute_shader/vertblur.cs.hlsl"));
+  CHECK(LoadStageShaderOnFS(kComputeStage, vertpath, &vertinfo, fs));
+  verttask_ = new GpuComputeTask(vertinfo);
+  verttask_->SetInputCount(1);
+  verttask_->SetOutputCount(1);
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -142,15 +123,37 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   scene_render_->Render(renderer);
 
   renderer->Use();
-  GpuTaskParams params;
-  params.thread_group_x = 800;
-  params.thread_group_y = 60;
-  params.thread_group_z = 1;
-  horztask_->SetInputTexture(0, renderer_->GetRenderTarget(0)->GetTexture());
-  horztask_->SetOutputTexture(0, horzblur_);
-  dispatcher_->Dispatch(horztask_, params);
+
+  {
+    GpuTaskParams params;
+    params.thread_group_x = 800;
+    params.thread_group_y = 60;
+    params.thread_group_z = 1;
+    horztask_->SetInputTexture(0, renderer_->GetRenderTarget(0)->GetTexture());
+    horztask_->SetOutputTexture(0, horzblur_);
+    dispatcher_->Dispatch(horztask_, params);
+  }
+
+  {
+    GpuTaskParams params;
+    params.thread_group_x = 80;
+    params.thread_group_y = 600;
+    params.thread_group_z = 1;
+    verttask_->SetInputTexture(0, horzblur_);
+    verttask_->SetOutputTexture(0, vertblur_);
+    dispatcher_->Dispatch(verttask_, params);
+  }
+
+  overlay_->SetTexture(renderer_->GetRenderTarget(0)->GetTexture());
+  overlay_->SetBounds(gfx::RectF(-1.0f, 0.0f, 1.0f, 1.0f));
+  overlay_->Render(renderer);
 
   overlay_->SetTexture(horzblur_);
+  overlay_->SetBounds(gfx::RectF(0.0f, 0.0f, 1.0f, 1.0f));
+  overlay_->Render(renderer);
+
+  overlay_->SetTexture(vertblur_);
+  overlay_->SetBounds(gfx::RectF(-1.0f, -1.0f, 1.0f, 1.0f));
   overlay_->Render(renderer);
 }
 
