@@ -511,7 +511,7 @@ azer::EntityPtr SdkMeshData::CreateEntity(int32 mesh_index, int32 part_index) {
 
   int iidx = subset.indices_data_index;
   IndicesBufferPtr ib = (iidx >= 0) ? ibs_[iidx] : NULL;
-  if (!vb.get() && iidx >= 0) {
+  if (!ib.get() && iidx >= 0) {
     ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata_vec_[iidx]);
     ibs_[iidx] = ib;
   }
@@ -697,7 +697,7 @@ bool SdkMeshData::LoadMesh(const uint8* data, int32 size) {
       s.index_base = static_cast<uint32>(subset.IndexStart);
       s.index_count = static_cast<uint32>(subset.IndexCount);
       s.vertex_data_index = mh.VertexBuffers[0];
-      s.vertex_data_index = mh.IndexBuffer;
+      s.indices_data_index = mh.IndexBuffer;
       s.material_index = subset.MaterialID;
       s.primitive = TranslatePrimitiveType(subset.PrimitiveType);
       mesh.subsets.push_back(s);
@@ -756,29 +756,3 @@ VariantResource SdkMeshSpecialLoader::Load(const azer::ConfigNode* node,
   return resource;
 }
 
-void CheckHit(const azer::Ray& ray, SlotVertexData* vdata, IndicesData* idata,
-              int32 iindex, int32 icount, std::vector<PickingHit>* hit) {
-  VertexPack vpack(vdata);
-  IndexPack ipack(idata);
-  CHECK(ipack.advance(iindex));
-  for (int32 i = iindex; i < iindex + icount; i+=3) {
-    uint32 idx1, idx2, idx3;
-
-    CHECK(ipack.ReadAndAdvance(&idx1));
-    CHECK(ipack.ReadAndAdvance(&idx2));
-    CHECK(ipack.ReadAndAdvance(&idx3));
-    Vector3 v1, v2, v3;
-    vpack.move(idx1); vpack.ReadVector3Or4(&v, VertexPos(0, 0));
-    vpack.move(idx2); vpack.ReadVector3Or4(&v, VertexPos(0, 0));
-    vpack.move(idx3); vpack.ReadVector3Or4(&v, VertexPos(0, 0));
-  }
-}
-
-void PickingSdkMesh(SdkMeshData* data, std::vector<PickingHit>* hit) {
-  for (int32 i = 0; i < data->mesh_count(); ++i) {
-    const SdkMeshData::Mesh& m = data->mesh_at(i);
-    for (uint32 j = 0; j < m->subsets.size(); ++j) {
-      const SdkMeshData::Subset& s = m->subsets[j];
-    }
-  }
-}

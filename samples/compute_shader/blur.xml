@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xml>
+  <node name="scene">
+    <node name="node">
+      <node name="env" type="environment">
+	<node name="dir">
+	  <location><position>8.0f, 8.0f, 0.0f</position></location>
+	  <refer type="light" path=":dir" />
+	</node>
+        <node name="spot">
+	  <location><position>0.0f, 8.0f, 0.0f</position></location>
+	  <refer type="light" path=":spot" />
+	</node>
+      </node>
+      <node name="fan">
+        <location><position>0.0f, 3.62f, 2.012f</position></location>
+        <node name="normal">
+	  <refer type="mesh" path=":fan"/>
+        </node>
+      </node>
+      <node name="windmillstage">
+	<location><position>0.0f, 0.0f, 0.0f</position></location>
+	<refer type="mesh" path=":windmillstage"/>
+      </node>
+    </node>
+  </node>
+
+  <light name="spot" type="spot_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.8, 0.8, 0.8, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>0.0, -1.0, -0.2</directional>
+    <inner_angle>30</inner_angle>
+    <outer_angle>40</outer_angle>
+    <falloff>0.5</falloff>
+    <range>30</range>
+  </light>
+
+  <light name="dir" type="directional_light">
+    <ambient>1.0, 1.0, 1.0, 1.0</ambient>
+    <diffuse>0.5, 0.5, 0.4, 1.0</diffuse>
+    <specular>0.1, 0.1, 0.1, 1.0</specular>
+    <directional>0.0, -1.0, 0.0</directional>
+  </light>
+
+  <sdkmesh name="fan">
+    <data path="//data/sdkmesh/Fan.sdkmesh"/>
+  </sdkmesh>
+  <sdkmesh name="windmillstage">
+    <data path="//data/sdkmesh/windmillstage.sdkmesh"/>
+  </sdkmesh>
+</xml>

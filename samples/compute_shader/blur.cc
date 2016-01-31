@@ -1,10 +1,7 @@
 #include <memory>
 
-#include "lordaeron/sandbox/sandbox.h"
-#include "lordaeron/resource/variant_resource.h"
-#include "demo/base/material.h"
-#include "demo/base/textured_effect.h"
-#include "demo/base/resource_util.h"
+#include "demo/base/base.h"
+#include "demo/monblur/monblur_effect.h"
 
 using base::FilePath;
 using base::UTF8ToUTF16;
@@ -16,28 +13,40 @@ using namespace lord;
 
 class MyRenderWindow : public lord::RenderWindow {
  public:
-  MyRenderWindow(const gfx::Rect& rect) : lord::RenderWindow(rect) {}
+  MyRenderWindow(const gfx::Rect& rect) 
+      : lord::RenderWindow(rect) {
+  }
+
   void OnInit() override;
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
  private:
+  RenderNodePtr bvolumn_root_;
+  scoped_ptr<UISceneRender> scene_render_;
   OverlayPtr overlay_;
-  scoped_refptr<TexturedEffect> effect_;
-  TexturePtr earthmap_;
-  EntityPtr earch_;
-  TexturePtr output_;
-  GpuComputeTaskPtr task_;
-  GpuComputeTaskDispatcherPtr dispatcher_;
+  SceneNodePtr root_;
+  RendererPtr renderer_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
 int main(int argc, char* argv[]) {
   CHECK(lord::LordEnv::InitEnv(argc, argv));
   lord::LordEnv* env = lord::LordEnv::instance();
+  scoped_ptr<azer::FileSystem> fs(new azer::NativeFileSystem(
+      FilePath(UTF8ToUTF16("demo/"))));
+  env->SetFileSystem(fs.Pass());
+  ResourceLoader* resloader = env->resource_loader();
+  InitDefaultLoader(resloader);
+  resloader->RegisterSpecialLoader(new SdkMeshSpecialLoader);
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
+  adapterctx->RegisteAdapter(new RenderNodeShadowMapEffectAdapter);
+  adapterctx->RegisteAdapter(new EffectedEnvNodeDelegateShadowMapEffectAdapter);
   adapterctx->RegisteAdapter(new TexMaterialEffectAdapter);
   adapterctx->RegisteAdapter(new RenderNodeTexEffectAdapter);
   adapterctx->RegisteAdapter(new LordEnvNodeDelegateTexEffectAdapter);
+  adapterctx->RegisteAdapter(new SdkMeshMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new RenderNodeSdkMeshEffectAdapter);
+  adapterctx->RegisteAdapter(new LordEnvNodeDelegateSdkMeshEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -51,90 +60,48 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-const static char *cs_shader = ""
-    "#pragma pack_matrix(row_major)\n"
-    "Texture2D<float4> input1 : register(t0);"
-    "Texture2D<float4> input2 : register(t1);"
-    "RWTexture2D<float4> output : register(u0);"
-    "[numthreads(16, 16, 1)]\n"
-    "void cs_main(int3 dtid : SV_DispatchThreadID,"
-    "             int gidx :SV_GroupIndex) {"
-    "  int2 xy = int2(dtid.x, dtid.y);"
-    "  output[xy] = (input1[xy] + input2[xy]) * 0.5f;"
-    "}";
-
 void MyRenderWindow::OnInit() {
-  RenderSystem* rs = RenderSystem::Current();
   LordEnv* env = LordEnv::instance();
-  scoped_ptr<FileSystem> fs(new NativeFileSystem(FilePath(UTF8ToUTF16("demo/"))));
-  env->SetFileSystem(fs.Pass());
+  ResourceLoader* resloader = env->resource_loader();  
+  ResPath respath(UTF8ToUTF16("//samples/compute_shader/blur.xml:scene"));
+  VariantResource res = resloader->Load(respath);
+  SceneNodePtr root = res.scene;
+  CHECK(root.get()) << "Failed to init scene";
 
-  /*
-  Texture::Options opt = texture2_->options();
-  opt.target |= kBindTargetUnorderedAccess;
-  output_ = rs->CreateTexture(opt);
-  dispatcher_ = rs->CreateDispatcher();
-  ShaderInfo info;
-  info.path = "vertadd.cs";
-  info.code = cs_shader;
-  info.stage = kComputeStage;
-  task_ = new GpuComputeTask(info);
-  task_->SetInputCount(2);
-  task_->SetOutputCount(1);
-  task_->SetInputTexture(0, texture1_);
-  task_->SetInputTexture(1, texture2_);
-  task_->SetOutputTexture(0, output_);
-  */
-  
-  Vector3 camera_pos(0.0f, 0.0f, 5.0f);
-  Vector3 lookat(0.0f, 0.0f, 0.0f);
+  Vector3 camera_pos(0.0f, 3.0f, -6.0f);
+  Vector3 lookat(0.0f, 3.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
-  // earchmap
-  // class ColoredPosNormalVertex
-  const VertexDesc::Desc kVertexDesc[] = {
-    {"POSITION", 0, kVec4},
-    {"NORMAL", 0, kVec4},
-    {"TEXCOORD", 0, kVec2},
-  };
-  VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
-  effect_ = new TexturedEffect;
-  Effect::ShaderPrograms programs;
-  CHECK(LoadShaderAtStage(kVertexStage, "demo/base/hlsl/tex.hlsl.vs", &programs));
-  CHECK(LoadShaderAtStage(kPixelStage, "demo/base/hlsl/tex.hlsl.vs", &programs));
-  CHECK(effect_->Init(desc, programs));
-  ResPath earthmap_path(AZER_LITERAL("//data/media/earth.dds"));
-  earthmap_ = Load2DTexture(earthmap_path, env->file_system());
-  GeoSphereParams params;
-  earch_ = CreateSphereEntity(desc, params, Matrix4::kIdentity);
+  scene_render_.reset(new UISceneRender);
+  scene_render_->Init(root, &camera());
+  LOG(ERROR) << scene_render_->root()->DumpTree();
+  root_ = root;
+
+  RenderSystem* rs = RenderSystem::Current();
+  overlay_ = rs->CreateOverlay();
+  overlay_->SetBounds(gfx::RectF(-1.0f, -1.0f, 2.0f, 2.0f));
+  Texture::Options opt;
+  opt.size = gfx::Size(800, 600);
+  opt.target = kBindTargetRenderTarget | kBindTargetShaderResource;
+  renderer_ = rs->CreateRenderer(opt);
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
+  SceneNode* fan = root_->GetNode("//scene/node/fan");
+  fan->roll(Radians(3.14f * 0.5f * args.delta().InSecondsF()));
+  scene_render_->Update(args);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  /*
-  GpuTaskParams params;
-  params.thread_group_x = 32;
-  params.thread_group_y = 32;
-  params.thread_group_z = 1;
-  dispatcher_->Dispatch(task_.get(), params);
+  renderer_->Use();
+  renderer_->Clear(Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+  renderer_->ClearDepthAndStencil();
+  scene_render_->Render(renderer);
 
-  LordEnv* context = LordEnv::instance();
-  BlendingPtr blending = context->GetDefaultBlending();
-  renderer->UseBlending(blending.get(), 0);
-  overlay_->SetTexture(texture1_);
-  overlay_->SetBounds(gfx::RectF(-0.75f, -0.25f, 0.3f, 0.3f));
+  renderer->Use();
+  
+  overlay_->SetTexture(renderer_->GetRenderTarget(0)->GetTexture());
   overlay_->Render(renderer);
-
-  overlay_->SetTexture(texture2_);
-  overlay_->SetBounds(gfx::RectF(-0.40f, -0.25f, 0.3f, 0.3f));
-  overlay_->Render(renderer);
-
-  overlay_->SetTexture(output_);
-  overlay_->SetBounds(gfx::RectF(-0.05f, -0.25f, 0.3f, 0.3f));
-  overlay_->Render(renderer);
-  renderer->ResetBlending();
-  */
 }
+

@@ -1,12 +1,13 @@
 
 group("compute_shader") {
   deps = [
-    ":cs_vertadd",
-    ":cs_blur",
+    ":vertadd",
+    ":blur",
   ]
 }
 
-executable("cs_vertadd") {
+executable("vertadd") {
+  output_name = "samples_cs_vertadd"
   sources = [ "vertadd.cc", ]
   deps = [
     "//lordaeron",
@@ -14,7 +15,8 @@ executable("cs_vertadd") {
   ]
 }
 
-executable("cs_blur") {
+executable("blur") {
+  output_name = "samples_cs_blur"
   sources = [ "blur.cc", ]
   deps = [
     "//lordaeron",
