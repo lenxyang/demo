@@ -149,6 +149,7 @@ void EffectedEnvNodeDelegate::Init(SceneNode* scene_node, RenderNode* node) {
 
 void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data, Renderer* r) {
   if (data && data->renderer.get()) {
+    InitShadowMapCamera(data->light, &data->camera);
     Renderer* renderer = data->renderer;
     RasterizerState* prev_rasterizer_state = renderer->GetRasterizerState();
     DepthStencilState* prev_depth_state = renderer->GetDepthStencilState();
