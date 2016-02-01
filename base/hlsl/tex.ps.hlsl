@@ -17,6 +17,7 @@ cbuffer c_buffer {
    SpotLight  spotlight;
    float      ambient_scalar;
    float      specular_scalar;
+   float      alpha;
 };
 
 Texture2D diffuse_map: register(t0);
@@ -31,7 +32,7 @@ float4 ps_main(VsOutput o):SV_TARGET {
   mtrl.diffuse  = color;
   mtrl.emission = float4(0.0f, 0.0f, 0.0f, 0.0f);
   mtrl.power    = 4;
-  mtrl.alpha    = 1.0f;
+  mtrl.alpha    = alpha;
 
   float3 dir_color = CalcDirLightColor(dirlight, normal, o.viewin, mtrl);
   float3 point_color = CalcPointLightColor(pointlight, o.worldpos,

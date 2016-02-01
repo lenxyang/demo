@@ -19,7 +19,8 @@ IMPLEMENT_EFFECT_DYNCREATE(TexturedEffect);
 const char TexturedEffect::kEffectName[] = "TexturedEffect";
 TexturedEffect::TexturedEffect()
     : ambient_scalar_(0.01f),
-      specular_scalar_(1.0f) {
+      specular_scalar_(1.0f),
+      alpha_(1.0f) {
 }
 
 TexturedEffect::~TexturedEffect() {
@@ -65,8 +66,8 @@ void TexturedEffect::InitGpuConstantTable() {
                             offsetof(ps_cbuffer, ambient_scalar), 1),
     GpuConstantsTable::Desc("specular_scalar", GpuConstantsType::kFloat,
                             offsetof(ps_cbuffer, specular_scalar), 1),
-    GpuConstantsTable::Desc("pad1", GpuConstantsType::kFloat,
-                            offsetof(ps_cbuffer, pad1), 1),
+    GpuConstantsTable::Desc("alpha", GpuConstantsType::kFloat,
+                            offsetof(ps_cbuffer, alpha), 1),
     GpuConstantsTable::Desc("pad2", GpuConstantsType::kFloat,
                             offsetof(ps_cbuffer, pad2), 1),
   };
@@ -116,7 +117,7 @@ void TexturedEffect::ApplyGpuConstantTable(Renderer* renderer) {
     tb->SetValue(2, &spot_light_, sizeof(lord::SpotLight));
     tb->SetValue(3, &ambient_scalar_, sizeof(float));
     tb->SetValue(4, &specular_scalar_, sizeof(float));
-    tb->SetValue(5, &specular_scalar_, sizeof(float));
+    tb->SetValue(5, &alpha_, sizeof(float));
     tb->SetValue(6, &specular_scalar_, sizeof(float));
   }
 }

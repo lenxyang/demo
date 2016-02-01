@@ -25,6 +25,18 @@ class WorldProvider : public azer::EffectParamsProvider {
   WorldProvider() : world_(azer::Matrix4::kIdentity) {}
   const char* GetProviderName() const override { return "WorldProvider";}
 
+  void SetWorld(const azer::Matrix4& mat) { world_ = mat;}
+  const azer::Matrix4& world() const { return world_; }
+ private:
+  mutable azer::Matrix4 world_;
+  DISALLOW_COPY_AND_ASSIGN(WorldProvider);
+};
+
+class TransformProvider : public azer::EffectParamsProvider {
+ public:
+  TransformProvider() : world_(azer::Matrix4::kIdentity) {}
+  const char* GetProviderName() const override { return "TransformProvider";}
+
   azer::TransformHolder* mutable_holder() { return &holder_;}
   const azer::Matrix4& world() const { 
     world_ = std::move(holder_.GenWorldMatrix());
@@ -33,7 +45,7 @@ class WorldProvider : public azer::EffectParamsProvider {
  private:
   mutable azer::Matrix4 world_;
   azer::TransformHolder holder_;
-  DISALLOW_COPY_AND_ASSIGN(WorldProvider);
+  DISALLOW_COPY_AND_ASSIGN(TransformProvider);
 };
 
 class LightProvider : public azer::EffectParamsProvider {

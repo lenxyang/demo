@@ -28,7 +28,7 @@ class TexturedEffect : public azer::Effect {
     lord::SpotLight  spotlight;
     float ambient_scalar;
     float specular_scalar;
-    float pad1;
+    float alpha;
     float pad2;
   };
 #pragma pack(pop)
@@ -42,6 +42,7 @@ class TexturedEffect : public azer::Effect {
   void set_ambient_scalar(float scalar) { ambient_scalar_ = scalar;}
   void set_specular_scalar(float scalar) { specular_scalar_ = scalar;}
   void set_diffuse_texture(azer::Texture* tex) { diffuse_map_ = tex;}
+  void set_alpha(float alpha) { alpha_ = alpha;}
 
   static azer::Effect* CreateObject() { return new TexturedEffect;}
  protected:
@@ -56,6 +57,7 @@ class TexturedEffect : public azer::Effect {
   azer::TexturePtr diffuse_map_;
   float ambient_scalar_;
   float specular_scalar_;
+  float alpha_;
   lord::DirLight dir_light_;
   lord::PointLight point_light_;
   lord::SpotLight spot_light_;

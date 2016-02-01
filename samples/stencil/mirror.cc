@@ -25,12 +25,15 @@ class MyRenderWindow : public lord::RenderWindow {
   TexturePtr ground_tex_;
   EntityPtr ground_entity_;
   TexturePtr mirror_tex_;
+  Plane mirror_plane_;
   std::vector<MeshPtr> meshes_;
   scoped_refptr<WorldProvider> world_provider_;
   scoped_refptr<CameraProvider> camera_provider_;
   scoped_refptr<LightProvider> light_provider_;
+  BlendingPtr blending_;
 
   RasterizerStatePtr rasterizer_state_;
+  RasterizerStatePtr reflect_raster_state_;
   DepthStencilStatePtr mirror_state_;
   DepthStencilStatePtr reflect_state_;
   scoped_refptr<TexturedEffect> tex_effect_;
@@ -81,6 +84,8 @@ void MyRenderWindow::OnInit() {
   tex_effect_ = (TexturedEffect*)res.effect.get();
   rasterizer_state_ = rs->CreateRasterizerState();
   rasterizer_state_->SetCullingMode(kCullNone);
+  reflect_raster_state_ = rs->CreateRasterizerState();
+  reflect_raster_state_->SetFrontFace(kClockwise);
 
   SpotLight spotlight;
   spotlight.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
@@ -148,6 +153,8 @@ void MyRenderWindow::OnInit() {
   params.column_width = 1.0f;
   mirror_entity_ = CreatePlaneEntity(tex_effect_->vertex_desc(), params, mat);
   mirror_entity_->set_primitive(kTriangleList);
+  mirror_plane_.reset(Vector3(0.0f, 5.0f, -4.99f),  Vector3(3.0f, 0.0f, -4.99f), 
+                      Vector3(-3.0f, 0.0f, -4.99f));
 
   ResPath walltex_path(UTF8ToUTF16("//data/media/brickwall.dds"));
   ResPath mirror_path(UTF8ToUTF16("//data/media/ice.dds"));
@@ -157,10 +164,41 @@ void MyRenderWindow::OnInit() {
   ground_tex_ = Load2DTexture(ground_path, env->file_system());
   SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
 
+  StencilOperStruct oper;
+  oper.failed_op = kStencilOperKeep;
+  oper.pass_op = kStencilOperReplace;
+  oper.depth_failed_op = kStencilOperKeep;
+  oper.stencil_func = kCompareFuncAlways;
   mirror_state_ = rs->CreateDepthStencilState();
-  reflect_state_ = rs->CreateDepthStencilState();
   mirror_state_->EnableStencil(true);
-  mirror_state_->SetFrontFaceOper();
+  mirror_state_->EnableDepthTest(true);
+  mirror_state_->SetDepthWriteMask(0x00);
+  mirror_state_->SetStencilMask(0xff, 0xff);
+  mirror_state_->SetFrontFaceOper(oper);
+  mirror_state_->SetBackFaceOper(oper);
+
+  oper.failed_op = kStencilOperKeep;
+  oper.pass_op = kStencilOperKeep;
+  oper.depth_failed_op = kStencilOperKeep;
+  oper.stencil_func = kCompareFuncEqual;
+  reflect_state_ = rs->CreateDepthStencilState();
+  reflect_state_->EnableStencil(true);
+  reflect_state_->EnableDepthTest(true);
+  reflect_state_->SetDepthWriteMask(0xff);
+  reflect_state_->SetStencilMask(0xff, 0xff);
+  reflect_state_->SetFrontFaceOper(oper);
+  reflect_state_->SetBackFaceOper(oper);
+
+  // blending
+  Blending::Desc blend_desc;
+  blend_desc.src = Blending::kSrcAlpha;
+  blend_desc.dest = Blending::kSrcInvAlpha;
+  blend_desc.oper = Blending::kAdd;
+  blend_desc.src_alpha = Blending::kOne;
+  blend_desc.dest_alpha = Blending::kZero;
+  blend_desc.alpha_oper = Blending::kAdd;
+  blend_desc.mask = Blending::kWriteColor;
+  blending_ = rs->CreateBlending(blend_desc);
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -183,12 +221,40 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
     renderer->UseEffect(tex_effect_);
     ground_entity_->Render(renderer);
 
-    tex_effect_->set_diffuse_texture(mirror_tex_);
-    renderer->UseEffect(tex_effect_);
-    mirror_entity_->Render(renderer);
+    // draw mirror
+    {
+      ScopedDepthStencilState scoped_state(renderer, mirror_state_);
+      tex_effect_->set_diffuse_texture(mirror_tex_);
+      renderer->UseEffect(tex_effect_);
+      mirror_entity_->Render(renderer);
+    }
+
+    {
+      ScopedRasterizerState scoped_raster_state(renderer, reflect_raster_state_);
+      ScopedDepthStencilState scoped_depth_state(renderer, reflect_state_);
+      world_provider_->SetWorld(MirrorTrans(mirror_plane_));
+      for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
+        (*iter)->Render(renderer);
+      }
+    }
+
+    // draw mirror
+    {
+      scoped_ptr<ScopedResetBlending> autoblending_;
+      autoblending_.reset(new ScopedResetBlending(renderer));
+      renderer->UseBlending(blending_.get(), 0);
+      world_provider_->SetWorld(Matrix4::kIdentity);
+      tex_effect_->set_alpha(0.6f);
+      tex_effect_->set_diffuse_texture(mirror_tex_);
+      renderer->UseEffect(tex_effect_);
+      mirror_entity_->Render(renderer);
+      tex_effect_->set_alpha(1.0f);
+    }
   }
   
+  /*
   for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
     (*iter)->Render(renderer);
   }
+  */
 }
