@@ -22,9 +22,12 @@ class MyRenderWindow : public lord::RenderWindow {
   EntityPtr wall_entity_;
   TexturePtr wall_tex_;
   EntityPtr mirror_entity_;
+  TexturePtr ground_tex_;
+  EntityPtr ground_entity_;
   TexturePtr mirror_tex_;
   EntityPtr entity_;
   SdkMeshMaterialPtr mtrl_;
+  RasterizerStatePtr rasterizer_state_;
   scoped_refptr<SdkMeshEffect> effect_;
   scoped_refptr<TexturedEffect> tex_effect_;
   scoped_ptr<CameraEventListener> listener_;
@@ -58,7 +61,7 @@ void MyRenderWindow::OnInit() {
   LordEnv* env = LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
 
-  ResPath modelpath(UTF8ToUTF16("//data/sdkmesh/Helmet.sdkmesh"));
+  ResPath modelpath(UTF8ToUTF16("//data/sdkmesh/dwarf/dwarf.sdkmesh"));
   SdkMeshData meshdata(env->file_system());;
   CHECK(meshdata.LoadFromFile(modelpath));
   entity_ = meshdata.CreateEntity(0, 0);
@@ -68,6 +71,8 @@ void MyRenderWindow::OnInit() {
   VariantResource res = LoadResource(texeffect_path, kResTypeEffect,
                                      env->resource_loader());
   tex_effect_ = (TexturedEffect*)res.effect.get();
+  rasterizer_state_ = rs->CreateRasterizerState();
+  rasterizer_state_->SetCullingMode(kCullNone);
 
   SpotLight spotlight;
   spotlight.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
@@ -92,7 +97,7 @@ void MyRenderWindow::OnInit() {
   tex_effect_->SetSpotLight(spotlight);
   tex_effect_->SetDirLight(dirlight);
 
-  Vector3 camera_pos(-3.0f, 8.0f, 3.0f);
+  Vector3 camera_pos(-10.0f, 8.0f, 10.0f);
   Vector3 lookat(0.0f, 0.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
@@ -105,39 +110,55 @@ void MyRenderWindow::OnInit() {
   params.column = 10.0;
   params.row_width = 1.0f;
   params.column_width = 1.0f;
-  wall_entity_ = CreatePlaneEntity(
-      tex_effect_->vertex_desc(), params, Matrix4::kIdentity);
+  Matrix4 wall_mat = Scale(1.0f, 0.5f, 1.0f) * Translate(0.0f, 5.0f, -5.0f)
+      * RotateX(Degree(-90.0f));
+  wall_entity_ = CreatePlaneEntity(tex_effect_->vertex_desc(), params, wall_mat);
   wall_entity_->set_primitive(kTriangleList);
+
+  const Matrix4& mat = Matrix4::kIdentity;
+  params.row = 10.0;
+  params.column = 10.0;
+  params.row_width = 1.0f;
+  params.column_width = 1.0f;
+  ground_entity_ = CreatePlaneEntity(tex_effect_->vertex_desc(), params, mat);
+  ground_entity_->set_primitive(kTriangleList);
 
   params.row = 10.0;
   params.column = 10.0;
   params.row_width = 1.0f;
   params.column_width = 1.0f;
-  mirror_entity_ = CreatePlaneEntity(
-      tex_effect_->vertex_desc(), params, Matrix4::kIdentity);
+  mirror_entity_ = CreatePlaneEntity(tex_effect_->vertex_desc(), params, mat);
   mirror_entity_->set_primitive(kTriangleList);
 
   ResPath walltex_path(UTF8ToUTF16("//data/media/brickwall.dds"));
   ResPath mirror_path(UTF8ToUTF16("//data/media/ice.dds"));
+  ResPath ground_path(UTF8ToUTF16("//data/media/checkboard.dds"));
   wall_tex_ = Load2DTexture(walltex_path, env->file_system());
   mirror_tex_ = Load2DTexture(mirror_path, env->file_system());
+  ground_tex_ = Load2DTexture(ground_path, env->file_system());
   SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
+  listener_->Update(args);
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   // draw scene
   // -- draw mirror and wall
-  Matrix4 wall_world = Translate(Vector3(-5.0f, 5.0f, 0.0f))
-      * RotateX(Degree(90.0f));
-  tex_effect_->SetPV(camera().GetProjViewMatrix());
-  tex_effect_->SetCameraPos(Vector4(camera().position(), 1.0f));
-  tex_effect_->SetWorld(wall_world);
-  tex_effect_->set_diffuse_texture(wall_tex_);
-  renderer->UseEffect(tex_effect_);
-  wall_entity_->Render(renderer);
+  {
+    ScopedRasterizerState scoped_state(renderer, rasterizer_state_);
+    tex_effect_->SetPV(camera().GetProjViewMatrix());
+    tex_effect_->SetCameraPos(Vector4(camera().position(), 1.0f));
+    tex_effect_->SetWorld(Matrix4::kIdentity);
+    tex_effect_->set_diffuse_texture(wall_tex_);
+    renderer->UseEffect(tex_effect_);
+    wall_entity_->Render(renderer);
+
+    tex_effect_->set_diffuse_texture(ground_tex_);
+    renderer->UseEffect(tex_effect_);
+    ground_entity_->Render(renderer);
+  }
   
   // --draw object
   effect_->SetPV(camera().GetProjViewMatrix());
