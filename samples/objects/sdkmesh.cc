@@ -65,9 +65,9 @@ void MyRenderWindow::OnInit() {
   };
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
   effect_ = new TexturedEffect;
-  Effect::ShaderPrograms programs;
-  CHECK(LoadShaderAtStage(kVertexStage, "demo/base/hlsl/tex.hlsl.vs", &programs));
-  CHECK(LoadShaderAtStage(kPixelStage, "demo/base/hlsl/tex.hlsl.ps", &programs));
+  Shaders programs;
+  CHECK(LoadStageShader(kVertexStage, "demo/base/hlsl/tex.hlsl.vs", &programs));
+  CHECK(LoadStageShader(kPixelStage, "demo/base/hlsl/tex.hlsl.ps", &programs));
   CHECK(effect_->Init(desc, programs));
 
   spotlight_.diffuse = Vector4(1.0f, 1.0f, 1.0f, 1.0f);

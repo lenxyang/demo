@@ -24,7 +24,7 @@ class TessEffect : public azer::Effect {
   ~TessEffect() {}
 
   const char* GetEffectName() const override { return kEffectName;}
-  bool Init(azer::VertexDesc* desc, const ShaderPrograms& sources) override {
+  bool Init(azer::VertexDesc* desc, const Shaders& sources) override {
     DCHECK(sources.size() == kRenderPipelineStageNum);
     DCHECK(!sources[kVertexStage].code.empty());
     DCHECK(!sources[kPixelStage].code.empty());
@@ -124,7 +124,7 @@ TessEffectPtr CreateTessEffect() {
   const VertexDesc::Desc kVertexDesc[] = {
     {"POSITION", 0, kVec4},
   };
-  Effect::ShaderPrograms shaders;
+  Shaders shaders;
   shaders.resize(kRenderPipelineStageNum);
   shaders[kVertexStage].stage = kVertexStage;
   shaders[kVertexStage].path = "effect.vs";

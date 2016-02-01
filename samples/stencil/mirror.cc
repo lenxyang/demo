@@ -25,8 +25,11 @@ class MyRenderWindow : public lord::RenderWindow {
   TexturePtr ground_tex_;
   EntityPtr ground_entity_;
   TexturePtr mirror_tex_;
-  EntityPtr entity_;
-  SdkMeshMaterialPtr mtrl_;
+  std::vector<MeshPtr> meshes_;
+  scoped_refptr<WorldProvider> world_provider_;
+  scoped_refptr<CameraProvider> camera_provider_;
+  scoped_refptr<LightProvider> light_provider_;
+
   RasterizerStatePtr rasterizer_state_;
   scoped_refptr<SdkMeshEffect> effect_;
   scoped_refptr<TexturedEffect> tex_effect_;
@@ -43,6 +46,12 @@ int main(int argc, char* argv[]) {
 
   ResourceLoader* resloader = env->resource_loader();
   InitDefaultLoader(resloader);
+
+  azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
+  adapterctx->RegisteAdapter(new SdkMeshMaterialEffectAdapter);
+  adapterctx->RegisteAdapter(new CameraProviderSdkMeshAdapter);
+  adapterctx->RegisteAdapter(new WorldProviderSdkMeshAdapter);
+  adapterctx->RegisteAdapter(new LightProviderSdkMeshAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -64,9 +73,7 @@ void MyRenderWindow::OnInit() {
   ResPath modelpath(UTF8ToUTF16("//data/sdkmesh/dwarf/dwarf.sdkmesh"));
   SdkMeshData meshdata(env->file_system());;
   CHECK(meshdata.LoadFromFile(modelpath));
-  entity_ = meshdata.CreateEntity(0, 0);
-  mtrl_ = meshdata.CreateMaterial(0);
-  effect_ = CreateSdkMeshEffect();
+  CHECK(meshdata.CreateMesh(&meshes_, adapterctx));
   ResPath texeffect_path(UTF8ToUTF16("//data/effects.xml:tex_effect"));
   VariantResource res = LoadResource(texeffect_path, kResTypeEffect,
                                      env->resource_loader());
@@ -104,6 +111,17 @@ void MyRenderWindow::OnInit() {
   listener_.reset(new CameraEventListener(mutable_camera()));
   view()->AddEventListener(listener_.get());
 
+  light_provider_ = new LightProvider;
+  light_provider_->SetDirLight(dirlight);
+  light_provider_->SetSpotLight(spotlight);
+  world_provider_ = new WorldProvider;
+  camera_provider_ = new CameraProvider(&camera());
+  for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
+    (*iter)->AddProvider(camera_provider_);
+    (*iter)->AddProvider(light_provider_);
+    (*iter)->AddProvider(world_provider_);
+  }
+
   // create mirror
   GeoPlaneParams params;
   params.row = 10.0;
@@ -115,7 +133,7 @@ void MyRenderWindow::OnInit() {
   wall_entity_ = CreatePlaneEntity(tex_effect_->vertex_desc(), params, wall_mat);
   wall_entity_->set_primitive(kTriangleList);
 
-  const Matrix4& mat = Matrix4::kIdentity;
+  Matrix4 mat = Matrix4::kIdentity;
   params.row = 10.0;
   params.column = 10.0;
   params.row_width = 1.0f;
@@ -123,8 +141,10 @@ void MyRenderWindow::OnInit() {
   ground_entity_ = CreatePlaneEntity(tex_effect_->vertex_desc(), params, mat);
   ground_entity_->set_primitive(kTriangleList);
 
-  params.row = 10.0;
-  params.column = 10.0;
+  mat = Scale(1.0f, 0.5f, 1.0f) * Translate(0.0f, 5.0f, -4.99f)
+      * RotateX(Degree(-90.0f));
+  params.row = 8.0;
+  params.column = 8.0;
   params.row_width = 1.0f;
   params.column_width = 1.0f;
   mirror_entity_ = CreatePlaneEntity(tex_effect_->vertex_desc(), params, mat);
@@ -158,15 +178,13 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
     tex_effect_->set_diffuse_texture(ground_tex_);
     renderer->UseEffect(tex_effect_);
     ground_entity_->Render(renderer);
+
+    tex_effect_->set_diffuse_texture(mirror_tex_);
+    renderer->UseEffect(tex_effect_);
+    mirror_entity_->Render(renderer);
   }
   
-  // --draw object
-  effect_->SetPV(camera().GetProjViewMatrix());
-  effect_->SetCameraPos(Vector4(camera().position(), 1.0f));
-  effect_->SetWorld(Matrix4::kIdentity);
-  effect_->SetDiffuseMap(mtrl_->diffusemap());
-  effect_->SetNormalMap(mtrl_->normalmap());
-  effect_->SetSpecularMap(mtrl_->specularmap());
-  renderer->UseEffect(effect_);
-  entity_->Render(renderer);
+  for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
+    (*iter)->Render(renderer);
+  }
 }

@@ -24,7 +24,7 @@ class SimpleEffect : public azer::Effect {
   ~SimpleEffect() {}
 
   const char* GetEffectName() const override { return kEffectName;}
-  bool Init(azer::VertexDesc* desc, const ShaderPrograms& sources) override {
+  bool Init(azer::VertexDesc* desc, const azer::Shaders& sources) override {
     DCHECK(sources.size() == kRenderPipelineStageNum);
     DCHECK(!sources[kVertexStage].code.empty());
     DCHECK(!sources[kPixelStage].code.empty());
@@ -97,7 +97,7 @@ SimpleEffectPtr CreateSimpleEffect() {
   const VertexDesc::Desc kVertexDesc[] = {
     {"POSITION", 0, kVec4},
   };
-  Effect::ShaderPrograms shaders;
+  azer::Shaders shaders;
   shaders.resize(kRenderPipelineStageNum);
   shaders[kVertexStage].path = "effect.vs";
   shaders[kVertexStage].stage = kVertexStage;
