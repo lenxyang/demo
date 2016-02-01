@@ -159,7 +159,7 @@ void EffectedEnvNodeDelegate::RenderDepthMap(LightData* data, Renderer* r) {
     renderer->Clear(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     data->scene_renderer->Render(renderer);
     renderer->SetRasterizerState(prev_rasterizer_state);
-    renderer->SetDepthStencilState(prev_depth_state);
+    renderer->SetDepthStencilState(prev_depth_state, 0);
   }
 }
 

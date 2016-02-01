@@ -209,13 +209,14 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   // draw scene
   // -- draw mirror and wall
   {
-    ScopedRasterizerState scoped_state(renderer, rasterizer_state_);
+    ScopedRasterizerState scoped_state(renderer);
+    renderer->SetRasterizerState(rasterizer_state_);
     tex_effect_->SetPV(camera().GetProjViewMatrix());
     tex_effect_->SetCameraPos(Vector4(camera().position(), 1.0f));
     tex_effect_->SetWorld(Matrix4::kIdentity);
     tex_effect_->set_diffuse_texture(wall_tex_);
     renderer->UseEffect(tex_effect_);
-    wall_entity_->Render(renderer);
+    // wall_entity_->Render(renderer);
 
     tex_effect_->set_diffuse_texture(ground_tex_);
     renderer->UseEffect(tex_effect_);
@@ -223,16 +224,18 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
 
     // draw mirror
     {
-      ScopedDepthStencilState scoped_state(renderer, mirror_state_);
+      ScopedDepthStencilState scoped_state(renderer);
+      ScopedRasterizerState scoped_raster_state(renderer);
+    
+      renderer->ClearDepthAndStencil(false, true, 1.0f, 0);
+      renderer->SetDepthStencilState(mirror_state_, 1);
       tex_effect_->set_diffuse_texture(mirror_tex_);
       renderer->UseEffect(tex_effect_);
       mirror_entity_->Render(renderer);
-    }
-
-    {
-      ScopedRasterizerState scoped_raster_state(renderer, reflect_raster_state_);
-      ScopedDepthStencilState scoped_depth_state(renderer, reflect_state_);
-      world_provider_->SetWorld(MirrorTrans(mirror_plane_));
+      
+      renderer->SetRasterizerState(reflect_raster_state_);
+      renderer->SetDepthStencilState(reflect_state_, 1);
+      world_provider_->SetWorld(ReflectTrans(mirror_plane_));
       for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
         (*iter)->Render(renderer);
       }
@@ -252,9 +255,7 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
     }
   }
   
-  /*
   for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
     (*iter)->Render(renderer);
   }
-  */
 }
