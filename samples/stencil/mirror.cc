@@ -31,7 +31,8 @@ class MyRenderWindow : public lord::RenderWindow {
   scoped_refptr<LightProvider> light_provider_;
 
   RasterizerStatePtr rasterizer_state_;
-  scoped_refptr<SdkMeshEffect> effect_;
+  DepthStencilStatePtr mirror_state_;
+  DepthStencilStatePtr reflect_state_;
   scoped_refptr<TexturedEffect> tex_effect_;
   scoped_ptr<CameraEventListener> listener_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
@@ -99,8 +100,6 @@ void MyRenderWindow::OnInit() {
   dirlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
   dirlight.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
   dirlight.enable = 1.0f;
-  effect_->SetSpotLight(spotlight);
-  effect_->SetDirLight(dirlight);
   tex_effect_->SetSpotLight(spotlight);
   tex_effect_->SetDirLight(dirlight);
 
@@ -157,6 +156,11 @@ void MyRenderWindow::OnInit() {
   mirror_tex_ = Load2DTexture(mirror_path, env->file_system());
   ground_tex_ = Load2DTexture(ground_path, env->file_system());
   SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
+
+  mirror_state_ = rs->CreateDepthStencilState();
+  reflect_state_ = rs->CreateDepthStencilState();
+  mirror_state_->EnableStencil(true);
+  mirror_state_->SetFrontFaceOper();
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
