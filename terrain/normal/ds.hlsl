@@ -35,12 +35,16 @@ SamplerState sam_heightmap {
     DsOutput o;
     float3 v1 = lerp(quad[0].position.xyz, quad[1].position.xyz, uv.x);
     float3 v2 = lerp(quad[3].position.xyz, quad[2].position.xyz, uv.x);
+    float3 n1 = lerp(quad[0].normal, quad[1].normal, uv.x);
+    float3 n2 = lerp(quad[3].normal, quad[2].normal, uv.x);
     float2 t1 = lerp(quad[0].texcoord, quad[1].texcoord, uv.x);
     float2 t2 = lerp(quad[3].texcoord, quad[2].texcoord, uv.x);
-    o.texcoord = lerp(t1, t2, uv.y);
-
     float3 pos = lerp(v1, v2, uv.y);
+    float3 normal = lerp(n1, n2, uv.y);
+    o.texcoord = lerp(t1, t2, uv.y);
+    
     pos.y = heightmap.SampleLevel(sam_heightmap, o.texcoord, 0).r;
+    o.normal = mul(world, float4(normal, 1.0));
     o.worldpos = mul(world, float4(pos, 1.0f)).xyz;
     o.position = mul(pv, float4(o.worldpos, 1.0f));
     o.viewin = normalize(eyepos.xyz - o.worldpos);

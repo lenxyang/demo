@@ -29,9 +29,6 @@ class TessEffect : public azer::Effect {
   const char* GetEffectName() const override { return kEffectName;}
   bool Init(azer::VertexDesc* desc, const Shaders& sources) override {
     DCHECK(sources.size() == kRenderPipelineStageNum);
-    DCHECK(!sources[kVertexStage].code.empty());
-    DCHECK(!sources[kPixelStage].code.empty());
-    DCHECK(desc);
     vertex_desc_ = desc;
     InitShaders(sources);
     InitGpuConstantTable();
@@ -51,7 +48,6 @@ class TessEffect : public azer::Effect {
 
   struct ps_cbuffer {
     lord::DirLight   dirlight;
-    lord::SpotLight  spotlight;
     float ambient_scalar;
     float specular_scalar;
     float alpha;
@@ -64,7 +60,6 @@ class TessEffect : public azer::Effect {
   void SetEyePos(const azer::Vector4& value) {eyepos_ = value;}
   void SetHeightmap(Texture* tex) { heightmap_ = tex;}
   void SetDirLight(const lord::DirLight& value) { dirlight_ = value;}
-  void SetSpotLight(const lord::SpotLight& value) { spotlight_ = value;}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override {
     {
@@ -84,11 +79,10 @@ class TessEffect : public azer::Effect {
       GpuConstantsTable* tb = gpu_table_[(int)kPixelStage].get();
       DCHECK(tb != NULL);
       tb->SetValue(0, &dirlight_, sizeof(lord::DirLight));
-      tb->SetValue(1, &spotlight_, sizeof(lord::SpotLight));
-      tb->SetValue(2, &ambient_scalar_, sizeof(float));
-      tb->SetValue(3, &specular_scalar_, sizeof(float));
-      tb->SetValue(4, &alpha_, sizeof(float));
-      tb->SetValue(5, &specular_scalar_, sizeof(float));
+      tb->SetValue(1, &ambient_scalar_, sizeof(float));
+      tb->SetValue(2, &specular_scalar_, sizeof(float));
+      tb->SetValue(3, &alpha_, sizeof(float));
+      tb->SetValue(4, &specular_scalar_, sizeof(float));
     }
   }
 
@@ -122,8 +116,6 @@ class TessEffect : public azer::Effect {
     GpuConstantsTable::Desc ps_table_desc[] = {
       GpuConstantsTable::Desc("light", offsetof(ps_cbuffer, dirlight),
                               sizeof(lord::DirLight), 1),
-      GpuConstantsTable::Desc("spotlight", offsetof(ps_cbuffer, spotlight),
-                              sizeof(lord::SpotLight), 1),
       GpuConstantsTable::Desc("ambient_scalar", GpuConstantsType::kFloat,
                               offsetof(ps_cbuffer, ambient_scalar), 1),
       GpuConstantsTable::Desc("specular_scalar", GpuConstantsType::kFloat,
@@ -143,7 +135,6 @@ class TessEffect : public azer::Effect {
   float specular_scalar_;
   float alpha_;
   lord::DirLight dirlight_;
-  lord::SpotLight spotlight_;
   Vector4 eyepos_;
   TexturePtr heightmap_;
   DISALLOW_COPY_AND_ASSIGN(TessEffect);
@@ -183,7 +174,6 @@ class MyRenderWindow : public lord::FrameWindow {
   TessEffectPtr effect_;
   RasterizerStatePtr state_;
   TexturePtr heightmap_;
-  SpotLight spotlight_;
   lord::DirLight dirlight_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
@@ -218,7 +208,7 @@ void MyRenderWindow::OnInit() {
   InitDefaultLoader(resloader);
 
   Vector3 camera_pos(0.0f, 50.0f, 3.0f);
-  Vector3 lookat(0.0f, 30.0f, 0.0f);
+  Vector3 lookat(0.0f, 50.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
@@ -234,20 +224,10 @@ void MyRenderWindow::OnInit() {
   heightmap_ = CreateHeightmapTextureFromFile("demo/data/terrain.raw", 100.0f);
   effect_->SetHeightmap(heightmap_);
 
-  spotlight_.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
-  spotlight_.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
-  spotlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
-  spotlight_.position = Vector4(0.0, 50.0f, 0.0f, 1.0f);
-  spotlight_.directional = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
-  spotlight_.phi = cos(Degree(60.0f));
-  spotlight_.theta = cos(Degree(45.0f));
-  spotlight_.range = 300.0f;
-  spotlight_.falloff = 0.5f;
-  spotlight_.enable = 1.0f;
   dirlight_.ambient = Vector4(0.1f, 0.1f, 0.1f, 0.1f);
   dirlight_.diffuse = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
   dirlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
-  dirlight_.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
+  dirlight_.directional = Vector4(1.0f, -1.0f, 1.0f, 0.0f);
   dirlight_.enable = 1.0f;
   SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
 }
@@ -268,7 +248,6 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
     Vector4(4.0f, 4.0f, 4.0f, 1.0f),
   };
 
-  effect_->SetSpotLight(spotlight_);
   effect_->SetDirLight(dirlight_);
   effect_->SetPV(camera().GetProjViewMatrix());
   for (uint32 i = 0; i < arraysize(position); ++i) {

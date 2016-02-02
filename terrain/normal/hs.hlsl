@@ -19,9 +19,9 @@ struct HsOutput {
 
 float CalcTesFactor(in float4 p) {
   float gMinDist = 20.0f;
-  float gMaxDist = 50.0f;
+  float gMaxDist = 40.0f;
   float gMinTess = 0.0f;
-  float gMaxTess = 6.0f;
+  float gMaxTess = 4.0f;
 
   float d = distance(p.xyz, eyepos);
   float s = saturate((d - gMinDist) / (gMaxDist - gMinDist));
@@ -31,10 +31,10 @@ float CalcTesFactor(in float4 p) {
 HSCOutput PatchConstantFunc(InputPatch<VsOutput, 4> patch, 
                             uint patchid : SV_PrimitiveID) {
   HSCOutput output;
-  float4 e0 = 0.5f * (patch[0].position + patch[2].position);
-  float4 e1 = 0.5f * (patch[0].position + patch[1].position);
-  float4 e2 = 0.5f * (patch[1].position + patch[3].position);
-  float4 e3 = 0.5f * (patch[2].position + patch[3].position);
+  float4 e0 = 0.5f * (patch[0].position + patch[1].position);
+  float4 e1 = 0.5f * (patch[1].position + patch[2].position);
+  float4 e2 = 0.5f * (patch[2].position + patch[3].position);
+  float4 e3 = 0.5f * (patch[3].position + patch[0].position);
   float4 c = 0.25f * (patch[0].position + patch[1].position + 
                       patch[2].position + patch[3].position);
   output.edge[0] = CalcTesFactor(e0);

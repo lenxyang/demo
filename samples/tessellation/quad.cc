@@ -278,10 +278,10 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  Vector3 points[] = {Vector3(-0.5f,  0.5f, 0.0f),
-                      Vector3(-0.5f, -0.5f, 0.0f),
-                      Vector3( 0.5f, -0.5f, 0.0f),
-                      Vector3( 0.5f,  0.5f, 0.0f),};
+  Vector3 points[] = {Vector3(-1.0f,  0.5f, 0.0f),
+                      Vector3(-1.0f, -0.5f, 0.0f),
+                      Vector3( 1.0f, -0.5f, 0.0f),
+                      Vector3( 1.0f,  0.5f, 0.0f),};
   entity_ = CreateGeoPointsList(points, (int)arraysize(points), 
                                 effect_->vertex_desc(), Matrix4::kIdentity);
   entity_->set_primitive(kControlPoint4);
@@ -296,24 +296,24 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   Vector3 position[] = {
-    Vector3(-1.0f, -1.0f, 0.0f),
-    Vector3(-1.0f,  1.0f, 0.0f),
-    Vector3( 1.0f,  1.0f, 0.0f),
-    Vector3( 1.0f, -1.0f, 0.0f),
+    Vector3(-1.2f, -1.0f, 0.0f),
+    Vector3(-1.2f,  1.0f, 0.0f),
+    Vector3( 1.2f,  1.0f, 0.0f),
+    Vector3( 1.2f, -1.0f, 0.0f),
   };
 
   Vector4 edge[] = {
     Vector4(4.0f, 4.0f, 4.0f, 1.0f),
     Vector4(3.0f, 3.0f, 3.0f, 3.0f),
     Vector4(3.0f, 3.0f, 3.0f, 4.0f),
-    Vector4(3.0f, 5.0f, 6.0f, 6.0f),
+    Vector4(2.0f, 3.0f, 4.0f, 5.0f),
   };
 
   Vector4 inside[] = {
     Vector4(4.0f, 4.0f, 4.0f, 1.0f),
     Vector4(3.0f, 3.0f, 3.0f, 1.0f),
     Vector4(3.0f, 3.0f, 3.0f, 1.0f),
-    Vector4(3.0f, 5.0f, 6.0f, 1.0f),
+    Vector4(2.0f, 2.0f, 2.0f, 2.0f),
   };
 
   effect_->SetPV(camera().GetProjViewMatrix());

@@ -2,9 +2,8 @@
 
 group("tessellation") {
   deps = [
-    ":tessellation_triangle",
-    ":tessellation_quad",
-    ":tessellation_grid",
+    ":triangle",
+    ":quad",
   ]
 }
 
@@ -16,7 +15,8 @@ static_library("tile") {
   ]
 }
 
-executable("tessellation_triangle") {
+executable("triangle") {
+  output_name = "samples_tessellation_triangle"
   sources = [ "triangle.cc",]
   deps = [
     "//lordaeron",
@@ -24,22 +24,12 @@ executable("tessellation_triangle") {
   ]
 }
 
-executable("tessellation_quad") {
+executable("quad") {
+  output_name = "samples_tessellation_quad"
   sources = [ "quad.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",
   ]
 }
-
-executable("tessellation_grid") {
-  sources = [ "grid.cc",]
-  deps = [
-    "//lordaeron",
-    "//demo/base",
-    ":tile",
-  ]
-}
-
-
 

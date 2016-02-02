@@ -12,14 +12,13 @@ struct DsOutput {
 
 cbuffer c_buffer {
    DirLight   dirlight;
-   SpotLight  spotlight;
    float      ambient_scalar;
    float      specular_scalar;
    float      alpha;
 };
 
 float4 ps_main(DsOutput o):SV_TARGET {
-  float4 color = float4(0.8, 0.8f, 0.8f, 1.0f);
+  float4 color = float4(0.4, 0.4f, 0.4f, 1.0f);
   float3 normal = o.normal;
   Matrial mtrl;
   mtrl.ambient  = (ambient_scalar) * color;
