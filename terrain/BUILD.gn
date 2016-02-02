@@ -1,23 +1,38 @@
 
 group("terrain") {
   deps = [
-    ":terrain_grid",
+    ":grid",
+    ":heightmap",
   ]
 }
 
-static_library("tile") {
-  sources = ["tile.cc",]
+static_library("util") {
+  sources = [
+    "tile.cc",
+    "util.cc",
+  ]
   deps = [
     "//lordaeron",
     "//demo/base",
   ]
 }
 
-executable("terrain_grid") {
-  sources = [ "terrain_grid.cc",]
+executable("grid") {
+  output_name = "demo_terrain_grid"
+  sources = [ "grid.cc", ]
   deps = [
     "//lordaeron",
     "//demo/base",
-    ":tile",
+    ":util",
+  ]
+}
+
+executable("heightmap") {
+  output_name = "demo_terrain_heightmap"
+  sources = ["heightmap.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":util",
   ]
 }

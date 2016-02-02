@@ -4,6 +4,7 @@ cbuffer c_buffer {
 };
 struct VsOutput {
   float4 position: SV_POSITION;
+  float2 texcoord: TEXCOORD;
 };
 struct HSCOutput {
   float edge[4]: SV_TessFactor;
@@ -11,6 +12,7 @@ struct HSCOutput {
 };
 struct HsOutput {
   float4 position: POSITION;
+  float2 texcoord: TEXCOORD;
 };
 
 float CalcTesFactor(in float4 p) {
@@ -53,5 +55,6 @@ HsOutput hs_main(InputPatch<VsOutput, 4> patch,
                  uint patchid: SV_PrimitiveID) {
   HsOutput output;
   output.position = patch[pointid].position;
+  output.texcoord = patch[pointid].texcoord;
   return output;
 };
