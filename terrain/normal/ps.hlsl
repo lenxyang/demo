@@ -30,7 +30,5 @@ float4 ps_main(DsOutput o):SV_TARGET {
   mtrl.alpha    = alpha;
 
   float3 dir_color = CalcDirLightColor(dirlight, normal, o.viewin, mtrl);
-  float3 spot_color = CalcSpotLightColor(spotlight, o.worldpos,
-                                         normal, o.viewin, mtrl);
-  return float4(spot_color + dir_color, mtrl.alpha);
+  return float4(dir_color, mtrl.alpha);
 };

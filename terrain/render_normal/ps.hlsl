@@ -1,12 +1,11 @@
 #pragma pack_matrix(row_major)
 
 
-struct VsOutput {
+struct GsOutput {
   float4 position:SV_POSITION;
-  float3 normal: NORMAL;
-  float2 texcoord: TEXCOORD;
 };
 
-float4 ps_main(DsOutput o):SV_TARGET {
-  float4 color = float4(0.8, 0.8f, 0.8f, 1.0f);
+float4 ps_main(GsOutput o):SV_TARGET {
+  float4 color = float4(0.0, 1.0f, 0.0f, 1.0f);
+  return color;
 };
