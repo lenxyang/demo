@@ -120,115 +120,10 @@ TessEffectPtr CreateTessEffect() {
     {"POSITION", 0, kVec4},
   };
   Shaders shaders;
-  shaders.resize(kRenderPipelineStageNum);
-  shaders[kVertexStage].path = "effect.vs";
-  shaders[kVertexStage].code = ""
-      "#pragma pack_matrix(row_major)\n"
-      "struct VsOutput {\n"
-      "  float4 position:SV_POSITION;\n"
-      "}\n;"
-      "struct VSInput {\n"
-      "  float4 position:POSITION;\n"
-      "};\n"
-      "VsOutput vs_main(VSInput input) {\n"
-      "  VsOutput o;"
-      "  o.position = input.position;"
-      "  return o;"
-      "}";
-  shaders[kHullStage].path = "effect.hs";
-  shaders[kHullStage].code = ""
-      "#pragma pack_matrix(row_major)\n"
-      "cbuffer c_buffer {"
-      "  float4 eyepos;"
-      "};\n"
-      "struct VsOutput {"
-      "  float4 position: SV_POSITION;"
-      "};\n"
-      "struct HSCOutput {"
-      "  float edge[4]: SV_TessFactor;"
-      "  float inside[2]:  SV_InsideTessFactor;"
-      "};\n"
-      "struct HsOutput {"
-      "  float4 position: POSITION;"
-      "};\n"
-      "float gMinDist = 0.0f;\n"
-      "float gMaxDist = 300.0f;\n"
-      "float gMinTess = 0.0f;\n"
-      "float gMaxTess = 3.0f;\n"
-      "float CalcTesFactor(float4 p) {"
-      "  float d = distance(p.xyz, eyepos.xyz);"
-      "  float s = saturate((d - gMinDist) / (gMaxDist - gMinDist));"
-      "  return pow(2, lerp(gMaxTess, gMinTess, s));"
-      "}\n"
-      "HSCOutput PatchConstantFunc(InputPatch<VsOutput, 4> patch, "
-      "  uint patchid : SV_PrimitiveID) {\n"
-      "  HSCOutput output;"
-      "  float4 e0 = 0.5f * (patch[0].position + patch[1].position);"
-      "  float4 e1 = 0.5f * (patch[1].position + patch[2].position);"
-      "  float4 e2 = 0.5f * (patch[2].position + patch[3].position);"
-      "  float4 e3 = 0.5f * (patch[3].position + patch[0].position);"
-      "  float4 c = 0.25f * (patch[0].position + patch[1].position + "
-      "                      patch[2].position + patch[3].position);"
-      "  output.edge[0] = CalcTesFactor(e0);"
-      "  output.edge[1] = CalcTesFactor(e1);"
-      "  output.edge[2] = CalcTesFactor(e2);"
-      "  output.edge[3] = CalcTesFactor(e3);"
-      "  output.inside[0] = CalcTesFactor(c);"
-      "  output.inside[1] = output.inside[0];"
-      "  return output;\n"
-      "}\n"
-      "[domain(\"quad\")]\n"
-      "[partitioning(\"integer\")]\n"
-      "[outputtopology(\"triangle_cw\")]\n"
-      "[outputcontrolpoints(4)]\n"
-      "[patchconstantfunc(\"PatchConstantFunc\")]\n"
-      "[maxtessfactor(64.0f)]\n"
-      "HsOutput hs_main(InputPatch<VsOutput, 4> patch, "
-      "  uint pointid: SV_OutputControlPointID, "
-      "  uint patchid: SV_PrimitiveID) {\n"
-      "  HsOutput output\n;"
-      "  output.position = patch[pointid].position;\n"
-      "  return output;\n"
-      "}\n";
-  shaders[kDomainStage].path = "effect.ds";
-  shaders[kDomainStage].code = ""
-      "#pragma pack_matrix(row_major)\n"
-      "cbuffer c_buffer {"
-      "  float4x4 pvw;"
-      "  float4x4 world;"
-      "};\n"
-      "struct HSCOutput {"
-      "  float edge[4]: SV_TessFactor;"
-      "  float inside[2]:  SV_InsideTessFactor;"
-      "};\n"
-      "struct HsOutput {"
-      "  float4 position: POSITION;"
-      "};\n"
-      "struct DsOutput {"
-      "  float4 position: SV_POSITION;"
-      "};\n"
-      "[domain(\"quad\")]\n"
-      "DsOutput ds_main(HSCOutput input, "
-      "                 const OutputPatch<HsOutput, 4> quad, "
-      "                 float2 uv : SV_DomainLocation) {\n"
-      "  DsOutput output;\n"
-      "  float3 v1 = lerp(quad[0].position.xyz, quad[1].position.xyz, uv.x);\n"
-      "  float3 v2 = lerp(quad[3].position.xyz, quad[2].position.xyz, uv.x);\n"
-      "  output.position = mul(pvw, float4(lerp(v1, v2, uv.y), 1.0f));\n"
-      "  return output;\n"
-      "}\n";
-  shaders[kPixelStage].path = "effect.ps";
-  shaders[kPixelStage].code = ""
-      "#pragma pack_matrix(row_major)\n"
-      "struct DsOutput {\n"
-      "  float4 position:SV_POSITION;\n"
-      "};\n"
-      "cbuffer c_buffer {\n"
-      "  float4 color;\n"
-      "};\n"
-      "float4 ps_main(DsOutput o):SV_TARGET {\n"
-      "  return color;"
-      "}\n";
+  LoadStageShader(kVertexStage, "demo/terrain/grid/vs.hlsl", &shaders);
+  LoadStageShader(kHullStage, "demo/terrain/grid/hs.hlsl", &shaders);
+  LoadStageShader(kDomainStage, "demo/terrain/grid/ds.hlsl", &shaders);
+  LoadStageShader(kPixelStage, "demo/terrain/grid/ps.hlsl", &shaders);
   VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
   TessEffectPtr ptr(new TessEffect);
   ptr->Init(desc, shaders);
@@ -286,7 +181,7 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  entity_ = CreateQuadTile(effect_->vertex_desc(), 4, 32.0f, Matrix4::kIdentity);
+  entity_ = CreateQuadTile(effect_->vertex_desc(), 4, 16.0f, Matrix4::kIdentity);
   entity_->set_primitive(kControlPoint4);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
