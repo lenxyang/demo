@@ -38,6 +38,16 @@ executable("heightmap") {
   ]
 }
 
+executable("render_normal") {
+  output_name = "demo_terrain_render_normal"
+  sources = ["render_normal.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":util",
+  ]
+}
+
 
 executable("normal") {
   output_name = "demo_terrain_normal"

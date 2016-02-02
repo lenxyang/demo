@@ -16,12 +16,87 @@ using lord::SceneNode;
 using namespace azer;
 using namespace lord;
 
+class NormalRenderEffect : public azer::Effect {
+ public:
+  static const char kEffectName[];
+  NormalRenderEffect() { world_ = Matrix4::kIdentity;  }
+  ~NormalRenderEffect() {}
+
+  const char* GetEffectName() const override { return kEffectName;}
+  bool Init(azer::VertexDesc* desc, const Shaders& sources) override {
+    DCHECK(sources.size() == kRenderPipelineStageNum);
+    DCHECK(!sources[kVertexStage].code.empty());
+    DCHECK(!sources[kPixelStage].code.empty());
+    DCHECK(desc);
+    vertex_desc_ = desc;
+    InitShaders(sources);
+    InitGpuConstantTable();
+    return true;
+  }
+
+#pragma pack(push, 4)
+  struct gs_cbuffer {
+    azer::Matrix4 pvw;
+  };
+#pragma pack(pop)
+
+  void SetPV(const azer::Matrix4& value) { pv_ = value;}
+  void SetWorld(const azer::Matrix4& value) { world_ = value;}
+  void SetHeightmap(Texture* tex) { heightmap_ = tex;}
+ protected:
+  void ApplyGpuConstantTable(azer::Renderer* renderer) override {
+    {
+      GpuConstantsTable* tb = gpu_table_[(int)kGeometryStage].get();
+      Matrix4 pvw = pv_ * world_;
+      DCHECK(tb != NULL);
+      tb->SetValue(0, &pv_, sizeof(Matrix4));
+    }
+  }
+
+  void UseTexture(azer::Renderer* renderer) override {
+    renderer->UseTexture(kVertexStage, 0, heightmap_);
+  }
+  void InitGpuConstantTable() {
+    RenderSystem* rs = RenderSystem::Current();
+    // generate GpuTable init for stage kVertexStage
+    GpuConstantsTable::Desc gs_table_desc[] = {
+      GpuConstantsTable::Desc("pvw", GpuConstantsType::kMatrix4,
+                              offsetof(gs_cbuffer, pvw), 1),
+    };
+    gpu_table_[kGeometryStage] = rs->CreateGpuConstantsTable(
+        arraysize(gs_table_desc), gs_table_desc);
+  }
+
+  azer::Matrix4 pv_;
+  azer::Matrix4 world_;
+  TexturePtr heightmap_;
+  DISALLOW_COPY_AND_ASSIGN(NormalRenderEffect);
+};
+const char NormalRenderEffect::kEffectName[] = "NormalRenderEffect";
+
+typedef scoped_refptr<NormalRenderEffect> NormalRenderEffectPtr;
+NormalRenderEffectPtr CreateNormalRenderEffect() {
+  // class PositionVertex
+  const VertexDesc::Desc kVertexDesc[] = {
+    {"POSITION", 0, kVec4},
+    {"TEXCOORD", 0, kVec2},
+  };
+  Shaders shaders;
+  LoadStageShader(kVertexStage, "demo/terrain/render_normal/vs.hlsl", &shaders);
+  LoadStageShader(kGeometryStage, "demo/terrain/render_normal/gs.hlsl", &shaders);
+  LoadStageShader(kPixelStage, "demo/terrain/render_normal/ps.hlsl", &shaders);
+  VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
+  NormalRenderEffectPtr ptr(new NormalRenderEffect);
+  ptr->Init(desc, shaders);
+  return ptr;
+}
+
 class TessEffect : public azer::Effect {
  public:
   static const char kEffectName[];
   TessEffect() {
     world_ = Matrix4::kIdentity;
-    color_ = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+    color_ = Vector4(0.6f, 0.6f, 0.6f, 1.0f);
   }
   ~TessEffect() {}
 
@@ -146,13 +221,17 @@ class MyRenderWindow : public lord::FrameWindow {
   void OnUpdateFrame(const azer::FrameArgs& args) override;
   void OnRenderFrame(const azer::FrameArgs& args, Renderer* renderer) override;
   SceneNodePtr InitScene() { 
-	return SceneNodePtr(new SceneNode);
+    return SceneNodePtr(new SceneNode);
   }
+
  private:
   EntityPtr entity_;
   TessEffectPtr effect_;
+  NormalRenderEffectPtr normal_effect_;
   RasterizerStatePtr state_;
   TexturePtr heightmap_;
+  SpotLight spotlight_;
+  lord::DirLight dirlight_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -191,7 +270,8 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  entity_ = CreateQuadTile(effect_->vertex_desc(), 8, 8.0f, Matrix4::kIdentity);
+  normal_effect_ = CreateNormalRenderEffect();
+  entity_ = CreateQuadTile(effect_->vertex_desc(), 8, 2.0f, Matrix4::kIdentity);
   entity_->set_primitive(kControlPoint4);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
@@ -201,6 +281,24 @@ void MyRenderWindow::OnInit() {
 
   heightmap_ = CreateHeightmapTextureFromFile("demo/data/terrain.raw", 100.0f);
   effect_->SetHeightmap(heightmap_);
+  normal_effect_->SetHeightmap(heightmap_);
+
+  spotlight_.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  spotlight_.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+  spotlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  spotlight_.position = Vector4(0.0, 50.0f, 0.0f, 1.0f);
+  spotlight_.directional = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
+  spotlight_.phi = cos(Degree(60.0f));
+  spotlight_.theta = cos(Degree(45.0f));
+  spotlight_.range = 300.0f;
+  spotlight_.falloff = 0.5f;
+  spotlight_.enable = 1.0f;
+  dirlight_.ambient = Vector4(0.1f, 0.1f, 0.1f, 0.1f);
+  dirlight_.diffuse = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+  dirlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  dirlight_.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
+  dirlight_.enable = 1.0f;
+  SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -208,9 +306,12 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   effect_->SetPV(camera().GetProjViewMatrix());
-  effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   effect_->SetEyePos(Vector4(camera().position(), 1.0f));
   renderer->UseEffect(effect_);
+  entity_->DrawIndex(renderer);
+
+  normal_effect_->SetPV(camera().GetProjViewMatrix());
+  renderer->UseEffect(normal_effect_);
   renderer->SetRasterizerState(state_);
   entity_->DrawIndex(renderer);
 }

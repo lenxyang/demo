@@ -133,6 +133,8 @@ class TessEffect : public azer::Effect {
       GpuConstantsTable::Desc("pad2", GpuConstantsType::kFloat,
                               offsetof(ps_cbuffer, pad2), 1),
     };
+    gpu_table_[kPixelStage] = rs->CreateGpuConstantsTable(
+      arraysize(ps_table_desc), ps_table_desc);
   }
 
   azer::Matrix4 pv_;
@@ -221,7 +223,7 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  entity_ = CreateQuadTile(effect_->vertex_desc(), 8, 8.0f, Matrix4::kIdentity);
+  entity_ = CreateQuadTile(effect_->vertex_desc(), 8, 2.0f, Matrix4::kIdentity);
   entity_->set_primitive(kControlPoint4);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
@@ -235,18 +237,19 @@ void MyRenderWindow::OnInit() {
   spotlight_.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
   spotlight_.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
   spotlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
-  spotlight_.position = Vector4(-3.0, 3.0f, 0.0f, 1.0f);
+  spotlight_.position = Vector4(0.0, 50.0f, 0.0f, 1.0f);
   spotlight_.directional = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
-  spotlight_.phi = cos(Degree(45.0f));
-  spotlight_.theta = cos(Degree(30.0f));
-  spotlight_.range = 30.0f;
+  spotlight_.phi = cos(Degree(60.0f));
+  spotlight_.theta = cos(Degree(45.0f));
+  spotlight_.range = 300.0f;
   spotlight_.falloff = 0.5f;
   spotlight_.enable = 1.0f;
   dirlight_.ambient = Vector4(0.1f, 0.1f, 0.1f, 0.1f);
-  dirlight_.diffuse = Vector4(0.5f, 0.5f, 0.4f, 1.0f);
+  dirlight_.diffuse = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
   dirlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
   dirlight_.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
   dirlight_.enable = 1.0f;
+  SetClearColor(Vector4(0.0f, 0.0f, 1.0f, 0.0f));
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -273,7 +276,7 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
     effect_->SetWorld(world);
     effect_->SetEyePos(Vector4(camera().position(), 1.0f));
     renderer->UseEffect(effect_);
-    renderer->SetRasterizerState(state_);
+    // renderer->SetRasterizerState(state_);
     entity_->DrawIndex(renderer);
   }
 }

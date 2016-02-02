@@ -19,7 +19,7 @@ cbuffer c_buffer {
 };
 
 float4 ps_main(DsOutput o):SV_TARGET {
-  float4 color = float4(0.5, 0.5f, 0.5f, 1.0f);
+  float4 color = float4(0.8, 0.8f, 0.8f, 1.0f);
   float3 normal = o.normal;
   Matrial mtrl;
   mtrl.ambient  = (ambient_scalar) * color;
