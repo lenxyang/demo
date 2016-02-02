@@ -3,6 +3,7 @@ group("terrain") {
   deps = [
     ":grid",
     ":heightmap",
+    ":normal",
   ]
 }
 
@@ -30,6 +31,17 @@ executable("grid") {
 executable("heightmap") {
   output_name = "demo_terrain_heightmap"
   sources = ["heightmap.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":util",
+  ]
+}
+
+
+executable("normal") {
+  output_name = "demo_terrain_normal"
+  sources = ["normal.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",
