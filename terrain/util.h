@@ -5,7 +5,7 @@
 #include "base/basictypes.h"
 #include "azer/render/render.h"
 
-bool LoadRawHeightmap(const std::string& path, int32* width, int64* height, 
+bool LoadRawHeightmap(const std::string& path, int32* width, int32* height, 
                       std::vector<uint8>* data);
 
 azer::TexturePtr CreateHeightmapTexture(const std::vector<uint8>& data, 

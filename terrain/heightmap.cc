@@ -56,6 +56,7 @@ class TessEffect : public azer::Effect {
   void SetWorld(const azer::Matrix4& value) { world_ = value;}
   void SetColor(const azer::Vector4& value) {color_ = value;}
   void SetEyePos(const azer::Vector4& value) {eyepos_ = value;}
+  void SetHeightmap(Texture* tex) { heightmap_ = tex;}
  protected:
   void ApplyGpuConstantTable(azer::Renderer* renderer) override {
     Matrix4 pvw = std::move(pv_ * world_);
@@ -151,6 +152,7 @@ class MyRenderWindow : public lord::FrameWindow {
   EntityPtr entity_;
   TessEffectPtr effect_;
   RasterizerStatePtr state_;
+  TexturePtr heightmap_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -183,19 +185,22 @@ void MyRenderWindow::OnInit() {
   ResourceLoader* resloader = env->resource_loader();
   InitDefaultLoader(resloader);
 
-  Vector3 camera_pos(0.0f, 0.0f, 3.0f);
-  Vector3 lookat(0.0f, 0.0f, 0.0f);
+  Vector3 camera_pos(0.0f, 50.0f, 3.0f);
+  Vector3 lookat(0.0f, 30.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  entity_ = CreateQuadTile(effect_->vertex_desc(), 4, 16.0f, Matrix4::kIdentity);
+  entity_ = CreateQuadTile(effect_->vertex_desc(), 8, 8.0f, Matrix4::kIdentity);
   entity_->set_primitive(kControlPoint4);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
   state_->SetFillMode(kWireFrame);
   state_->SetCullingMode(kCullNone);
   set_draw_gridline(false);
+
+  heightmap_ = CreateHeightmapTextureFromFile("demo/data/terrain.raw", 100.0f);
+  effect_->SetHeightmap(heightmap_);
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {

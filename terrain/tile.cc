@@ -23,8 +23,8 @@ EntityPtr CreateQuadTile(VertexDesc* vertex_desc, int32 level, float cell,
     for (int32 j = 0; j < kGridLine; ++j) {
       float x = xbegin + j * cell;
       Vector4 pos = mat * Vector4(x, 0.0f, z, 1.0f);
-      float tu = x / (float)(kGridLine - 1);
-      float tv = z / (float)(kGridLine - 1);
+      float tu = j / (float)(kGridLine - 1);
+      float tv = i / (float)(kGridLine - 1);
       vpack.WriteVector3Or4(pos, VertexPos(0, 0));
       vpack.WriteVector3Or4(Vector4(0.0f, 1.0f, 1.0f, 0.0f), npos);
       vpack.WriteVector2(Vector2(tu, tv), tpos);
