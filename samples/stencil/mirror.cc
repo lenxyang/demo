@@ -38,6 +38,8 @@ class MyRenderWindow : public lord::RenderWindow {
   DepthStencilStatePtr reflect_state_;
   scoped_refptr<TexturedEffect> tex_effect_;
   scoped_ptr<CameraEventListener> listener_;
+  SpotLight spotlight_;
+  lord::DirLight dirlight_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -52,10 +54,10 @@ int main(int argc, char* argv[]) {
   InitDefaultLoader(resloader);
 
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
-  adapterctx->RegisteAdapter(new SdkMeshMaterialEffectAdapter);
-  adapterctx->RegisteAdapter(new CameraProviderSdkMeshAdapter);
-  adapterctx->RegisteAdapter(new WorldProviderSdkMeshAdapter);
-  adapterctx->RegisteAdapter(new LightProviderSdkMeshAdapter);
+  adapterctx->RegisteAdapter(new SdkMeshMaterialTexEffectAdapter);
+  adapterctx->RegisteAdapter(new CameraProviderTexEffectAdapter);
+  adapterctx->RegisteAdapter(new WorldProviderTexEffectAdapter);
+  adapterctx->RegisteAdapter(new LightProviderTexEffectAdapter);
 
   gfx::Rect init_bounds(0, 0, 800, 600);
   MyRenderWindow* window(new MyRenderWindow(init_bounds));
@@ -74,39 +76,44 @@ void MyRenderWindow::OnInit() {
   LordEnv* env = LordEnv::instance();
   azer::EffectAdapterContext* adapterctx = env->GetEffectAdapterContext();
 
-  ResPath modelpath(UTF8ToUTF16("//data/sdkmesh/dwarf/dwarf.sdkmesh"));
-  SdkMeshData meshdata(env->file_system());;
-  CHECK(meshdata.LoadFromFile(modelpath));
-  CHECK(meshdata.CreateMesh(&meshes_, adapterctx));
+  // create effect
   ResPath texeffect_path(UTF8ToUTF16("//data/effects.xml:tex_effect"));
   VariantResource res = LoadResource(texeffect_path, kResTypeEffect,
                                      env->resource_loader());
   tex_effect_ = (TexturedEffect*)res.effect.get();
+
+  ResPath modelpath(UTF8ToUTF16("//data/sdkmesh/dwarf/dwarf.sdkmesh"));
+  SdkMeshData meshdata(env->file_system());;
+  CHECK(meshdata.LoadFromFile(modelpath));
+  CHECK(meshdata.CreateMesh(&meshes_, adapterctx));
+  for (uint32 i = 0; i < meshes_.size(); ++i) {
+    Mesh* mesh = meshes_[i];
+    for (int32 j = 1; j < mesh->part_count(); ++j) {
+      mesh->part_at(j)->SetEffect(tex_effect_);
+    }
+  }
+
   rasterizer_state_ = rs->CreateRasterizerState();
   rasterizer_state_->SetCullingMode(kCullNone);
   reflect_raster_state_ = rs->CreateRasterizerState();
   reflect_raster_state_->SetFrontFace(kClockwise);
 
-  SpotLight spotlight;
-  spotlight.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
-  spotlight.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
-  spotlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
-  spotlight.position = Vector4(-3.0, 3.0f, 0.0f, 1.0f);
-  spotlight.directional = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
-  spotlight.phi = cos(Degree(45.0f));
-  spotlight.theta = cos(Degree(30.0f));
-  spotlight.range = 30.0f;
-  spotlight.falloff = 0.5f;
-  spotlight.enable = 1.0f;
-
-  lord::DirLight dirlight;
-  dirlight.ambient = Vector4(0.1f, 0.1f, 0.1f, 0.1f);
-  dirlight.diffuse = Vector4(0.5f, 0.5f, 0.4f, 1.0f);
-  dirlight.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
-  dirlight.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
-  dirlight.enable = 1.0f;
-  tex_effect_->SetSpotLight(spotlight);
-  tex_effect_->SetDirLight(dirlight);
+  
+  spotlight_.diffuse = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  spotlight_.ambient = Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+  spotlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  spotlight_.position = Vector4(-3.0, 3.0f, 0.0f, 1.0f);
+  spotlight_.directional = Vector4(1.0f, -1.0f, 0.0f, 0.0f);
+  spotlight_.phi = cos(Degree(45.0f));
+  spotlight_.theta = cos(Degree(30.0f));
+  spotlight_.range = 30.0f;
+  spotlight_.falloff = 0.5f;
+  spotlight_.enable = 1.0f;
+  dirlight_.ambient = Vector4(0.1f, 0.1f, 0.1f, 0.1f);
+  dirlight_.diffuse = Vector4(0.5f, 0.5f, 0.4f, 1.0f);
+  dirlight_.specular = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+  dirlight_.directional = Vector4(1.0f, -1.0f, -1.0f, 0.0f);
+  dirlight_.enable = 1.0f;
 
   Vector3 camera_pos(-10.0f, 8.0f, 10.0f);
   Vector3 lookat(0.0f, 0.0f, 0.0f);
@@ -116,8 +123,8 @@ void MyRenderWindow::OnInit() {
   view()->AddEventListener(listener_.get());
 
   light_provider_ = new LightProvider;
-  light_provider_->SetDirLight(dirlight);
-  light_provider_->SetSpotLight(spotlight);
+  light_provider_->SetDirLight(dirlight_);
+  light_provider_->SetSpotLight(spotlight_);
   world_provider_ = new WorldProvider;
   camera_provider_ = new CameraProvider(&camera());
   for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
@@ -208,6 +215,8 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   // draw scene
   // -- draw mirror and wall
+  tex_effect_->SetSpotLight(spotlight_);
+  tex_effect_->SetDirLight(dirlight_);
   {
     ScopedRasterizerState scoped_state(renderer);
     renderer->SetRasterizerState(rasterizer_state_);
@@ -254,7 +263,15 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
       tex_effect_->set_alpha(1.0f);
     }
   }
-  
+  /*
+  for (uint32 i = 0; i < meshes_.size(); ++i) {
+    Mesh* mesh = meshes_[i];
+    for (int32 j = 1; j < mesh->part_count(); ++j) {
+      mesh->part_at(j)->Render(renderer);
+      break;
+    }
+  }
+  */
   for (auto iter = meshes_.begin(); iter != meshes_.end(); ++iter) {
     (*iter)->Render(renderer);
   }

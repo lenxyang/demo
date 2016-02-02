@@ -9,6 +9,8 @@
 #include "lordaeron/scene/scene_node.h"
 #include "lordaeron/scene/ui_scene_render.h"
 #include "demo/base/resource_util.h"
+#include "demo/base/sdkmesh.h"
+#include "demo/base/sdkmesh_effect.h"
 
 using namespace lord;
 using namespace azer;
@@ -170,5 +172,75 @@ void LordEnvNodeDelegateTexEffectAdapter::Apply(
       effect->SetSpotLight(light->spot_light());
     }
   }
+}
+
+// class SdkMeshMaterialTexEffectAdapter
+SdkMeshMaterialTexEffectAdapter::SdkMeshMaterialTexEffectAdapter() {}
+EffectAdapterKey SdkMeshMaterialTexEffectAdapter::key() const {
+  return std::make_pair(typeid(TexturedEffect).name(),
+                        typeid(SdkMeshMaterial).name());
+}
+
+void SdkMeshMaterialTexEffectAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(TexturedEffect));
+  CHECK(typeid(*params) == typeid(SdkMeshMaterial));
+  const SdkMeshMaterial* provider = (const SdkMeshMaterial*)params;
+  TexturedEffect* effect = dynamic_cast<TexturedEffect*>(e);
+  effect->set_diffuse_texture(provider->diffusemap());
+  // effect->SetNormalMap(provider->normalmap());
+  // effect->SetSpecularMap(provider->specularmap());
+}
+
+// class CameraProviderTexturedEffectProvider
+CameraProviderTexEffectAdapter::CameraProviderTexEffectAdapter() {}
+EffectAdapterKey CameraProviderTexEffectAdapter::key() const {
+  return std::make_pair(typeid(TexturedEffect).name(),
+                        typeid(CameraProvider).name());
+}
+
+void CameraProviderTexEffectAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(TexturedEffect));
+  CHECK(typeid(*params) == typeid(CameraProvider));
+  const CameraProvider* provider = (const CameraProvider*)params;
+  TexturedEffect* effect = dynamic_cast<TexturedEffect*>(e);
+  effect->SetPV(provider->GetProjViewMatrix());
+  effect->SetCameraPos(Vector4(provider->GetCameraPos(), 1.0f));
+}
+
+
+// class CameraProviderTexturedEffectProvider
+WorldProviderTexEffectAdapter::WorldProviderTexEffectAdapter() {}
+EffectAdapterKey WorldProviderTexEffectAdapter::key() const {
+  return std::make_pair(typeid(TexturedEffect).name(),
+                        typeid(WorldProvider).name());
+}
+
+void WorldProviderTexEffectAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(TexturedEffect));
+  CHECK(typeid(*params) == typeid(WorldProvider));
+  const WorldProvider* provider = (const WorldProvider*)params;
+  TexturedEffect* effect = dynamic_cast<TexturedEffect*>(e);
+  effect->SetWorld(provider->world());
+}
+
+
+// class LightProviderTexturedEffectProvider
+LightProviderTexEffectAdapter::LightProviderTexEffectAdapter() {}
+EffectAdapterKey LightProviderTexEffectAdapter::key() const {
+  return std::make_pair(typeid(TexturedEffect).name(),
+                        typeid(LightProvider).name());
+}
+
+void LightProviderTexEffectAdapter::Apply(
+    Effect* e, const EffectParamsProvider* params) const  {
+  CHECK(typeid(*e) == typeid(TexturedEffect));
+  CHECK(typeid(*params) == typeid(LightProvider));
+  const LightProvider* provider = (const LightProvider*)params;
+  TexturedEffect* effect = dynamic_cast<TexturedEffect*>(e);
+  effect->SetSpotLight(provider->spot_light());
+  effect->SetDirLight(provider->dir_light());
 }
 

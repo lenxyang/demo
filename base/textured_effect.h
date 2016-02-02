@@ -89,3 +89,39 @@ class LordEnvNodeDelegateTexEffectAdapter : public EffectParamsAdapter {
  private:
   DISALLOW_COPY_AND_ASSIGN(LordEnvNodeDelegateTexEffectAdapter);
 };
+
+class SdkMeshMaterialTexEffectAdapter : public EffectParamsAdapter {
+ public:
+  SdkMeshMaterialTexEffectAdapter();
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(SdkMeshMaterialTexEffectAdapter);
+};
+
+class CameraProviderTexEffectAdapter : public EffectParamsAdapter {
+ public:
+  CameraProviderTexEffectAdapter();
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CameraProviderTexEffectAdapter);
+};
+
+class WorldProviderTexEffectAdapter : public EffectParamsAdapter {
+ public:
+  WorldProviderTexEffectAdapter();
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(WorldProviderTexEffectAdapter);
+};
+
+class LightProviderTexEffectAdapter : public EffectParamsAdapter {
+ public:
+  LightProviderTexEffectAdapter();
+  EffectAdapterKey key() const override;
+  void Apply(Effect* e, const EffectParamsProvider* params) const override;
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LightProviderTexEffectAdapter);
+};
