@@ -8,7 +8,7 @@ group("particle") {
 
 executable("fire") {
   output_name = "samples_particle_fire"
-  sources = [ "fire.cc", ]
+  sources = [ "fire.cc", "particle.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",
