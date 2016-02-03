@@ -236,26 +236,10 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 }
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
-  Vector3 position[] = {
-    Vector3(-1.0f, -1.0f, 0.0f),
-  };
-
-  Vector4 edge[] = {
-    Vector4(4.0f, 4.0f, 4.0f, 1.0f),
-  };
-
-  Vector4 inside[] = {
-    Vector4(4.0f, 4.0f, 4.0f, 1.0f),
-  };
-
   effect_->SetDirLight(dirlight_);
   effect_->SetPV(camera().GetProjViewMatrix());
-  for (uint32 i = 0; i < arraysize(position); ++i) {
-    Matrix4 world = Translate(position[i]);
-    effect_->SetWorld(world);
-    effect_->SetEyePos(Vector4(camera().position(), 1.0f));
-    renderer->UseEffect(effect_);
-    // renderer->SetRasterizerState(state_);
-    entity_->DrawIndex(renderer);
-  }
+  effect_->SetEyePos(Vector4(camera().position(), 1.0f));
+  renderer->UseEffect(effect_);
+  // renderer->SetRasterizerState(state_);
+  entity_->DrawIndex(renderer);
 }

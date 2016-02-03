@@ -218,13 +218,13 @@ void MyRenderWindow::OnInit() {
   InitDefaultLoader(resloader);
   FileSystem* fs = env->file_system();
 
-  Vector3 camera_pos(0.0f, 50.0f, 3.0f);
-  Vector3 lookat(0.0f, 50.0f, 0.0f);
+  Vector3 camera_pos(0.0f, 10.0f, 3.0f);
+  Vector3 lookat(0.0f, 10.0f, 0.0f);
   Vector3 up(0.0f, 1.0f, 0.0f);
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  entity_ = CreateQuadTile(effect_->vertex_desc(), 8, 2.0f, Matrix4::kIdentity);
+  entity_ = CreateQuadTile(effect_->vertex_desc(), 5, 2.0f, Matrix4::kIdentity);
   entity_->set_primitive(kControlPoint4);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();
@@ -232,7 +232,7 @@ void MyRenderWindow::OnInit() {
   state_->SetCullingMode(kCullNone);
   set_draw_gridline(false);
 
-  heightmap_ = CreateHeightmapTextureFromFile("demo/data/terrain.raw", 100.0f);
+  heightmap_ = CreateHeightmapTextureFromFile("demo/data/terrain.raw", 10.0f);
   effect_->SetHeightmap(heightmap_);
 
 

@@ -18,8 +18,8 @@ struct HsOutput {
 };
 
 float CalcTesFactor(in float4 p) {
-  float gMinDist = 20.0f;
-  float gMaxDist = 80.0f;
+  float gMinDist = 10.0f;
+  float gMaxDist = 40.0f;
   float gMinTess = 0.0f;
   float gMaxTess = 3.0f;
 
