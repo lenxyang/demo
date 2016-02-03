@@ -2,13 +2,24 @@
 
 group("particle") {
   deps = [
+    ":static_fire",
     ":fire",
   ]
 }
 
+executable("static_fire") {
+  output_name = "samples_particle_static_fire"
+  sources = [ "static_fire.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
+
+
 executable("fire") {
   output_name = "samples_particle_fire"
-  sources = [ "fire.cc", "particle.cc",]
+  sources = [ "fire.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",
