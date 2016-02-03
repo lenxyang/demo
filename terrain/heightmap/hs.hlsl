@@ -1,15 +1,20 @@
 #pragma pack_matrix(row_major)
+
 cbuffer c_buffer {
+  float4x4 world;
   float4 eyepos;
 };
+
 struct VsOutput {
   float4 position: SV_POSITION;
   float2 texcoord: TEXCOORD;
 };
+
 struct HSCOutput {
   float edge[4]: SV_TessFactor;
   float inside[2]:  SV_InsideTessFactor;
 };
+
 struct HsOutput {
   float4 position: POSITION;
   float2 texcoord: TEXCOORD;
@@ -23,15 +28,15 @@ float CalcTesFactor(in float4 p) {
 
   float d = distance(p.xyz, eyepos);
   float s = saturate((d - gMinDist) / (gMaxDist - gMinDist));
-  return pow(2, lerp(gMaxTess, gMinTess, s));
+  return pow(2, floor(lerp(gMaxTess, gMinTess, s)));
 }
 
 HSCOutput PatchConstantFunc(InputPatch<VsOutput, 4> patch, 
                             uint patchid : SV_PrimitiveID) {
   HSCOutput output;
-  float4 e0 = 0.5f * (patch[0].position + patch[2].position);
+  float4 e0 = 0.5f * (patch[3].position + patch[0].position);
   float4 e1 = 0.5f * (patch[0].position + patch[1].position);
-  float4 e2 = 0.5f * (patch[1].position + patch[3].position);
+  float4 e2 = 0.5f * (patch[1].position + patch[2].position);
   float4 e3 = 0.5f * (patch[2].position + patch[3].position);
   float4 c = 0.25f * (patch[0].position + patch[1].position + 
                       patch[2].position + patch[3].position);

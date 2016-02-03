@@ -69,7 +69,8 @@ class TessEffect : public azer::Effect {
     {
       GpuConstantsTable* tb = gpu_table_[(int)kHullStage].get();
       DCHECK(tb != NULL);
-      tb->SetValue(0, &eyepos_, sizeof(Vector4));
+      tb->SetValue(0, &world_, sizeof(Matrix4));
+      tb->SetValue(1, &eyepos_, sizeof(Vector4));
     }
 
     {
@@ -97,6 +98,8 @@ class TessEffect : public azer::Effect {
 
     // generate GpuTable init for stage kPixelStage
     GpuConstantsTable::Desc hs_table_desc[] = {
+      GpuConstantsTable::Desc("world", GpuConstantsType::kMatrix4,
+                              offsetof(ds_cbuffer, world), 1),
       GpuConstantsTable::Desc("eyepos", GpuConstantsType::kVector4,
                               offsetof(hs_cbuffer, eyepos), 1),
     };
@@ -191,7 +194,7 @@ void MyRenderWindow::OnInit() {
   mutable_camera()->reset(camera_pos, lookat, up);
 
   effect_ = CreateTessEffect();
-  entity_ = CreateQuadTile(effect_->vertex_desc(), 8, 8.0f, Matrix4::kIdentity);
+  entity_ = CreateQuadTile(effect_->vertex_desc(), 5, 1.0f, Matrix4::kIdentity);
   entity_->set_primitive(kControlPoint4);
 
   state_ = RenderSystem::Current()->CreateRasterizerState();

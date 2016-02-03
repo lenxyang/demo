@@ -296,21 +296,21 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   Vector3 position[] = {
-    Vector3(-1.2f, -1.0f, 0.0f),
     Vector3(-1.2f,  1.0f, 0.0f),
     Vector3( 1.2f,  1.0f, 0.0f),
+    Vector3(-1.2f, -1.0f, 0.0f),
     Vector3( 1.2f, -1.0f, 0.0f),
   };
 
   Vector4 edge[] = {
-    Vector4(4.0f, 4.0f, 4.0f, 1.0f),
+    Vector4(1.0f, 2.0f, 3.0f, 4.0f),
+    Vector4(2.0f, 3.0f, 4.0f, 5.0f),
     Vector4(3.0f, 3.0f, 3.0f, 3.0f),
     Vector4(3.0f, 3.0f, 3.0f, 4.0f),
-    Vector4(2.0f, 3.0f, 4.0f, 5.0f),
   };
 
   Vector4 inside[] = {
-    Vector4(4.0f, 4.0f, 4.0f, 1.0f),
+    Vector4(2.0f, 2.0f, 4.0f, 1.0f),
     Vector4(3.0f, 3.0f, 3.0f, 1.0f),
     Vector4(3.0f, 3.0f, 3.0f, 1.0f),
     Vector4(2.0f, 2.0f, 2.0f, 2.0f),
