@@ -4,6 +4,9 @@ group("terrain") {
     ":grid",
     ":heightmap",
     ":normal",
+    ":render_normal",
+    ":texture",
+    ":texture_array",
   ]
 }
 
@@ -52,6 +55,27 @@ executable("render_normal") {
 executable("normal") {
   output_name = "demo_terrain_normal"
   sources = ["normal.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":util",
+  ]
+}
+
+executable("texture") {
+  output_name = "demo_terrain_texture"
+  sources = ["texture.cc",]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+    ":util",
+  ]
+}
+
+
+executable("texture_array") {
+  output_name = "demo_terrain_texture_array"
+  sources = ["texture_array.cc",]
   deps = [
     "//lordaeron",
     "//demo/base",

@@ -14,7 +14,7 @@ TexturePtr Load2DTexture(const ResPath& path, FileSystem* fs) {
 
   const char* data = (char*)(&contents.front());
   ImageDataPtr imgdata(ImageData::Load2D(data, contents.size()));
-  ImagePtr img(new Image(imgdata, Image::k2D));
+  ImagePtr img(new Image(imgdata, kTex2D));
   RenderSystem* rs = RenderSystem::Current();
   Texture::Options opt;
   opt.target = kBindTargetShaderResource;

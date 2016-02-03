@@ -38,7 +38,7 @@ TexturePtr CreateHeightmapTexture(const std::vector<uint8>& data, float scalar,
     }
   }
 
-  ImagePtr img(new Image(imgdata, Image::k2D));
+  ImagePtr img(new Image(imgdata, kTex2D));
   Texture::Options opt;
   opt.size = gfx::Size(width, height);
   opt.target = kBindTargetShaderResource;
