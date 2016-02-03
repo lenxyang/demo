@@ -10,5 +10,6 @@ group("samples") {
     "depth",
     "compute_shader",
     "tessellation",
+    "particle",
   ]
 }

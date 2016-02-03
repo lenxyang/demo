@@ -1,0 +1,16 @@
+
+
+group("particle") {
+  deps = [
+    ":fire",
+  ]
+}
+
+executable("fire") {
+  output_name = "samples_particle_fire"
+  sources = [ "fire.cc", ]
+  deps = [
+    "//lordaeron",
+    "//demo/base",
+  ]
+}
