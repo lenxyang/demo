@@ -505,14 +505,14 @@ azer::EntityPtr SdkMeshData::CreateEntity(int32 mesh_index, int32 part_index) {
   int vidx = subset.vertex_data_index;
   VertexBufferPtr vb = vbs_[vidx];
   if (!vb.get()) {
-    vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata_vec_[vidx]);
+    vb = rs->CreateVertexBuffer(kVertexBufferOpt(), vdata_vec_[vidx]);
     vbs_[vidx] = vb;
   }
 
   int iidx = subset.indices_data_index;
   IndicesBufferPtr ib = (iidx >= 0) ? ibs_[iidx] : NULL;
   if (!ib.get() && iidx >= 0) {
-    ib = rs->CreateIndicesBuffer(IndicesBuffer::Options(), idata_vec_[iidx]);
+    ib = rs->CreateIndicesBuffer(kIndicesBufferOpt(), idata_vec_[iidx]);
     ibs_[iidx] = ib;
   }
   

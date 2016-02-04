@@ -88,14 +88,14 @@ class TessEffect : public azer::Effect {
   }
 
   void UseTexture(azer::Renderer* renderer) override {
-    renderer->UseTexture(kVertexStage, 0, heightmap_);
-    renderer->UseTexture(kDomainStage, 0, heightmap_);
-    renderer->UseTexture(kPixelStage, 0, layer_tex_[0]);
-    renderer->UseTexture(kPixelStage, 1, layer_tex_[1]);
-    renderer->UseTexture(kPixelStage, 2, layer_tex_[2]);
-    renderer->UseTexture(kPixelStage, 3, layer_tex_[3]);
-    renderer->UseTexture(kPixelStage, 4, layer_tex_[4]);
-    renderer->UseTexture(kPixelStage, 5, layer_tex_[5]);
+    renderer->BindTexture(kVertexStage, 0, heightmap_);
+    renderer->BindTexture(kDomainStage, 0, heightmap_);
+    renderer->BindTexture(kPixelStage, 0, layer_tex_[0]);
+    renderer->BindTexture(kPixelStage, 1, layer_tex_[1]);
+    renderer->BindTexture(kPixelStage, 2, layer_tex_[2]);
+    renderer->BindTexture(kPixelStage, 3, layer_tex_[3]);
+    renderer->BindTexture(kPixelStage, 4, layer_tex_[4]);
+    renderer->BindTexture(kPixelStage, 5, layer_tex_[5]);
   }
   void InitGpuConstantTable() {
     RenderSystem* rs = RenderSystem::Current();
@@ -266,7 +266,7 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
     effect_->SetLayer(layer_tex_[i], i);
   }
   effect_->SetEyePos(Vector4(camera().position(), 1.0f));
-  renderer->UseEffect(effect_);
+  renderer->BindEffect(effect_);
   // renderer->SetRasterizerState(state_);
   entity_->DrawIndex(renderer);
 }

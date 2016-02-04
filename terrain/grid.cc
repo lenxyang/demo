@@ -197,7 +197,7 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetColor(Vector4(1.0f, 0.0f, 0.0f, 1.0f));
   effect_->SetEyePos(Vector4(camera().position(), 1.0f));
-  renderer->UseEffect(effect_);
+  renderer->BindEffect(effect_);
   renderer->SetRasterizerState(state_);
   entity_->DrawIndex(renderer);
 }

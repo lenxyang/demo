@@ -91,9 +91,9 @@ scoped_refptr<SdkMeshEffect> CreateSdkMeshEffect() {
 }
 
 void SdkMeshEffect::UseTexture(azer::Renderer* renderer) {
-  renderer->UseTexture(kPixelStage, 0, diffusemap_.get());
-  renderer->UseTexture(kPixelStage, 1, normalmap_.get());
-  renderer->UseTexture(kPixelStage, 2, specularmap_.get());
+  renderer->BindTexture(kPixelStage, 0, diffusemap_.get());
+  renderer->BindTexture(kPixelStage, 1, normalmap_.get());
+  renderer->BindTexture(kPixelStage, 2, specularmap_.get());
 }
 
 // class SdkMeshMaterialEffectAdapter

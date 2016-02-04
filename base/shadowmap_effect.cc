@@ -123,8 +123,8 @@ void ShadowMapEffect::ApplyGpuConstantTable(Renderer* renderer) {
 }
 
 void ShadowMapEffect::UseTexture(Renderer* renderer) {
-  renderer->UseTexture(kPixelStage, 0, diffuse_map_.get());
-  renderer->UseTexture(kPixelStage, 1, spotlight_shadowmap_.get());
+  renderer->BindTexture(kPixelStage, 0, diffuse_map_.get());
+  renderer->BindTexture(kPixelStage, 1, spotlight_shadowmap_.get());
 }
 
 // class RenderNodeShadowMapEffectAdapter

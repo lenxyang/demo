@@ -1,7 +1,7 @@
 #include <memory>
 
 #include "azer/render/geometry.h"
-#include "base/random/pseudo_random.h"
+#include "base/rand_util.h"_
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/base.h"
@@ -77,8 +77,8 @@ class StreamOutEffect : public Effect {
   }
 
   Vector3 initpos_;
-  TexturePtr random_tex_;
   float game_time_;
+  TexturePtr random_tex_;
   DISALLOW_COPY_AND_ASSIGN(StreamOutEffect);
 };
 
@@ -182,15 +182,22 @@ FireEffectPtr CreateFireEffect() {
 
 class MyRenderWindow : public lord::RenderWindow {
  public:
-  MyRenderWindow(const gfx::Rect& rect) : lord::RenderWindow(rect) {}
+  MyRenderWindow(const gfx::Rect& rect) 
+      : lord::RenderWindow(rect),
+        wichi_(0) {
+  }
   void OnInit() override;
   void OnUpdateFrame(const FrameArgs& args) override;
   void OnRenderFrame(const FrameArgs& args, Renderer* renderer) override;
  private:
-  EntityPtr entity_;
+  VertexBufferPtr initvb_;
+  VertexBufferPtr particlevb_[2];
+  StreamOutEffectPtr streamout_effect_;
   FireEffectPtr effect_;
   TexturePtr texture_;
+  TexturePtr randomtex_;
   RasterizerStatePtr state_;
+  int32 which_;
   DISALLOW_COPY_AND_ASSIGN(MyRenderWindow);
 };
 
@@ -242,13 +249,34 @@ void MyRenderWindow::OnInit() {
   particle.type = 1;
   SlotVertexDataPtr vdata(new SlotVertexData(effect_->vertex_desc(), 1));
   memcpy(vdata->pointer(), &particle, sizeof(particle));
-  VertexBufferPtr vb = rs->CreateVertexBuffer(VertexBuffer::Options(), vdata);
-  entity_ = new Entity(vb);
-  entity_->set_primitive(kPointList);
+  VertexBuffer::Options vbopt;
+  vbopt.target = kBindTargetVertexBuffer | kBindTargetStreamOut;
+  initvb_ = rs->CreateVertexBuffer(vbopt, vdata);
+  particlevb_[0] = rs->CreateVertexBuffer(vbopt, vdata);
+  particlevb_[1] = rs->CreateVertexBuffer(vbopt, vdata);
   ResPath respath(UTF8ToUTF16("//samples/particle/tex/flare0.dds"));
   texture_ = Load2DTexture(respath, fs);
   state_ = rs->CreateRasterizerState();
   state_->SetCullingMode(kCullNone);
+
+  // init random vertex
+  ::base::PseudoRandom random(0);
+  const int32 kRandomWidth = 1024;
+  ImageDataPtr data(new ImageData(kRandomWidth, 1, kRGBAnf));
+  Vector4* cur = data->data();
+  for (int i = 0; i < RandomWidth; ++i, ++cur) {
+    float x = ::base::RandDouble();
+    float y = ::base::RandDouble();
+    float z = ::base::RandDouble();
+    float w = 0.0f;
+    *cur = Vector4(x, y, z, w);
+  }
+  ImagePtr img(new Image(data, kTex2D));
+  Texture::Options texopt;
+  texopt.size = gfx::Size(kRandomWidth, 1);
+  texopt.format = kRGBAf;
+  randomtex_ = rs->CreateTexture(texopt, img);
+  streamout_effect_ = CreateStreamOutEffect();
 }
 
 void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
@@ -256,9 +284,15 @@ void MyRenderWindow::OnUpdateFrame(const FrameArgs& args) {
 
 void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   renderer->SetRasterizerState(state_);
+
+  which_ ^= 1;
+  int cur = which_;
+  int prev = which_ ^ 1;
+  
+  
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetEyepos(camera().position());
   effect_->SetTexture(texture_);
   renderer->UseEffect(effect_);
-  entity_->Draw(renderer);
+  initvb_->Draw(renderer);
 }

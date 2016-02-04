@@ -125,7 +125,7 @@ void TexturedEffect::ApplyGpuConstantTable(Renderer* renderer) {
 }
 
 void TexturedEffect::UseTexture(Renderer* renderer) {
-  renderer->UseTexture(kPixelStage, 0, diffuse_map_.get());
+  renderer->BindTexture(kPixelStage, 0, diffuse_map_.get());
 }
 
 // class RenderNodeTexturedEffectAdapter

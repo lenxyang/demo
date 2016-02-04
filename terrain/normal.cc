@@ -87,8 +87,8 @@ class TessEffect : public azer::Effect {
   }
 
   void UseTexture(azer::Renderer* renderer) override {
-    renderer->UseTexture(kVertexStage, 0, heightmap_);
-    renderer->UseTexture(kDomainStage, 0, heightmap_);
+    renderer->BindTexture(kVertexStage, 0, heightmap_);
+    renderer->BindTexture(kDomainStage, 0, heightmap_);
   }
   void InitGpuConstantTable() {
     RenderSystem* rs = RenderSystem::Current();
@@ -239,7 +239,7 @@ void MyRenderWindow::OnRenderFrame(const FrameArgs& args, Renderer* renderer) {
   effect_->SetDirLight(dirlight_);
   effect_->SetPV(camera().GetProjViewMatrix());
   effect_->SetEyePos(Vector4(camera().position(), 1.0f));
-  renderer->UseEffect(effect_);
+  renderer->BindEffect(effect_);
   // renderer->SetRasterizerState(state_);
   entity_->DrawIndex(renderer);
 }
