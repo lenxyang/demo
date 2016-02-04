@@ -1,7 +1,6 @@
 #include <memory>
 
 #include "azer/render/geometry.h"
-#include "base/random/pseudo_random.h"
 #include "lordaeron/sandbox/sandbox.h"
 #include "lordaeron/resource/variant_resource.h"
 #include "demo/base/base.h"
@@ -23,64 +22,6 @@ struct Particle {
   uint32 type;
 };
 #pragma pack(pop)
-
-class StreamOutEffect : public Effect {
- public:
-  static const char kEffectName[];
-  StreamOutEffect() {}
-  ~StreamOutEffect() {}
-
-  const char* GetEffectName() const override { return kEffectName;}
-  bool Init(VertexDesc* desc, const Shaders& sources) override {
-    DCHECK(sources.size() == kRenderPipelineStageNum);
-    DCHECK(desc);
-    vertex_desc_ = desc;
-    InitShaders(sources);
-    InitGpuConstantTable();
-    return true;
-  }
-
-#pragma pack(push, 4)
-  struct gs_cbuffer {
-    Vector3 initpos;
-    float game_time;
-  };
-#pragma pack(pop)
-
-  void SetInitPos(const Vector3& value) {initpos_ = value;}
-  void SetGameTime(float t) { game_time_ = t;}
-  void SetRandomTex(Texture* tex) { random_tex_ = tex;}
- protected:
-  void ApplyGpuConstantTable(Renderer* renderer) override {
-    {
-      GpuConstantsTable* tb = gpu_table_[(int)kGeometryStage].get();
-      DCHECK(tb != NULL);
-      tb->SetValue(0, &initpos_, sizeof(initpos_));
-      tb->SetValue(1, &game_time_, sizeof(game_time_));
-    }
-  }
-  void InitGpuConstantTable() {
-    RenderSystem* rs = RenderSystem::Current();
-    // generate GpuTable init for stage kVertexStage
-    GpuConstantsTable::Desc gs_table_desc[] = {
-      GpuConstantsTable::Desc("initpos", GpuConstantsType::kVector3,
-                              offsetof(gs_cbuffer, initpos), 1),
-      GpuConstantsTable::Desc("game_time", GpuConstantsType::kFloat,
-                              offsetof(gs_cbuffer, game_time), 1),
-    };
-    gpu_table_[kGeometryStage] = rs->CreateGpuConstantsTable(
-        arraysize(gs_table_desc), gs_table_desc);
-  }
-
-  void UseTexture(azer::Renderer* renderer) override {
-    renderer->UseTexture(kGeometryStage, 0, random_tex_);
-  }
-
-  Vector3 initpos_;
-  TexturePtr random_tex_;
-  float game_time_;
-  DISALLOW_COPY_AND_ASSIGN(StreamOutEffect);
-};
 
 class FireEffect : public Effect {
  public:
@@ -140,25 +81,6 @@ class FireEffect : public Effect {
   DISALLOW_COPY_AND_ASSIGN(FireEffect);
 };
 const char FireEffect::kEffectName[] = "FireEffect";
-
-typedef scoped_refptr<StreamOutEffect> StreamOutEffectPtr;
-StreamOutEffectPtr CreateStreamOutEffect() {
-  // class PositionVertex
-  const VertexDesc::Desc kVertexDesc[] = {
-    {"INITPOS", 0, kVec3},
-    {"VELOCITY", 0, kVec3},
-    {"SIZE", 0, kVec2},
-    {"AGE", 0, kFloat},
-    {"TYPE", 0, kUint},
-  };
-  Shaders shaders;
-  LoadStageShader(kVertexStage, "demo/samples/particle/fire/so.vs.hlsl", &shaders);
-  LoadStageShader(kGeometryStage, "demo/samples/particle/fire/so.gs.hlsl", &shaders);
-  VertexDescPtr desc(new VertexDesc(kVertexDesc, arraysize(kVertexDesc)));
-  StreamOutEffectPtr ptr(new StreamOutEffect);
-  ptr->Init(desc, shaders);
-  return ptr;
-}
 
 typedef scoped_refptr<FireEffect> FireEffectPtr;
 FireEffectPtr CreateFireEffect() {
